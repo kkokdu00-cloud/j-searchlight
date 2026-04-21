@@ -169,6 +169,762 @@ tr.new-row{animation:fadeIn .4s ease}
 /* ── Responsive ── */
 @media(max-width:768px){.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+
+/* ══ drug-search 뷰 스타일 ══ */
+#view-drug .main-content, #view-commission .main-content {
+  padding: 24px 32px;
+  flex: 1;
+  overflow-y: auto;
+}
+#view-drug, #view-commission {
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #f0f2f7;
+}
+/* CSS Variables */
+:root {
+  --primary: #1e4d9b;
+  --primary-dark: #153a78;
+  --primary-light: #2c6fbd;
+  --sidebar-width: 220px;
+  --success: #28a745;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --text-dark: #212529;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --bg-light: #f8f9fa;
+  --white: #ffffff;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  font-size: 14px;
+  color: var(--text-dark);
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: linear-gradient(180deg, #1a3a6b 0%, #2c5aa0 100%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-logo .logo-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.sidebar-logo h1 {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
+.sidebar-logo p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.sidebar-nav {
+  padding: 16px 0;
+  flex: 1;
+}
+
+.nav-section-title {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 20px 4px;
+}
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-nav a:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-left-color: rgba(255, 255, 255, 0.5);
+}
+
+.sidebar-nav a.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  border-left-color: #ffffff;
+}
+
+.sidebar-nav a .nav-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+}
+
+/* ===================== MAIN CONTENT ===================== */
+.main-content {
+  margin-left: var(--sidebar-width);
+  padding: 0;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.page-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.page-header .breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.page-body {
+  padding: 24px 28px;
+}
+
+/* ===================== CARDS ===================== */
+.card {
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* ===================== SEARCH SECTION ===================== */
+.search-card {
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.search-type-group {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.search-type-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.search-type-group input[type="radio"] {
+  accent-color: var(--primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.search-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  height: 42px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(30, 77, 155, 0.1);
+}
+
+.search-input::placeholder {
+  color: #adb5bd;
+}
+
+/* ===================== BUTTONS ===================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  box-shadow: 0 2px 8px rgba(30, 77, 155, 0.3);
+}
+
+.btn-success {
+  background: var(--success);
+  color: var(--white);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #218838;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: var(--white);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 15px;
+}
+
+/* ===================== RESULTS SECTION ===================== */
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.results-count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.results-count strong {
+  color: var(--primary);
+  font-size: 15px;
+}
+
+/* ===================== TABLE ===================== */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  font-size: 13px;
+}
+
+thead th {
+  background: var(--primary);
+  color: var(--white);
+  padding: 11px 10px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12.5px;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,0.15);
+  position: sticky;
+  top: 0;
+}
+
+thead th:last-child {
+  border-right: none;
+}
+
+tbody tr {
+  border-bottom: 1px solid #eef0f3;
+  transition: background-color 0.15s;
+  cursor: default;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-light);
+}
+
+tbody tr:hover {
+  background-color: #e8f0fe !important;
+}
+
+tbody tr.double-click-hint {
+  cursor: pointer;
+}
+
+tbody td {
+  padding: 9px 10px;
+  text-align: center;
+  color: var(--text-dark);
+  white-space: nowrap;
+  border-right: 1px solid #eef0f3;
+}
+
+tbody td:last-child {
+  border-right: none;
+}
+
+tbody td.td-left {
+  text-align: left;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background: #dbe9ff;
+  color: var(--primary);
+}
+
+.badge-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-bio {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #a5d6a7;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  vertical-align: middle;
+}
+
+/* 필터 행 */
+.search-filter-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-dark);
+  font-weight: 500;
+  user-select: none;
+}
+
+.filter-checkbox-label input[type="checkbox"] {
+  accent-color: #1b5e20;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state .empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+/* ===================== LOADING SPINNER ===================== */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.spinner {
+  width: 52px;
+  height: 52px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+.loading-text {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===================== MODAL / POPUP ===================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 1100px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalIn 0.2s ease;
+}
+
+@keyframes modalIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.modal-header .modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bg-light);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: var(--text-dark);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ===================== UPLOAD PAGE ===================== */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fafbfc;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+  border-color: var(--primary);
+  background: #eef4ff;
+}
+
+.upload-zone .upload-icon {
+  font-size: 44px;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+.upload-zone p {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.upload-zone .file-name {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.upload-zone input[type="file"] {
+  display: none;
+}
+
+.upload-instructions {
+  background: #f0f5ff;
+  border: 1px solid #c7d9f8;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--primary-dark);
+  line-height: 1.7;
+}
+
+.upload-instructions ul {
+  padding-left: 18px;
+  margin-top: 6px;
+}
+
+/* ===================== ALERT / TOAST ===================== */
+.alert {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+/* ===================== COMMISSION RATE COLORS ===================== */
+td.rate-high { color: #155724; font-weight: 700; }
+td.rate-med  { color: #856404; font-weight: 600; }
+td.rate-low  { color: var(--text-muted); }
+
+/* ===================== UTILITY ===================== */
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mb-3 { margin-bottom: 12px; }
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.flex-wrap { flex-wrap: wrap; }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .main-content {
+    margin-left: 0;
+  }
+}
+ 
+.badge-bio { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 700; vertical-align: middle; } 
+.badge-price-ok { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 700; vertical-align: middle; } 
+.badge-price-down { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 700; vertical-align: middle; }
+
+.disease-codes-wrap { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:10px 16px; background:#f8f9fa; border-bottom:1px solid #e9ecef; }
+.disease-label { font-size:12px; color:#6c757d; font-weight:600; margin-right:4px; white-space:nowrap; }
+.disease-tag { font-size:12px; padding:2px 8px; border-radius:12px; background:#e9ecef; color:#495057; }
+.disease-tag.disease-primary { background:#d0ebff; color:#1971c2; font-weight:600; }
+
+
 </style>
 </head>
 <body>
@@ -180,7 +936,9 @@ tr.new-row{animation:fadeIn .4s ease}
   <button class="topbar-btn reset-btn" onclick="resetAll()">🔄 초기화</button>
   <button class="topbar-btn active" id="nav-input"  onclick="showView('input')">신규 입력</button>
   <button class="topbar-btn"        id="nav-list"   onclick="showView('list')">저장 목록</button>
-  <button class="topbar-btn"        id="nav-master" onclick="showView('master')">마스터 관리</button>
+  <button class="topbar-btn"        id="nav-master"     onclick="showView('master')">마스터 관리</button>
+  <button class="topbar-btn"        id="nav-drug"       onclick="showView('drug')">🔍 의약품 검색</button>
+  <button class="topbar-btn"        id="nav-commission" onclick="showView('commission')">💊 수수료 관리</button>
 </div>
 
 <div class="wrap">
@@ -446,6 +1204,321 @@ tr.new-row{animation:fadeIn .4s ease}
   </div>
 </div><!-- /view-master -->
 
+<!-- ════════════════════════════════════════════
+     VIEW: 의약품 검색
+════════════════════════════════════════════ -->
+<div id="view-drug" style="display:none;">
+  <div class="main-content">
+    <div class="page-header">
+      <h2>의약품 제품 검색</h2>
+      <span class="breadcrumb">홈 &rsaquo; 제품 검색</span>
+    </div>
+
+    <div class="page-body">
+
+      <!-- Search Card -->
+      <div class="search-card">
+        <div class="search-type-group">
+          <label>
+            <input type="radio" name="searchType" value="company" checked />
+            제약사명
+          </label>
+          <label>
+            <input type="radio" name="searchType" value="code" />
+            제품코드
+          </label>
+          <label>
+            <input type="radio" name="searchType" value="name" />
+            제품명·성분명
+          </label>
+        </div>
+        <div class="search-input-row">
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="검색어를 입력하세요.."
+            autocomplete="off"
+          />
+          <button class="btn btn-primary" onclick="searchDrugs()">
+            🔍 검색
+          </button>
+        </div>
+        <div class="search-filter-row">
+          <label class="filter-checkbox-label">
+            <input type="checkbox" id="bioFilter" onchange="applyFilters()" />
+            <span class="badge badge-bio">생동성</span> 인정품목만 보기
+          </label>
+          <label class="filter-checkbox-label" style="margin-left:16px;">
+            <input type="checkbox" id="priceFilter" onchange="applyFilters()" />
+            <span class="badge badge-price-ok">약가유지</span> 품목만 보기
+            <span style="font-size:11px; color:#888; margin-left:4px;">(자체생동+DMF 충족)</span>
+          </label>
+          <label class="filter-checkbox-label" style="margin-left:16px;">
+            <input type="checkbox" id="commissionFilter" onchange="applyFilters()" checked />
+            수수료 등록 품목만 보기
+          </label>
+        </div>
+        <div id="searchAlert" style="margin-top:12px;display:none;"></div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="resultsSection" style="display:none;">
+        <div class="results-header">
+          <div class="results-count">
+            검색결과 <strong id="resultCount">0</strong>건
+          </div>
+          <button class="btn btn-success btn-sm" onclick="downloadExcel(currentData, '의약품 검색결과')">
+            📥 엑셀 다운로드
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th style="width:46px;">번호</th>
+                <th>제약사</th>
+                <th>제품명</th>
+                <th>성분명</th>
+                <th>보험가(원)</th>
+                <th>수수료율(%)</th>
+                <th>수수료환산(원)</th>
+                <th>제품코드</th>
+                <th>표준코드</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Empty / Initial state -->
+      <div id="emptyState" class="card">
+        <div class="empty-state">
+          <div class="empty-icon">藥</div>
+          <p>검색어를 입력하고 검색 버튼을 눌러주세요</p>
+          <p style="margin-top:6px; font-size:12px; color:#adb5bd;">제약사명, 제품코드, 제품명으로 검색하실 수 있습니다.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">데이터를 불러오는 중..</div>
+  </div>
+
+  <!-- Ingredient Popup Modal -->
+  <div class="modal-overlay" id="ingredientModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">동일성분 제약사 목록</h3>
+        <div class="modal-actions">
+          <button class="btn btn-success btn-sm" onclick="downloadModalExcel()">
+            📥 엑셀 다운로드
+          </button>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+      </div>
+      <div id="diseaseCodesSection" style="display:none;"></div>
+      <div class="modal-body">
+        <div id="modalAlert" style="display:none;"></div>
+        <div id="modalContent">
+          <div class="table-wrapper">
+            <table id="modalTable">
+              <thead>
+                <tr>
+                  <th style="width:46px;">번호</th>
+                  <th>제약사</th>
+                  <th>제품명</th>
+                  <th>보험가(원)</th>
+                  <th>수수료율(%)</th>
+                  <th>수수료환산(원)</th>
+                  <th>제품코드</th>
+                  <th>표준코드</th>
+                  <th>비고</th>
+                </tr>
+              </thead>
+              <tbody id="modalBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SheetJS CDN -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="/drug-search/js/popup.js"></script>
+  <script src="/drug-search/js/main.js"></script>
+</div>
+
+<!-- ════════════════════════════════════════════
+     VIEW: 수수료 관리
+════════════════════════════════════════════ -->
+<div id="view-commission" style="display:none;">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon" onclick="location.reload()" style="cursor:pointer;">💊</div>
+      <h1>의약품 검색 시스템</h1>
+      <p>HIRA 약가 정보 조회</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">메뉴</div>
+      <a href="/drug-search"><span class="nav-icon">🔍</span> 제품 검색</a>
+      <a href="/drug-search/upload.html" class="active"><span class="nav-icon">📋</span> 수수료 관리</a>
+    </div>
+    <div class="sidebar-footer">ⓒ 2026 Pharma Drug Search</div>
+  </nav>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h2>수수료 관리</h2>
+      <span class="breadcrumb">홈 &rsaquo; 수수료 관리</span>
+    </div>
+
+    <div class="page-body">
+
+      <!-- 수수료율 업로드 -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📤 수수료율 파일 업로드</h3>
+          <button class="btn btn-outline btn-sm" onclick="downloadTemplate()">📄 템플릿 다운로드</button>
+        </div>
+        <div class="card-body">
+          <div class="upload-instructions">
+            <strong>업로드 안내</strong>
+            <ul>
+              <li>엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.</li>
+              <li>첫 번째 시트의 데이터를 읽습니다.</li>
+              <li>필수 컬럼: <strong>보험코드</strong>, <strong>수수료율(%)</strong></li>
+              <li>기존 보험코드가 있으면 덮어씁니다(Upsert).</li>
+            </ul>
+          </div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📁</div>
+            <p>클릭하거나 파일을 드래그하여 업로드하세요</p>
+            <p style="font-size:12px;">지원 형식: .xlsx, .xls</p>
+            <div class="file-name" id="fileName" style="display:none;"></div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" />
+          </div>
+          <div id="uploadAlert" style="margin-top:14px; display:none;"></div>
+          <div style="margin-top:16px; text-align:right;">
+            <button class="btn btn-primary btn-lg" id="uploadBtn" onclick="uploadFile()" disabled>📤 업로드</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 수수료율 목록 -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 현재 수수료율 목록</h3>
+          <div class="d-flex gap-2">
+            <span id="listCount" class="results-count" style="align-self:center;"></span>
+            <button class="btn btn-success btn-sm" onclick="downloadCommissionExcel()">📥 엑셀 다운로드</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="commissionListContent">
+            <div class="empty-state" style="padding:32px 20px;">
+              <div class="empty-icon" style="font-size:32px;">⏳</div>
+              <p>로딩 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 비급여 제품 수동 추가 -->
+      <div class="card" style="margin-top:24px;">
+        <div class="card-header">
+          <h3>💊 비급여 제품 직접 추가</h3>
+        </div>
+        <div class="card-body">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label style="font-size:13px; font-weight:600;">제품명 *</label>
+              <input type="text" id="manualProductName" class="search-input" placeholder="예: 애니탈삼중정" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">제약사명 *</label>
+              <input type="text" id="manualCompanyName" class="search-input" placeholder="예: 안국약품(주)" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">제품코드</label>
+              <input type="text" id="manualProductCode" class="search-input" placeholder="예: 650201670" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">보험가(원)</label>
+              <input type="number" id="manualMxCprc" class="search-input" placeholder="0" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">성분코드(gnl_nm_cd)</label>
+              <input type="text" id="manualGnlNmCd" class="search-input" placeholder="예: 191701ATB" style="margin-top:4px; width:100%;" />
+            </div>
+          </div>
+          <div id="manualAlert" style="margin-top:12px; display:none;"></div>
+          <div style="margin-top:16px; text-align:right;">
+            <button class="btn btn-primary" onclick="addManualDrug()">💊 비급여 제품 추가</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">처리 중...</div>
+  </div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="/drug-search/js/upload.js"></script>
+  <script>
+async function addManualDrug() {
+  const product_name = document.getElementById('manualProductName').value.trim();
+  const company_name = document.getElementById('manualCompanyName').value.trim();
+  const product_code = document.getElementById('manualProductCode').value.trim();
+  const mx_cprc = document.getElementById('manualMxCprc').value.trim();
+  const gnl_nm_cd = document.getElementById('manualGnlNmCd').value.trim();
+  const alertEl = document.getElementById('manualAlert');
+
+  if (!product_name || !company_name) {
+    alertEl.style.display = 'block';
+    alertEl.innerHTML = '<div class="alert alert-error">제품명과 제약사명은 필수입니다.</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/drugs/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_name, company_name, product_code, mx_cprc, gnl_nm_cd })
+    });
+    const result = await res.json();
+    alertEl.style.display = 'block';
+    if (res.ok) {
+      alertEl.innerHTML = '<div class="alert alert-success">✅ 비급여 제품이 추가되었습니다.</div>';
+      document.getElementById('manualProductName').value = '';
+      document.getElementById('manualCompanyName').value = '';
+      document.getElementById('manualProductCode').value = '';
+      document.getElementById('manualMxCprc').value = '';
+      document.getElementById('manualGnlNmCd').value = '';
+    } else {
+      alertEl.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+    }
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">오류: ${err.message}</div>`;
+  }
+}
+  </script>
+</div>
+
 </div><!-- /wrap -->
 
 <!-- Datalists for autocomplete -->
@@ -570,12 +1643,15 @@ function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); 
 // VIEW MANAGEMENT
 // ══════════════════════════════════════════════
 function showView(v) {
-  ['input','list','master'].forEach(name => {
-    document.getElementById('view-' + name).style.display = (name === v) ? 'block' : 'none';
-    document.getElementById('nav-'  + name).classList.toggle('active', name === v);
+  ['input','list','master','drug','commission'].forEach(name => {
+    const viewEl = document.getElementById('view-' + name);
+    const navEl  = document.getElementById('nav-'  + name);
+    if (viewEl) viewEl.style.display = (name === v) ? 'block' : 'none';
+    if (navEl)  navEl.classList.toggle('active', name === v);
   });
-  if (v === 'list')   renderList();
-  if (v === 'master') { renderClientMaster(); renderPharmaMaster(); }
+  if (v === 'list')       renderList();
+  if (v === 'master')     { renderClientMaster(); renderPharmaMaster(); }
+  if (v === 'commission') loadCommissionList();
 }
 
 // ══════════════════════════════════════════════
@@ -1639,5 +2715,735 @@ for (let i = 0; i < 5; i++) addRow({});
   updateDataLists();
 })();
 </script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<script>
+/* ══ 의약품 검색 JS ══ */
+// Global state
+let currentData = [];
+let allDrugs = [];
+
+// ===================== UTILITY =====================
+
+function formatNumber(n) {
+  if (n === null || n === undefined || n === '') return '-';
+  const num = parseFloat(n);
+  if (isNaN(num)) return '-';
+  return num.toLocaleString('ko-KR');
+}
+
+function formatRate(r) {
+  if (r === null || r === undefined) return '-';
+  const num = parseFloat(r);
+  if (isNaN(num)) return '-';
+  return num.toFixed(2);
+}
+
+function showAlert(containerId, message, type = 'error') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = `<div class="alert alert-${type === 'error' ? 'error' : type === 'success' ? 'success' : 'info'}">${message}</div>`;
+}
+
+function hideAlert(containerId) {
+  const el = document.getElementById(containerId);
+  if (el) el.style.display = 'none';
+}
+
+function showLoading() {
+  document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ===================== SEARCH =====================
+
+async function searchDrugs() {
+  hideAlert('searchAlert');
+
+  const keyword = document.getElementById('searchInput').value.trim();
+  if (!keyword) {
+    showAlert('searchAlert', '검색어를 입력하세요', 'error');
+    return;
+  }
+
+  const searchType = document.querySelector('input[name="searchType"]:checked').value;
+  const bioFilter = document.getElementById('bioFilter')?.checked || false;
+
+  showLoading();
+
+  try {
+    const params = new URLSearchParams({ searchType, keyword });
+    if (bioFilter) params.set('bioequivalence', 'true');
+
+    const response = await fetch(`/api/drugs/search?${params}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || '검색 중 오류가 발생했습니다.');
+    }
+
+    allDrugs = result.allDrugs || result.data || [];
+    applyFilters();
+
+    if (currentData.length === 0) {
+      showAlert('searchAlert', '검색 결과가 없습니다.', 'info');
+    }
+  } catch (err) {
+    showAlert('searchAlert', '오류: ' + err.message, 'error');
+    currentData = [];
+    allDrugs = [];
+    renderTable([]);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Enter key search
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('searchInput');
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchDrugs();
+    });
+  }
+});
+
+// ===================== FILTERS =====================
+
+function applyFilters() {
+  const bioChecked        = document.getElementById('bioFilter')?.checked || false;
+  const priceChecked      = document.getElementById('priceFilter')?.checked || false;
+  const commissionChecked = document.getElementById('commissionFilter')?.checked || false;
+
+  let filtered = [...allDrugs];
+
+  // 생동성 필터
+  if (bioChecked) {
+    filtered = filtered.filter(d => d.isBioequivalence);
+  }
+
+  // 약가유지(자체생동+DMF) 필터
+  if (priceChecked) {
+    filtered = filtered.filter(d => d.priceEvalResult === '약가유지');
+  }
+
+  // 수수료 등록 품목 필터
+  if (commissionChecked) {
+    filtered = filtered.filter(d => d.commissionRate > 0);
+  }
+
+  currentData = filtered;
+  renderTable(currentData);
+
+  if (currentData.length === 0 && allDrugs.length > 0) {
+    showAlert('searchAlert', '필터 조건에 맞는 품목이 없습니다.', 'info');
+  } else {
+    hideAlert('searchAlert');
+  }
+}
+
+// ===================== RENDER TABLE =====================
+
+function renderTable(data) {
+  const tbody = document.getElementById('resultsBody');
+  const resultCount = document.getElementById('resultCount');
+  const resultsSection = document.getElementById('resultsSection');
+  const emptyState = document.getElementById('emptyState');
+
+  if (!tbody) return;
+
+  resultCount.textContent = data.length;
+
+  if (data.length === 0) {
+    resultsSection.style.display = 'none';
+    emptyState.style.display = 'block';
+    emptyState.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>검색 결과가 없습니다.</p>
+        <p style="margin-top:6px; font-size:12px; color:#adb5bd;">다른 검색어로 다시 시도하세요.</p>
+      </div>
+    `;
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  resultsSection.style.display = 'block';
+
+  tbody.innerHTML = '';
+
+  data.forEach((row, idx) => {
+    const rateNum = parseFloat(row.commissionRate) || 0;
+    let rateClass = 'rate-low';
+    if (rateNum >= 10) rateClass = 'rate-high';
+    else if (rateNum >= 5) rateClass = 'rate-med';
+
+    // 생동성 뱃지
+    const bioBadge = row.isBioequivalence
+      ? '<span class="badge badge-bio" title="생물학적 동등성 인정품목">생동성</span>'
+      : '';
+
+    // 약가유지 뱃지 (자체생동+DMF 충족)
+    const priceOkBadge = row.priceEvalResult === '약가유지'
+      ? '<span class="badge badge-price-ok" title="자체생동+DMF 충족 약가유지 품목">약가유지</span>'
+      : (row.priceEvalResult === '약가인하'
+        ? '<span class="badge badge-price-down" title="기준 미충족 약가인하 품목">약가인하</span>'
+        : '');
+
+    const tr = document.createElement('tr');
+    tr.className = 'double-click-hint';
+    tr.title = '더블클릭: 동일성분 제약사 조회';
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td class="td-left">${escHtml(row.cpnyNm)}</td>
+      <td class="td-left">${escHtml(row.itmNm)}${bioBadge ? ' ' + bioBadge : ''}</td>
+      <td class="td-left">${escHtml(row.ingdNm) || '<span style="color:#adb5bd;">-</span>'}</td>
+      <td class="text-right">${formatNumber(row.clsgAmt)}</td>
+      <td class="${rateClass}">${rateNum > 0 ? formatRate(rateNum) + '%' : '<span style="color:#adb5bd;">-</span>'}</td>
+      <td class="text-right">${rateNum > 0 ? formatNumber(row.commissionAmt) : '<span style="color:#adb5bd;">-</span>'}</td>
+      <td>${escHtml(row.itmCd)}</td>
+      <td>${escHtml(row.mnfSeq)}</td>
+      <td>${bioBadge} ${priceOkBadge}</td>
+    `;
+
+    tr.addEventListener('dblclick', () => {
+      if (row.ingdCd && row.ingdCd !== '0') {
+        openIngredientPopup(row);
+      } else {
+        showAlert('searchAlert', '이 제품은 성분코드(ingdCd) 정보가 없습니다.', 'info');
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ===================== EXCEL DOWNLOAD =====================
+
+function downloadExcel(data, filename) {
+  if (!data || data.length === 0) {
+    alert('다운로드할 데이터가 없습니다.');
+    return;
+  }
+
+  const headers = ['번호', '제약사', '제품명', '성분명', '보험가(원)', '수수료율(%)', '수수료환산(원)', '제품코드', '표준코드', '약가평가'];
+
+  const rows = data.map((row, idx) => [
+    idx + 1,
+    row.cpnyNm || '',
+    row.itmNm || '',
+    row.ingdNm || '',
+    parseFloat(row.clsgAmt) || 0,
+    parseFloat(row.commissionRate) || 0,
+    parseFloat(row.commissionAmt) || 0,
+    row.itmCd || '',
+    row.mnfSeq || '',
+    row.priceEvalResult || ''
+  ]);
+
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  ws['!cols'] = [
+    { wch: 6 }, { wch: 20 }, { wch: 30 }, { wch: 24 },
+    { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 12 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '의약품목록');
+
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  XLSX.writeFile(wb, `${filename}_${dateStr}.xlsx`);
+}
+
+/* ══ 성분 팝업 JS ══ */
+// Modal state
+let modalData = [];
+let currentIngdNm = '';
+
+// ===================== OPEN INGREDIENT POPUP =====================
+
+async function openIngredientPopup(row) {
+  const ingdCd = row.ingdCd;
+  if (!ingdCd || ingdCd === '0') {
+    showAlert('searchAlert', '이 제품의 성분코드(ingdCd) 정보가 없습니다.', 'info');
+    return;
+  }
+
+  const modal = document.getElementById('ingredientModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalAlert = document.getElementById('modalAlert');
+
+  // Reset state
+  modalData = [];
+  modalBody.innerHTML = '';
+  modalAlert.style.display = 'none';
+
+  modal.classList.add('active');
+  showLoading();
+
+  try {
+    console.log('fetch 시작, ingdCd:', ingdCd, '| ingdNm:', row.ingdNm);
+    const response = await fetch(`/api/drugs/ingredients/${encodeURIComponent(ingdCd)}?itmNm=${encodeURIComponent(row.ingdNm || '')}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || '성분 조회 중 오류가 발생했습니다.');
+    }
+
+    currentIngdNm = result.gnlNm || row.ingdCd;
+    modalTitle.textContent = `동일성분 의약품 목록 - ${currentIngdNm}`;
+
+    const diseaseSection = document.getElementById('diseaseCodesSection');
+    const diseaseCodes = result.diseaseCodes || [];
+    if (diseaseSection) {
+      if (diseaseCodes.length > 0) {
+        const tags = diseaseCodes.map(d =>
+          `<span class="disease-tag ${d.is_primary ? 'disease-primary' : ''}" title="${escHtmlModal(d.kcd_name)}">${escHtmlModal(d.kcd_code)} ${escHtmlModal(d.kcd_name)}</span>`
+        ).join('');
+        diseaseSection.innerHTML = `<div class="disease-codes-wrap"><span class="disease-label">적응증</span>${tags}</div>`;
+        diseaseSection.style.display = 'block';
+      } else {
+        diseaseSection.style.display = 'none';
+      }
+    }
+
+    modalData = result.data || [];
+
+    const commissionChecked = document.getElementById('commissionFilter')?.checked || false;
+    const displayData = commissionChecked ? modalData.filter(d => d.commissionRate > 0) : modalData;
+    renderModalTable(displayData);
+
+    if (modalData.length === 0) {
+      showModalAlert('동일성분 의약품이 없습니다.', 'info');
+    }
+  } catch (err) {
+    showModalAlert('오류: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ===================== RENDER MODAL TABLE =====================
+
+function renderModalTable(data) {
+  const tbody = document.getElementById('modalBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (data.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9">
+          <div class="empty-state" style="padding:24px;">
+            <p>데이터가 없습니다.</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  data.forEach((row, idx) => {
+    const rateNum = parseFloat(row.commissionRate) || 0;
+    let rateClass = 'rate-low';
+    if (rateNum >= 10) rateClass = 'rate-high';
+    else if (rateNum >= 5) rateClass = 'rate-med';
+
+    const bioBadge = row.isBioequivalence
+      ? '<span class="badge badge-bio" title="식약처 생동성 인정품목">생동성</span>'
+      : '';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td class="td-left">${escHtmlModal(row.cpnyNm)}</td>
+      <td class="td-left">${escHtmlModal(row.itmNm)}${bioBadge ? ' ' + bioBadge : ''}</td>
+      <td class="text-right">${row.clsgAmt > 0 ? formatNumberModal(row.clsgAmt) : '<span style="color:#adb5bd;">비급여</span>'}</td>
+      <td class="${rateClass}">${rateNum > 0 ? parseFloat(rateNum).toFixed(2) + '%' : '<span style="color:#adb5bd;">-</span>'}</td>
+      <td class="text-right">${rateNum > 0 ? formatNumberModal(row.commissionAmt) : '<span style="color:#adb5bd;">-</span>'}</td>
+      <td>${escHtmlModal(row.itmCd)}</td>
+      <td>${escHtmlModal(row.mnfSeq)}</td>
+      <td>${bioBadge}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ===================== CLOSE MODAL =====================
+
+function closeModal() {
+  const modal = document.getElementById('ingredientModal');
+  modal.classList.remove('active');
+  modalData = [];
+  currentIngdNm = '';
+}
+
+// Close modal when clicking backdrop
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('ingredientModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+});
+
+// ===================== MODAL EXCEL DOWNLOAD =====================
+
+function downloadModalExcel() {
+  if (!modalData || modalData.length === 0) {
+    alert('다운로드할 데이터가 없습니다.');
+    return;
+  }
+
+  const ingdLabel = currentIngdNm || '동일성분';
+  downloadExcel(modalData, `동일성분_${ingdLabel}`);
+}
+
+// ===================== MODAL ALERT =====================
+
+function showModalAlert(message, type = 'error') {
+  const el = document.getElementById('modalAlert');
+  if (!el) return;
+  el.style.display = 'block';
+  const cls = type === 'error' ? 'alert-error' : type === 'success' ? 'alert-success' : 'alert-info';
+  el.innerHTML = `<div class="alert ${cls}">${message}</div>`;
+}
+
+// ===================== UTILITY (mirrored for popup) =====================
+
+function formatNumberModal(n) {
+  if (n === null || n === undefined || n === '') return '-';
+  const num = parseFloat(n);
+  if (isNaN(num)) return '-';
+  return num.toLocaleString('ko-KR');
+}
+
+function escHtmlModal(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+
+/* ══ 수수료 업로드 JS ══ */
+// upload.js의 showLoading/hideLoading은 이미 위에 정의되어 있으므로 충돌 방지
+(function() {
+  const _uploadShowLoading = function(text) {
+    const overlay = document.getElementById('loadingOverlay');
+    const textEl = document.getElementById('loadingText');
+    if (overlay) overlay.classList.add('active');
+    if (textEl && text) textEl.textContent = text;
+  };
+  const _uploadHideLoading = function() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.classList.remove('active');
+  };
+  // Global state
+let selectedFile = null;
+let commissionData = [];
+
+// ===================== INIT =====================
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupDragDrop();
+  loadCommissionList();
+});
+
+// ===================== DRAG & DROP =====================
+
+function setupDragDrop() {
+  const zone = document.getElementById('uploadZone');
+  if (!zone) return;
+
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+
+  zone.addEventListener('dragleave', () => {
+    zone.classList.remove('dragover');
+  });
+
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) setFile(file);
+}
+
+function setFile(file) {
+  if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    showUploadAlert('엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.', 'error');
+    return;
+  }
+
+  selectedFile = file;
+  hideUploadAlert();
+
+  const fileNameEl = document.getElementById('fileName');
+  fileNameEl.textContent = `선택된 파일: ${file.name} (${formatFileSize(file.size)})`;
+  fileNameEl.style.display = 'block';
+
+  document.getElementById('uploadBtn').disabled = false;
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+}
+
+// ===================== UPLOAD =====================
+
+async function uploadFile() {
+  if (!selectedFile) {
+    showUploadAlert('파일을 선택하세요.', 'error');
+    return;
+  }
+
+  _uploadShowLoading('업로드 중...');
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  try {
+    const response = await fetch('/api/commission/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || '업로드 중 오류가 발생했습니다.');
+    }
+
+    showUploadAlert(`✅ ${result.message || result.count + '건이 업데이트되었습니다.'}`, 'success');
+
+    // Reset file
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileName').style.display = 'none';
+    document.getElementById('uploadBtn').disabled = true;
+
+    // Reload list
+    loadCommissionList();
+  } catch (err) {
+    showUploadAlert('오류: ' + err.message, 'error');
+  } finally {
+    _uploadHideLoading();
+  }
+}
+
+// ===================== LOAD COMMISSION LIST =====================
+
+async function loadCommissionList() {
+  try {
+    const response = await fetch('/api/commission/list');
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || '목록 조회 중 오류가 발생했습니다.');
+    }
+
+    commissionData = result.data || [];
+    renderCommissionList(commissionData);
+  } catch (err) {
+    const content = document.getElementById('commissionListContent');
+    if (content) {
+      content.innerHTML = `
+        <div class="empty-state" style="padding:32px 20px;">
+          <div class="empty-icon" style="font-size:32px;">⚠️</div>
+          <p>목록을 불러오지 못했습니다: ${err.message}</p>
+        </div>
+      `;
+    }
+  }
+}
+
+function renderCommissionList(data) {
+  const content = document.getElementById('commissionListContent');
+  const countEl = document.getElementById('listCount');
+
+  if (countEl) {
+    countEl.innerHTML = `총 <strong>${data.length}</strong>건`;
+  }
+
+  if (!content) return;
+
+  if (data.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state" style="padding:32px 20px;">
+        <div class="empty-icon" style="font-size:32px;">📋</div>
+        <p>등록된 수수료율 데이터가 없습니다.</p>
+        <p style="margin-top:6px; font-size:12px; color:#adb5bd;">엑셀 파일을 업로드하여 수수료율을 등록하세요.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60px;">번호</th>
+            <th>보험코드</th>
+            <th>수수료율(%)</th>
+            <th>최종 수정일</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach((item, idx) => {
+    const rateNum = parseFloat(item.commission_rate) || 0;
+    let rateClass = 'rate-low';
+    if (rateNum >= 10) rateClass = 'rate-high';
+    else if (rateNum >= 5) rateClass = 'rate-med';
+
+    const updatedAt = item.updated_at
+      ? new Date(item.updated_at).toLocaleString('ko-KR', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        })
+      : '-';
+
+    html += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${escHtml(item.standard_code)}</td>
+        <td class="${rateClass}">${rateNum > 0 ? rateNum.toFixed(2) + '%' : '-'}</td>
+        <td style="color:#6c757d; font-size:12px;">${updatedAt}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table></div>`;
+  content.innerHTML = html;
+}
+
+// ===================== TEMPLATE DOWNLOAD =====================
+
+function downloadTemplate() {
+  const headers = ['보험코드', '수수료율(%)'];
+  const sampleRows = [
+    ['8800000000001', 10.5],
+    ['8800000000002', 7.0],
+    ['8800000000003', 15.0]
+  ];
+
+  const wsData = [headers, ...sampleRows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  ws['!cols'] = [{ wch: 20 }, { wch: 14 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '수수료율');
+
+  XLSX.writeFile(wb, '수수료율_템플릿.xlsx');
+}
+
+// ===================== COMMISSION EXCEL DOWNLOAD =====================
+
+function downloadCommissionExcel() {
+  if (!commissionData || commissionData.length === 0) {
+    alert('다운로드할 데이터가 없습니다.');
+    return;
+  }
+
+  const headers = ['번호', '보험코드', '수수료율(%)', '최종 수정일'];
+  const rows = commissionData.map((item, idx) => [
+    idx + 1,
+    item.standard_code || '',
+    parseFloat(item.commission_rate) || 0,
+    item.updated_at ? new Date(item.updated_at).toLocaleString('ko-KR') : ''
+  ]);
+
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 14 }, { wch: 22 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '수수료율목록');
+
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  XLSX.writeFile(wb, `수수료율목록_${dateStr}.xlsx`);
+}
+
+// ===================== LOADING =====================
+
+function _uploadShowLoading(text) {
+  const overlay = document.getElementById('loadingOverlay');
+  const textEl = document.getElementById('loadingText');
+  if (overlay) overlay.classList.add('active');
+  if (textEl && text) textEl.textContent = text;
+}
+
+function _uploadHideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+// ===================== ALERTS =====================
+
+function showUploadAlert(message, type) {
+  const el = document.getElementById('uploadAlert');
+  if (!el) return;
+  el.style.display = 'block';
+  const cls = type === 'error' ? 'alert-error' : type === 'success' ? 'alert-success' : 'alert-info';
+  el.innerHTML = `<div class="alert ${cls}">${message}</div>`;
+}
+
+function hideUploadAlert() {
+  const el = document.getElementById('uploadAlert');
+  if (el) el.style.display = 'none';
+}
+
+// ===================== UTILITY =====================
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+})();
+</script>
+
 </body>
 </html>
