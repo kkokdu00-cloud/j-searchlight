@@ -11,10 +11,6 @@
     { "src": "/api/sessions(.*)",              "dest": "/api/sessions.js" },
     { "src": "/api/clients(.*)",               "dest": "/api/clients.js" },
     { "src": "/api/verify-codes",              "dest": "/api/verify-codes.js" },
-    { "src": "/drug-search",                   "dest": "/public/index.html" },
-    { "src": "/drug-search/(.*)",              "dest": "/public/$1" },
-    { "src": "/upload",                        "dest": "/public/upload.html" },
-    { "src": "/public/(.*)",                   "dest": "/public/$1" },
     { "src": "/",                              "dest": "/index.html" },
     { "src": "/(.*)",                          "dest": "/$1" }
   ]
