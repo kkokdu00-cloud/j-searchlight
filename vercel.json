@@ -1,5 +1,18 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+  "version": 2,
+  "routes": [
+    { "src": "/api/drugs/search",              "dest": "/api/drugs/search.js" },
+    { "src": "/api/drugs/manual",              "dest": "/api/drugs/manual.js" },
+    { "src": "/api/drugs/ingredients/([^/]+)", "dest": "/api/drugs/ingredients/[ingdCd].js?ingdCd=$1" },
+    { "src": "/api/commission/upload",         "dest": "/api/commission/upload.js" },
+    { "src": "/api/commission/list",           "dest": "/api/commission/list.js" },
+    { "src": "/api/ocr",                       "dest": "/api/ocr.js" },
+    { "src": "/api/sessions(.*)",              "dest": "/api/sessions.js" },
+    { "src": "/api/clients(.*)",               "dest": "/api/clients.js" },
+    { "src": "/api/verify-codes",              "dest": "/api/verify-codes.js" },
+    { "src": "/drug-search",                   "dest": "/public/index.html" },
+    { "src": "/upload",                        "dest": "/public/upload.html" },
+    { "src": "/public/(.*)",                   "dest": "/public/$1" },
+    { "src": "/(.*)",                          "dest": "/$1" }
   ]
 }

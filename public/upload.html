@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수수료 관리</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon" onclick="location.reload()" style="cursor:pointer;">💊</div>
+      <h1>의약품 검색 시스템</h1>
+      <p>HIRA 약가 정보 조회</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">메뉴</div>
+      <a href="/index.html"><span class="nav-icon">🔍</span> 제품 검색</a>
+      <a href="/upload.html" class="active"><span class="nav-icon">📋</span> 수수료 관리</a>
+    </div>
+    <div class="sidebar-footer">ⓒ 2026 Pharma Drug Search</div>
+  </nav>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h2>수수료 관리</h2>
+      <span class="breadcrumb">홈 &rsaquo; 수수료 관리</span>
+    </div>
+
+    <div class="page-body">
+
+      <!-- 수수료율 업로드 -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📤 수수료율 파일 업로드</h3>
+          <button class="btn btn-outline btn-sm" onclick="downloadTemplate()">📄 템플릿 다운로드</button>
+        </div>
+        <div class="card-body">
+          <div class="upload-instructions">
+            <strong>업로드 안내</strong>
+            <ul>
+              <li>엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.</li>
+              <li>첫 번째 시트의 데이터를 읽습니다.</li>
+              <li>필수 컬럼: <strong>보험코드</strong>, <strong>수수료율(%)</strong></li>
+              <li>기존 보험코드가 있으면 덮어씁니다(Upsert).</li>
+            </ul>
+          </div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📁</div>
+            <p>클릭하거나 파일을 드래그하여 업로드하세요</p>
+            <p style="font-size:12px;">지원 형식: .xlsx, .xls</p>
+            <div class="file-name" id="fileName" style="display:none;"></div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" />
+          </div>
+          <div id="uploadAlert" style="margin-top:14px; display:none;"></div>
+          <div style="margin-top:16px; text-align:right;">
+            <button class="btn btn-primary btn-lg" id="uploadBtn" onclick="uploadFile()" disabled>📤 업로드</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 수수료율 목록 -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 현재 수수료율 목록</h3>
+          <div class="d-flex gap-2">
+            <span id="listCount" class="results-count" style="align-self:center;"></span>
+            <button class="btn btn-success btn-sm" onclick="downloadCommissionExcel()">📥 엑셀 다운로드</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="commissionListContent">
+            <div class="empty-state" style="padding:32px 20px;">
+              <div class="empty-icon" style="font-size:32px;">⏳</div>
+              <p>로딩 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 비급여 제품 수동 추가 -->
+      <div class="card" style="margin-top:24px;">
+        <div class="card-header">
+          <h3>💊 비급여 제품 직접 추가</h3>
+        </div>
+        <div class="card-body">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label style="font-size:13px; font-weight:600;">제품명 *</label>
+              <input type="text" id="manualProductName" class="search-input" placeholder="예: 애니탈삼중정" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">제약사명 *</label>
+              <input type="text" id="manualCompanyName" class="search-input" placeholder="예: 안국약품(주)" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">제품코드</label>
+              <input type="text" id="manualProductCode" class="search-input" placeholder="예: 650201670" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">보험가(원)</label>
+              <input type="number" id="manualMxCprc" class="search-input" placeholder="0" style="margin-top:4px; width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:600;">성분코드(gnl_nm_cd)</label>
+              <input type="text" id="manualGnlNmCd" class="search-input" placeholder="예: 191701ATB" style="margin-top:4px; width:100%;" />
+            </div>
+          </div>
+          <div id="manualAlert" style="margin-top:12px; display:none;"></div>
+          <div style="margin-top:16px; text-align:right;">
+            <button class="btn btn-primary" onclick="addManualDrug()">💊 비급여 제품 추가</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">처리 중...</div>
+  </div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="/js/upload.js"></script>
+  <script>
+async function addManualDrug() {
+  const product_name = document.getElementById('manualProductName').value.trim();
+  const company_name = document.getElementById('manualCompanyName').value.trim();
+  const product_code = document.getElementById('manualProductCode').value.trim();
+  const mx_cprc = document.getElementById('manualMxCprc').value.trim();
+  const gnl_nm_cd = document.getElementById('manualGnlNmCd').value.trim();
+  const alertEl = document.getElementById('manualAlert');
+
+  if (!product_name || !company_name) {
+    alertEl.style.display = 'block';
+    alertEl.innerHTML = '<div class="alert alert-error">제품명과 제약사명은 필수입니다.</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/drugs/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_name, company_name, product_code, mx_cprc, gnl_nm_cd })
+    });
+    const result = await res.json();
+    alertEl.style.display = 'block';
+    if (res.ok) {
+      alertEl.innerHTML = '<div class="alert alert-success">✅ 비급여 제품이 추가되었습니다.</div>';
+      document.getElementById('manualProductName').value = '';
+      document.getElementById('manualCompanyName').value = '';
+      document.getElementById('manualProductCode').value = '';
+      document.getElementById('manualMxCprc').value = '';
+      document.getElementById('manualGnlNmCd').value = '';
+    } else {
+      alertEl.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+    }
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">오류: ${err.message}</div>`;
+  }
+}
+  </script>
+</body>
+</html>
