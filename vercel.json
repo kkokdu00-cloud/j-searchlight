@@ -1,6 +1,7 @@
 {
   "version": 2,
   "routes": [
+    { "src": "/api/blob-upload",               "dest": "/api/blob-upload.js" },
     { "src": "/api/drugs/search",              "dest": "/api/drugs/search.js" },
     { "src": "/api/drugs/manual",              "dest": "/api/drugs/manual.js" },
     { "src": "/api/drugs/ingredients/([^/]+)", "dest": "/api/drugs/ingredients/[ingdCd].js?ingdCd=$1" },

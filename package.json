@@ -4,6 +4,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
     "@supabase/supabase-js": "^2.39.0",
+    "@vercel/blob": "^0.23.0",
     "formidable": "^3.5.1",
     "xlsx": "^0.18.5"
   }

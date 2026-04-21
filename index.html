@@ -1081,16 +1081,29 @@ async function saveData() {
   if (!hospital || !pharma) { alert('병의원명과 제약사명은 필수입니다.'); return; }
   if (!rows.length) { alert('급여내역을 1건 이상 입력해주세요.'); return; }
 
-  // attachFiles → base64 변환
+  // attachFiles → Vercel Blob 업로드
   const savedAttachFiles = [];
   for (const a of attachFiles) {
-    const meta = { name: a.name, type: a.label || '', fileType: a.fileType || '', dataUrl: a.dataUrl || '' };
-    if (a.file) {
+    const meta = { name: a.name, type: a.label || '', fileType: a.fileType || '', blobUrl: a.blobUrl || '' };
+    if (a.file && !a.blobUrl) {
       try {
-        meta.dataUrl = (a.fileType || '').startsWith('image/')
+        const dataUrl = (a.fileType || '').startsWith('image/')
           ? await compressImageForStorage(a.file)
           : await fileToDataUrl(a.file);
-      } catch(e) {}
+        const base64 = dataUrl.split(',')[1];
+        const uniqueName = `${Date.now()}_${a.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const r = await fetch('/api/blob-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: uniqueName, contentType: a.fileType || 'application/octet-stream', dataBase64: base64 })
+        });
+        if (r.ok) {
+          const j = await r.json();
+          meta.blobUrl = j.url;
+        }
+      } catch(e) { console.error('Blob upload failed:', e); }
+    } else if (a.blobUrl) {
+      meta.blobUrl = a.blobUrl;
     }
     savedAttachFiles.push(meta);
   }
@@ -1144,6 +1157,16 @@ async function deleteSession(idx) {
   if (!confirm('이 항목을 삭제할까요?')) return;
   const session = savedSessions[idx];
   try {
+    // Blob 파일 삭제
+    for (const a of (session.attachFiles || [])) {
+      if (a.blobUrl) {
+        fetch('/api/blob-upload', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: a.blobUrl })
+        }).catch(e => console.error('Blob delete failed:', e));
+      }
+    }
     await apiDelete(`/api/sessions?id=${session.id}`);
     savedSessions.splice(idx, 1);
     renderList();
@@ -1526,7 +1549,7 @@ function openGallery() {
   checks.map(c => parseInt(c.dataset.idx)).forEach(i => {
     const s = savedSessions[i];
     (s.attachFiles || []).forEach(a => {
-      if (a.dataUrl) items.push({ ...a, session: s });
+      if (a.blobUrl || a.dataUrl) items.push({ ...a, session: s });
     });
   });
 
@@ -1537,12 +1560,13 @@ function openGallery() {
     grid.innerHTML = items.map(item => {
       const isImage = (item.fileType || '').startsWith('image/');
       const label   = `${esc(item.session.hospital)} / ${esc(item.session.pharma)}<br>${esc(item.session.presc)}`;
+      const itemUrl = item.blobUrl || item.dataUrl || '';
       const content = isImage
-        ? `<img src="${item.dataUrl}" alt="${esc(item.name)}">`
+        ? `<img src="${itemUrl}" alt="${esc(item.name)}">`
         : `<span class="gallery-pdf-icon">📄</span>`;
       return `
         <div class="gallery-item">
-          <a href="${item.dataUrl}" target="_blank">${content}</a>
+          <a href="${itemUrl}" target="_blank">${content}</a>
           <div class="gallery-label">${esc(item.name)}<br>${label}</div>
         </div>`;
     }).join('');
