@@ -395,25 +395,11 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 #view-drug, #view-commission {
   background: var(--gray-100);
 }
-#view-drug .main-content,
-#view-commission .main-content {
-  padding: 24px 28px;
-  margin-left: 0 !important;
-  min-height: unset !important;
-  width: 100% !important;
-}
-#view-drug .page-body,
-#view-commission .page-body {
-  max-width: 100% !important;
-}
-/* drug-search 내부 sidebar 변수 충돌 방지 */
+/* drug-search 뷰는 EDI wrap 사용 */
 #view-drug, #view-commission {
-  --sidebar-width: 0px;
+  background: var(--gray-100);
 }
-#view-drug .sidebar,
-#view-commission .sidebar,
-#view-drug nav.sidebar,
-#view-commission nav.sidebar { display: none !important; }
+
 
 /* drug-search 컴포넌트 스타일 재정의 */
 #view-drug .page-header,
@@ -796,72 +782,68 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
      VIEW: 의약품 검색
 ════════════════════════════════════════════ -->
 <div id="view-drug" style="display:none;">
-  <div class="main-content">
-    <div class="page-header">
-      <h2>의약품 제품 검색</h2>
-      <span class="breadcrumb"><a href="#" onclick="showView('input');return false;" style="color:inherit;">홈</a> &rsaquo; 제품 검색</span>
-    </div>
+  <div class="wrap">
 
-    <div class="page-body">
-
-      <!-- Search Card -->
-      <div class="search-card">
-        <div class="search-type-group">
-          <label>
-            <input type="radio" name="searchType" value="company" checked />
-            제약사명
+    <!-- 검색 카드 -->
+    <div class="card">
+      <div class="section-title"><span class="title-icon">🔍</span> 제품 검색</div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <!-- 검색 타입 -->
+        <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer;">
+            <input type="radio" name="searchType" value="company" checked /> 제약사명
           </label>
-          <label>
-            <input type="radio" name="searchType" value="code" />
-            제품코드
+          <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer;">
+            <input type="radio" name="searchType" value="code" /> 제품코드
           </label>
-          <label>
-            <input type="radio" name="searchType" value="name" />
-            제품명·성분명
+          <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer;">
+            <input type="radio" name="searchType" value="name" /> 제품명·성분명
           </label>
         </div>
-        <div class="search-input-row">
-          <input
-            type="text"
-            id="searchInput"
-            class="search-input"
-            placeholder="검색어를 입력하세요.."
+        <!-- 검색 입력 -->
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="text" id="searchInput" placeholder="검색어를 입력하세요..."
             autocomplete="off"
+            style="flex:1; height:44px; border:1.5px solid var(--gray-200); border-radius:8px; padding:0 14px; font-size:15px; transition:all .15s;"
+            onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.1)'"
+            onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'"
           />
-          <button class="btn btn-primary" onclick="searchDrugs()">
+          <button class="btn btn-primary" onclick="searchDrugs()" style="height:44px; padding:0 28px; font-size:15px;">
             🔍 검색
           </button>
         </div>
-        <div class="search-filter-row">
-          <label class="filter-checkbox-label">
+        <!-- 필터 -->
+        <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center; padding:10px 14px; background:var(--gray-50); border-radius:8px; border:1.5px solid var(--gray-200);">
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;font-weight:500;">
             <input type="checkbox" id="bioFilter" onchange="applyFilters()" />
             <span class="badge badge-bio">생동성</span> 인정품목만 보기
           </label>
-          <label class="filter-checkbox-label" style="margin-left:16px;">
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;font-weight:500;">
             <input type="checkbox" id="priceFilter" onchange="applyFilters()" />
             <span class="badge badge-price-ok">약가유지</span> 품목만 보기
-            <span style="font-size:11px; color:#888; margin-left:4px;">(자체생동+DMF 충족)</span>
+            <span style="font-size:12px;color:var(--gray-400);">(자체생동+DMF 충족)</span>
           </label>
-          <label class="filter-checkbox-label" style="margin-left:16px;">
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;font-weight:500;">
             <input type="checkbox" id="commissionFilter" onchange="applyFilters()" checked />
             수수료 등록 품목만 보기
           </label>
         </div>
-        <div id="searchAlert" style="margin-top:12px;display:none;"></div>
+        <div id="searchAlert" style="display:none;"></div>
       </div>
+    </div>
 
-      <!-- Results Section -->
-      <div id="resultsSection" style="display:none;">
-        <div class="results-header">
-          <div class="results-count">
-            검색결과 <strong id="resultCount">0</strong>건
-          </div>
+    <!-- 검색 결과 -->
+    <div id="resultsSection" style="display:none;">
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--gray-200);">
+          <span style="font-size:15px;font-weight:700;color:var(--gray-800);">
+            검색결과 <strong id="resultCount" style="color:var(--blue);">0</strong>건
+          </span>
           <button class="btn btn-success btn-sm" onclick="downloadExcel(currentData, '의약품 검색결과')">
             📥 엑셀 다운로드
           </button>
         </div>
-
-        <div class="table-wrapper">
+        <div class="tbl-wrap" style="border:none;border-radius:0;">
           <table id="resultsTable">
             <thead>
               <tr>
@@ -877,71 +859,58 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
                 <th>비고</th>
               </tr>
             </thead>
-            <tbody id="resultsBody">
-            </tbody>
+            <tbody id="resultsBody"></tbody>
           </table>
         </div>
       </div>
-
-      <!-- Empty / Initial state -->
-      <div id="emptyState" class="card">
-        <div class="empty-state">
-          <div class="empty-icon">藥</div>
-          <p>검색어를 입력하고 검색 버튼을 눌러주세요</p>
-          <p style="margin-top:6px; font-size:12px; color:#adb5bd;">제약사명, 제품코드, 제품명으로 검색하실 수 있습니다.</p>
-        </div>
-      </div>
-
     </div>
+
+    <!-- 초기 상태 -->
+    <div id="emptyState">
+      <div style="text-align:center;padding:60px 20px;color:var(--gray-400);">
+        <div style="font-size:52px;margin-bottom:16px;">藥</div>
+        <p style="font-size:16px;font-weight:600;color:var(--gray-600);">검색어를 입력하고 검색 버튼을 눌러주세요</p>
+        <p style="margin-top:8px;font-size:13px;">제약사명, 제품코드, 제품명으로 검색하실 수 있습니다.</p>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-    <div class="loading-text">데이터를 불러오는 중..</div>
-  </div>
-
-  <!-- Ingredient Popup Modal -->
+  <!-- 성분 팝업 모달 -->
   <div class="modal-overlay" id="ingredientModal">
-    <div class="modal">
+    <div class="modal-box" style="max-width:960px;">
       <div class="modal-header">
         <h3 id="modalTitle">동일성분 제약사 목록</h3>
-        <div class="modal-actions">
-          <button class="btn btn-success btn-sm" onclick="downloadModalExcel()">
-            📥 엑셀 다운로드
-          </button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-success btn-sm" onclick="downloadModalExcel()">📥 엑셀 다운로드</button>
           <button class="modal-close" onclick="closeModal()">✕</button>
         </div>
       </div>
       <div id="diseaseCodesSection" style="display:none;"></div>
       <div class="modal-body">
-        <div id="modalAlert" style="display:none;"></div>
-        <div id="modalContent">
-          <div class="table-wrapper">
-            <table id="modalTable">
-              <thead>
-                <tr>
-                  <th style="width:46px;">번호</th>
-                  <th>제약사</th>
-                  <th>제품명</th>
-                  <th>보험가(원)</th>
-                  <th>수수료율(%)</th>
-                  <th>수수료환산(원)</th>
-                  <th>제품코드</th>
-                  <th>표준코드</th>
-                  <th>비고</th>
-                </tr>
-              </thead>
-              <tbody id="modalBody">
-              </tbody>
-            </table>
-          </div>
+        <div id="modalAlert" style="display:none;padding:12px 16px;"></div>
+        <div class="tbl-wrap" style="border:none;border-radius:0;">
+          <table id="modalTable">
+            <thead>
+              <tr>
+                <th style="width:46px;">번호</th>
+                <th>제약사</th>
+                <th>제품명</th>
+                <th>보험가(원)</th>
+                <th>수수료율(%)</th>
+                <th>수수료환산(원)</th>
+                <th>제품코드</th>
+                <th>표준코드</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody id="modalBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SheetJS CDN -->
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script src="/drug-search/js/popup.js"></script>
   <script src="/drug-search/js/main.js"></script>
@@ -951,118 +920,92 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
      VIEW: 수수료 관리
 ════════════════════════════════════════════ -->
 <div id="view-commission" style="display:none;">
-  <nav class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon" onclick="location.reload()" style="cursor:pointer;">💊</div>
-      <h1>의약품 검색 시스템</h1>
-      <p>HIRA 약가 정보 조회</p>
-    </div>
-    <div class="sidebar-nav">
-      <div class="nav-section-title">메뉴</div>
-      <a href="#" onclick="showView('drug');return false;"><span class="nav-icon">🔍</span> 제품 검색</a>
-      <a href="#" onclick="showView('commission');return false;" class="active"><span class="nav-icon">📋</span> 수수료 관리</a>
-    </div>
-    <div class="sidebar-footer">ⓒ 2026 Pharma Drug Search</div>
-  </nav>
+  <div class="wrap">
 
-  <div class="main-content">
-    <div class="page-header">
-      <h2>수수료 관리</h2>
-      <span class="breadcrumb"><a href="#" onclick="showView('input');return false;" style="color:inherit;">홈</a> &rsaquo; 수수료 관리</span>
-    </div>
-
-    <div class="page-body">
-
-      <!-- 수수료율 업로드 -->
-      <div class="card">
-        <div class="card-header">
-          <h3>📤 수수료율 파일 업로드</h3>
-          <button class="btn btn-outline btn-sm" onclick="downloadTemplate()">📄 템플릿 다운로드</button>
+    <!-- 업로드 카드 -->
+    <div class="card">
+      <div class="section-title"><span class="title-icon">📤</span> 수수료율 파일 업로드</div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="padding:14px 16px;background:var(--blue-bg);border:1.5px solid #bfdbfe;border-radius:8px;font-size:13px;line-height:2;color:var(--gray-800);">
+          📌 엑셀(.xlsx, .xls) 파일만 업로드 가능합니다 &nbsp;|&nbsp;
+          필수 컬럼: <strong>보험코드</strong>, <strong>수수료율(%)</strong> &nbsp;|&nbsp;
+          기존 보험코드가 있으면 덮어씁니다(Upsert)
         </div>
-        <div class="card-body">
-          <div class="upload-instructions">
-            <strong>업로드 안내</strong>
-            <ul>
-              <li>엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.</li>
-              <li>첫 번째 시트의 데이터를 읽습니다.</li>
-              <li>필수 컬럼: <strong>보험코드</strong>, <strong>수수료율(%)</strong></li>
-              <li>기존 보험코드가 있으면 덮어씁니다(Upsert).</li>
-            </ul>
-          </div>
-          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-            <div class="upload-icon">📁</div>
-            <p>클릭하거나 파일을 드래그하여 업로드하세요</p>
-            <p style="font-size:12px;">지원 형식: .xlsx, .xls</p>
-            <div class="file-name" id="fileName" style="display:none;"></div>
-            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" />
-          </div>
-          <div id="uploadAlert" style="margin-top:14px; display:none;"></div>
-          <div style="margin-top:16px; text-align:right;">
-            <button class="btn btn-primary btn-lg" id="uploadBtn" onclick="uploadFile()" disabled>📤 업로드</button>
-          </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap;">📄 템플릿 다운로드</button>
+        </div>
+        <!-- 드래그앤드롭 업로드존 -->
+        <div id="uploadZone" onclick="document.getElementById('fileInput').click()"
+          style="border:2px dashed var(--gray-200);border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;background:var(--gray-50);transition:all .15s;"
+          ondragover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-bg)';event.preventDefault();"
+          ondragleave="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';"
+          ondrop="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';event.preventDefault();const f=event.dataTransfer.files[0];if(f)setFile(f);">
+          <div style="font-size:36px;margin-bottom:10px;">📁</div>
+          <p style="font-size:15px;font-weight:600;color:var(--gray-600);">클릭하거나 파일을 드래그하여 업로드하세요</p>
+          <p style="font-size:13px;color:var(--gray-400);margin-top:6px;">지원 형식: .xlsx, .xls</p>
+          <p id="fileName" style="display:none;margin-top:10px;font-size:13px;font-weight:600;color:var(--blue);"></p>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" style="display:none;" />
+        </div>
+        <div id="uploadAlert" style="display:none;"></div>
+        <div style="text-align:right;">
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled style="height:42px;padding:0 28px;font-size:15px;">
+            📤 업로드
+          </button>
         </div>
       </div>
-
-      <!-- 수수료율 목록 -->
-      <div class="card">
-        <div class="card-header">
-          <h3>📋 현재 수수료율 목록</h3>
-          <div class="d-flex gap-2">
-            <span id="listCount" class="results-count" style="align-self:center;"></span>
-            <button class="btn btn-success btn-sm" onclick="downloadCommissionExcel()">📥 엑셀 다운로드</button>
-          </div>
-        </div>
-        <div class="card-body" style="padding:0;">
-          <div id="commissionListContent">
-            <div class="empty-state" style="padding:32px 20px;">
-              <div class="empty-icon" style="font-size:32px;">⏳</div>
-              <p>로딩 중...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 비급여 제품 수동 추가 -->
-      <div class="card" style="margin-top:24px;">
-        <div class="card-header">
-          <h3>💊 비급여 제품 직접 추가</h3>
-        </div>
-        <div class="card-body">
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <div>
-              <label style="font-size:13px; font-weight:600;">제품명 *</label>
-              <input type="text" id="manualProductName" class="search-input" placeholder="예: 애니탈삼중정" style="margin-top:4px; width:100%;" />
-            </div>
-            <div>
-              <label style="font-size:13px; font-weight:600;">제약사명 *</label>
-              <input type="text" id="manualCompanyName" class="search-input" placeholder="예: 안국약품(주)" style="margin-top:4px; width:100%;" />
-            </div>
-            <div>
-              <label style="font-size:13px; font-weight:600;">제품코드</label>
-              <input type="text" id="manualProductCode" class="search-input" placeholder="예: 650201670" style="margin-top:4px; width:100%;" />
-            </div>
-            <div>
-              <label style="font-size:13px; font-weight:600;">보험가(원)</label>
-              <input type="number" id="manualMxCprc" class="search-input" placeholder="0" style="margin-top:4px; width:100%;" />
-            </div>
-            <div>
-              <label style="font-size:13px; font-weight:600;">성분코드(gnl_nm_cd)</label>
-              <input type="text" id="manualGnlNmCd" class="search-input" placeholder="예: 191701ATB" style="margin-top:4px; width:100%;" />
-            </div>
-          </div>
-          <div id="manualAlert" style="margin-top:12px; display:none;"></div>
-          <div style="margin-top:16px; text-align:right;">
-            <button class="btn btn-primary" onclick="addManualDrug()">💊 비급여 제품 추가</button>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <!-- 수수료율 목록 -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--gray-200);">
+        <span style="font-size:15px;font-weight:700;color:var(--gray-800);">📋 현재 수수료율 목록
+          <span id="listCount" style="font-size:13px;font-weight:500;color:var(--gray-400);margin-left:8px;"></span>
+        </span>
+        <button class="btn btn-success btn-sm" onclick="downloadCommissionExcel()">📥 엑셀 다운로드</button>
+      </div>
+      <div id="commissionListContent" style="min-height:120px;">
+        <div style="text-align:center;padding:40px;color:var(--gray-400);">⏳ 로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 비급여 수동 추가 -->
+    <div class="card">
+      <div class="section-title"><span class="title-icon">💊</span> 비급여 제품 직접 추가</div>
+      <div class="form-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="field">
+          <label>제품명 <span class="required">*</span></label>
+          <input type="text" id="manualProductName" placeholder="예: 애니탈삼중정" />
+        </div>
+        <div class="field">
+          <label>제약사명 <span class="required">*</span></label>
+          <input type="text" id="manualCompanyName" placeholder="예: 안국약품(주)" />
+        </div>
+        <div class="field">
+          <label>제품코드</label>
+          <input type="text" id="manualProductCode" placeholder="예: 650201670" />
+        </div>
+        <div class="field">
+          <label>보험가(원)</label>
+          <input type="number" id="manualMxCprc" placeholder="0" />
+        </div>
+        <div class="field">
+          <label>성분코드(gnl_nm_cd)</label>
+          <input type="text" id="manualGnlNmCd" placeholder="예: 191701ATB" />
+        </div>
+      </div>
+      <div id="manualAlert" style="margin-top:12px;display:none;"></div>
+      <div style="margin-top:16px;text-align:right;">
+        <button class="btn btn-primary" onclick="addManualDrug()">💊 비급여 제품 추가</button>
+      </div>
+    </div>
+
   </div>
 
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loadingText">처리 중...</div>
+  <div class="loading-overlay" id="loadingOverlayCommission">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <span id="loadingText">처리 중...</span>
+    </div>
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -1072,36 +1015,26 @@ async function addManualDrug() {
   const product_name = document.getElementById('manualProductName').value.trim();
   const company_name = document.getElementById('manualCompanyName').value.trim();
   const product_code = document.getElementById('manualProductCode').value.trim();
-  const mx_cprc = document.getElementById('manualMxCprc').value.trim();
-  const gnl_nm_cd = document.getElementById('manualGnlNmCd').value.trim();
-  const alertEl = document.getElementById('manualAlert');
-
+  const mx_cprc      = document.getElementById('manualMxCprc').value.trim();
+  const gnl_nm_cd    = document.getElementById('manualGnlNmCd').value.trim();
+  const alertEl      = document.getElementById('manualAlert');
   if (!product_name || !company_name) {
-    alertEl.style.display = 'block';
-    alertEl.innerHTML = '<div class="alert alert-error">제품명과 제약사명은 필수입니다.</div>';
+    alertEl.style.display='block';
+    alertEl.innerHTML='<div class="alert alert-error">제품명과 제약사명은 필수입니다.</div>';
     return;
   }
-
   try {
-    const res = await fetch('/api/drugs/manual', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_name, company_name, product_code, mx_cprc, gnl_nm_cd })
-    });
+    const res = await fetch('/api/drugs/manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_name,company_name,product_code,mx_cprc,gnl_nm_cd})});
     const result = await res.json();
-    alertEl.style.display = 'block';
-    if (res.ok) {
-      alertEl.innerHTML = '<div class="alert alert-success">✅ 비급여 제품이 추가되었습니다.</div>';
-      document.getElementById('manualProductName').value = '';
-      document.getElementById('manualCompanyName').value = '';
-      document.getElementById('manualProductCode').value = '';
-      document.getElementById('manualMxCprc').value = '';
-      document.getElementById('manualGnlNmCd').value = '';
+    alertEl.style.display='block';
+    if(res.ok){
+      alertEl.innerHTML='<div class="alert alert-success">✅ 비급여 제품이 추가되었습니다.</div>';
+      ['manualProductName','manualCompanyName','manualProductCode','manualMxCprc','manualGnlNmCd'].forEach(id=>document.getElementById(id).value='');
     } else {
-      alertEl.innerHTML = `<div class="alert alert-error">${result.error}</div>`;
+      alertEl.innerHTML=`<div class="alert alert-error">${result.error}</div>`;
     }
-  } catch (err) {
-    alertEl.innerHTML = `<div class="alert alert-error">오류: ${err.message}</div>`;
+  } catch(err){
+    alertEl.innerHTML=`<div class="alert alert-error">오류: ${err.message}</div>`;
   }
 }
   </script>
@@ -2352,11 +2285,11 @@ function hideAlert(containerId) {
 }
 
 function showLoading() {
-  document.getElementById('loadingOverlay').classList.add('active');
+  const _lo = document.getElementById('loadingOverlayCommission') || document.getElementById('loadingOverlay'); if(_lo) _lo.classList.add('active');
 }
 
 function hideLoading() {
-  document.getElementById('loadingOverlay').classList.remove('active');
+  const _lo2 = document.getElementById('loadingOverlayCommission') || document.getElementById('loadingOverlay'); if(_lo2) _lo2.classList.remove('active');
 }
 
 // ===================== SEARCH =====================
