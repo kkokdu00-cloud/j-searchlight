@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EDI 등록 — SS컴페어 입력</title>
+<title>EDI 등록 — JJ써치라이트 입력</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
@@ -33,7 +33,7 @@
 html, body { height: 100%; }
 body {
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   background: var(--gray-100);
   color: var(--gray-800);
   display: flex;
@@ -62,17 +62,17 @@ a { color: var(--blue); text-decoration: none; }
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .sidebar-logo .brand {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--white);
-  letter-spacing: -.3px;
+  letter-spacing: -.5px;
   line-height: 1.2;
 }
 .sidebar-logo .sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--accent);
-  font-weight: 500;
-  margin-top: 4px;
+  font-weight: 600;
+  margin-top: 6px;
   letter-spacing: .5px;
   text-transform: uppercase;
 }
@@ -96,7 +96,7 @@ a { color: var(--blue); text-decoration: none; }
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: #94a3b8;
   transition: all .15s;
@@ -143,8 +143,8 @@ a { color: var(--blue); text-decoration: none; }
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 .topbar-title {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--gray-800);
   flex: 1;
 }
@@ -162,8 +162,8 @@ a { color: var(--blue); text-decoration: none; }
   box-shadow: var(--shadow);
 }
 .section-title {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--gray-800);
   margin-bottom: 16px;
   padding-bottom: 10px;
@@ -176,18 +176,18 @@ a { color: var(--blue); text-decoration: none; }
 
 /* ══ FORM ══════════════════════════════ */
 .form-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
-.field label { font-size: 12px; color: var(--gray-600); display: block; margin-bottom: 5px; font-weight: 600; }
+.field label { font-size: 13px; color: var(--gray-600); display: block; margin-bottom: 6px; font-weight: 700; }
 .field input, .field select, .field textarea {
   width: 100%;
   border: 1.5px solid var(--gray-200);
   border-radius: 8px;
   padding: 0 12px;
-  font-size: 14px;
+  font-size: 15px;
   background: var(--white);
   color: var(--gray-800);
   transition: border-color .15s, box-shadow .15s;
 }
-.field input, .field select { height: 40px; }
+.field input, .field select { height: 44px; }
 .field textarea { padding: 10px 12px; resize: vertical; min-height: 68px; line-height: 1.6; }
 .field input:focus, .field select:focus, .field textarea:focus {
   outline: none;
@@ -269,9 +269,9 @@ a { color: var(--blue); text-decoration: none; }
 
 /* ══ TABLE ═══════════════════════════ */
 .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1.5px solid var(--gray-200); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
-th { background: var(--gray-50); font-weight: 700; padding: 10px 8px; border-bottom: 2px solid var(--gray-200); text-align: center; white-space: nowrap; color: var(--gray-600); font-size: 12px; letter-spacing: .3px; }
-td { padding: 9px 8px; border-bottom: 1px solid var(--gray-100); text-align: center; vertical-align: middle; color: var(--gray-800); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 900px; }
+th { background: var(--gray-50); font-weight: 700; padding: 12px 10px; border-bottom: 2px solid var(--gray-200); text-align: center; white-space: nowrap; color: var(--gray-600); font-size: 13px; letter-spacing: .3px; }
+td { padding: 11px 10px; border-bottom: 1px solid var(--gray-100); text-align: center; vertical-align: middle; color: var(--gray-800); }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--blue-bg); }
 td input { width: 100%; border: 1.5px solid transparent; border-radius: 6px; padding: 4px 8px; font-size: 13px; text-align: center; background: transparent; transition: all .15s; }
@@ -398,6 +398,17 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 #view-drug .main-content,
 #view-commission .main-content {
   padding: 24px 28px;
+  margin-left: 0 !important;
+  min-height: unset !important;
+  width: 100% !important;
+}
+#view-drug .page-body,
+#view-commission .page-body {
+  max-width: 100% !important;
+}
+/* drug-search 내부 sidebar 변수 충돌 방지 */
+#view-drug, #view-commission {
+  --sidebar-width: 0px;
 }
 #view-drug .sidebar,
 #view-commission .sidebar,
@@ -411,8 +422,8 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 }
 #view-drug .page-header h2,
 #view-commission .page-header h2 {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 900;
   color: var(--gray-800);
 }
 #view-drug .search-card,
@@ -482,7 +493,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 <!-- ═══ Sidebar ═══ -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="brand">SS컴페어</div>
+    <div class="brand" onclick="location.reload()" style="cursor:pointer;">JJ써치라이트</div>
     <div class="sub">EDI 관리 시스템</div>
   </div>
   <nav class="sidebar-nav">
@@ -505,7 +516,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
       <span class="nav-icon">💊</span> 수수료 관리
     </button>
   </nav>
-  <div class="sidebar-footer">© 2026 SS컴페어</div>
+  <div class="sidebar-footer">© 2026 JJ써치라이트</div>
 </aside>
 
 <!-- ═══ Main Area ═══ -->
@@ -671,7 +682,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     </div>
     <div id="list-body"><p class="empty-tip">저장된 데이터가 없습니다.</p></div>
     <div class="export-bar">
-      <button class="btn btn-primary" onclick="exportXlsx()">✦ 선택 항목 SS컴페어 내보내기 (.xlsx)</button>
+      <button class="btn btn-primary" onclick="exportXlsx()">✦ 선택 항목 내보내기 (.xlsx)</button>
       <button class="btn btn-sm" onclick="openGallery()">🖼️ 첨부 이미지 보기</button>
       <button class="btn btn-sm" onclick="selectAll()">전체 선택</button>
       <button class="btn btn-sm" onclick="deselectAll()">선택 해제</button>
@@ -1918,8 +1929,8 @@ function exportXlsx() {
   const ws = XLSX.utils.aoa_to_sheet([header, ...allRows]);
   ws['!cols'] = [8,12,12,20,14,14,24,10,10,10,10,16].map(w => ({ wch: w }));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'SS컴페어');
-  XLSX.writeFile(wb, `SS컴페어_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, 'EDI목록');
+  XLSX.writeFile(wb, `EDI목록_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 // ══════════════════════════════════════════════
