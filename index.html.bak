@@ -476,10 +476,10 @@ let attachFiles = [];         // { file, name, fileType, label, url }
 let ocrFiles    = [];
 let ocrSepData  = null;       // OCR 후 매칭 결과
 
-// Supabase 기반 (API 호출)
-let savedSessions = [];
-let masterClients = [];
-let masterPharma  = JSON.parse(localStorage.getItem('master_pharma') || '[]'); // 임시 유지
+// localStorage 기반 (영구 저장)
+let savedSessions = JSON.parse(localStorage.getItem('edi_sessions') || '[]');
+let masterClients = JSON.parse(localStorage.getItem('master_clients') || '[]');
+let masterPharma  = JSON.parse(localStorage.getItem('master_pharma')  || '[]');
 
 // 마스터 편집 상태
 let clientEditId = null;
@@ -505,64 +505,9 @@ function fmtBizno(el) {
   el.value = v;
 }
 
-function savePharmaLS() { localStorage.setItem('master_pharma', JSON.stringify(masterPharma)); }
-
-async function saveSessions() {
-  // 더 이상 사용 안 함 — saveData()에서 직접 API 호출
-}
-
-async function saveClients() {
-  // 더 이상 사용 안 함 — saveClientForm()에서 직접 API 호출
-}
-
-// ── Supabase API 헬퍼 ──
-async function apiGet(path) {
-  const r = await fetch(path);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-
-async function apiPost(path, body) {
-  const r = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-
-async function apiDelete(path) {
-  const r = await fetch(path, { method: 'DELETE' });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-
-// ── 세션 로드 ──
-async function loadSessions() {
-  try {
-    const { data } = await apiGet('/api/sessions');
-    savedSessions = (data || []).map(s => ({
-      ...s,
-      attachFiles: s.attach_files || [],
-      savedAt: s.saved_at ? new Date(s.saved_at).toLocaleString('ko-KR') : ''
-    }));
-  } catch(e) {
-    console.error('세션 로드 실패:', e);
-    savedSessions = [];
-  }
-}
-
-// ── 클라이언트 로드 ──
-async function loadClients() {
-  try {
-    const { data } = await apiGet('/api/clients');
-    masterClients = data || [];
-    updateDataLists();
-  } catch(e) {
-    console.error('거래처 로드 실패:', e);
-  }
-}
+function saveSessions() { localStorage.setItem('edi_sessions',  JSON.stringify(savedSessions)); }
+function saveClients()  { localStorage.setItem('master_clients', JSON.stringify(masterClients)); }
+function savePharmaLS() { localStorage.setItem('master_pharma',  JSON.stringify(masterPharma)); }
 
 function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); }
 
@@ -826,8 +771,8 @@ async function runOCR() {
   setTimeout(() => progressWrap.classList.remove('show'), 2500);
 
   // 제약사 마스터 매칭
-  if (allExtracted.length > 0) {
-    ocrSepData = await matchPharma(allExtracted);
+  if (allExtracted.length > 0 && masterPharma.length > 0) {
+    ocrSepData = matchPharma(allExtracted);
     renderSeparation(ocrSepData);
   }
 }
@@ -848,50 +793,27 @@ function clearOCR() {
 // ══════════════════════════════════════════════
 // OCR SEPARATION — 제약사 마스터 매칭
 // ══════════════════════════════════════════════
-async function matchPharma(extractedRows) {
-  const matched = {};
-  const unknown = [];
-
-  // 추출된 보험코드 목록
-  const codes = extractedRows.map(r => (r.code || '').trim()).filter(Boolean);
-
-  // drug_master에서 일괄 검증
-  let codeMap = {};
-  if (codes.length > 0) {
-    try {
-      const { map } = await apiPost('/api/verify-codes', { codes });
-      codeMap = map || {};
-    } catch(e) {
-      console.error('보험코드 검증 실패:', e);
-    }
-  }
+function matchPharma(extractedRows) {
+  const matched = {};   // { pharmaName: { pharma, rows[] } }
+  const unknown = [];   // rows with no master match
 
   extractedRows.forEach(row => {
     const code = (row.code || '').trim();
     const noteHint = (row.note || '').trim();
 
-    // 1) drug_master 검증 결과로 매칭
-    let companyName = codeMap[code]?.company_name;
+    // 1) 보험코드로 매칭
+    let found = masterPharma.find(p => p.codes && p.codes.includes(code));
 
-    // 2) drug_master 미매칭시 로컬 masterPharma로 폴백
-    if (!companyName) {
-      const found = masterPharma.find(p => p.codes && p.codes.includes(code));
-      if (found) companyName = found.name;
-    }
-
-    // 3) note(OCR 인식 제약사명)로 폴백
-    if (!companyName && noteHint) {
-      const found = masterPharma.find(p =>
+    // 2) 코드 없으면 note(OCR인식 제약사명)로 이름 매칭
+    if (!found && noteHint) {
+      found = masterPharma.find(p =>
         p.name && p.name.replace(/\s/g,'').includes(noteHint.replace(/\s/g,''))
       );
-      if (found) companyName = found.name;
     }
 
-    if (companyName) {
-      if (!matched[companyName]) {
-        matched[companyName] = { pharma: { name: companyName }, rows: [] };
-      }
-      matched[companyName].rows.push(row);
+    if (found) {
+      if (!matched[found.name]) matched[found.name] = { pharma: found, rows: [] };
+      matched[found.name].rows.push(row);
     } else {
       unknown.push(row);
     }
@@ -1081,7 +1003,7 @@ async function saveData() {
   if (!hospital || !pharma) { alert('병의원명과 제약사명은 필수입니다.'); return; }
   if (!rows.length) { alert('급여내역을 1건 이상 입력해주세요.'); return; }
 
-  // attachFiles → base64 변환
+  // attachFiles → base64 변환 (이미지: Canvas 압축, PDF: 원본 dataUrl)
   const savedAttachFiles = [];
   for (const a of attachFiles) {
     const meta = { name: a.name, type: a.label || '', fileType: a.fileType || '', dataUrl: a.dataUrl || '' };
@@ -1090,35 +1012,50 @@ async function saveData() {
         meta.dataUrl = (a.fileType || '').startsWith('image/')
           ? await compressImageForStorage(a.file)
           : await fileToDataUrl(a.file);
-      } catch(e) {}
+      } catch(e) { /* 변환 실패 시 dataUrl 빈 문자열 유지 */ }
     }
     savedAttachFiles.push(meta);
   }
 
-  const session = {
-    id:          genId(),
-    hospital,
-    pharma,
-    bizno:       document.getElementById('h-bizno').value,
-    presc:       document.getElementById('h-presc').value,
-    settle:      document.getElementById('h-settle').value,
-    note:        document.getElementById('h-note').value,
-    rows:        JSON.parse(JSON.stringify(rows)),
+  savedSessions.push({
+    id: genId(), hospital, pharma,
+    bizno:  document.getElementById('h-bizno').value,
+    presc:  document.getElementById('h-presc').value,
+    settle: document.getElementById('h-settle').value,
+    note:   document.getElementById('h-note').value,
+    rows:   JSON.parse(JSON.stringify(rows)),
     attachFiles: savedAttachFiles,
-    savedAt:     new Date().toLocaleString('ko-KR')
+    savedAt: new Date().toLocaleString('ko-KR')
+  });
+
+  // localStorage 쓰기 — 용량 초과 시 이미지 없이 재시도
+  const tryWrite = (withImages) => {
+    if (!withImages) {
+      const last = savedSessions[savedSessions.length - 1];
+      last.attachFiles = last.attachFiles.map(a => ({ ...a, dataUrl: '' }));
+    }
+    try { saveSessions(); return true; }
+    catch(e) { return false; }
   };
 
-  try {
-    await apiPost('/api/sessions', session);
-    savedSessions.unshift({ ...session, attach_files: savedAttachFiles });
-    const sb = document.getElementById('status-bar');
-    sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
-    setTimeout(() => {
-      sb.innerHTML = `행 <span id="row-count">${rows.length}</span>개 입력됨`;
-    }, 2800);
-  } catch(e) {
-    alert('저장 실패: ' + e.message);
+  if (!tryWrite(true)) {
+    if (confirm('저장 용량이 부족합니다. 이미지 없이 저장할까요?')) {
+      if (!tryWrite(false)) {
+        savedSessions.pop();
+        alert('저장에 실패했습니다. 기존 데이터를 일부 삭제한 후 다시 시도해주세요.');
+        return;
+      }
+    } else {
+      savedSessions.pop();
+      return;
+    }
   }
+
+  const sb = document.getElementById('status-bar');
+  sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
+  setTimeout(() => {
+    sb.innerHTML = `행 <span id="row-count">${rows.length}</span>개 입력됨`;
+  }, 2800);
 }
 
 function loadSession(idx) {
@@ -1140,16 +1077,11 @@ function loadSession(idx) {
   showView('input');
 }
 
-async function deleteSession(idx) {
+function deleteSession(idx) {
   if (!confirm('이 항목을 삭제할까요?')) return;
-  const session = savedSessions[idx];
-  try {
-    await apiDelete(`/api/sessions?id=${session.id}`);
-    savedSessions.splice(idx, 1);
-    renderList();
-  } catch(e) {
-    alert('삭제 실패: ' + e.message);
-  }
+  savedSessions.splice(idx, 1);
+  saveSessions();
+  renderList();
 }
 
 // ══════════════════════════════════════════════
@@ -1261,7 +1193,7 @@ function renderClientMaster() {
     </tr>`).join('');
 }
 
-async function saveClientForm() {
+function saveClientForm() {
   const name = document.getElementById('c-name').value.trim();
   if (!name) { alert('거래처명을 입력해주세요.'); return; }
 
@@ -1274,25 +1206,21 @@ async function saveClientForm() {
     note:    document.getElementById('c-note').value.trim()
   };
 
-  try {
-    await apiPost('/api/clients', item);
-    if (clientEditId) {
-      const idx = masterClients.findIndex(c => c.id === clientEditId);
-      if (idx !== -1) masterClients[idx] = item;
-      clientEditId = null;
-      document.getElementById('client-form-title').textContent = '+ 거래처 등록';
-      document.getElementById('client-save-btn').textContent   = '등록';
-      document.getElementById('client-cancel-btn').style.display = 'none';
-    } else {
-      masterClients.push(item);
-    }
-    updateDataLists();
-    clearClientForm();
-    renderClientMaster();
-    showToast('거래처가 저장되었습니다.');
-  } catch(e) {
-    alert('저장 실패: ' + e.message);
+  if (clientEditId) {
+    const idx = masterClients.findIndex(c => c.id === clientEditId);
+    if (idx !== -1) masterClients[idx] = item;
+    clientEditId = null;
+    document.getElementById('client-form-title').textContent = '+ 거래처 등록';
+    document.getElementById('client-save-btn').textContent = '등록';
+    document.getElementById('client-cancel-btn').style.display = 'none';
+  } else {
+    masterClients.push(item);
   }
+
+  saveClients();
+  updateDataLists();
+  clearClientForm();
+  renderClientMaster();
 }
 
 function editClient(id) {
@@ -1311,17 +1239,12 @@ function editClient(id) {
   document.getElementById('client-form-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-async function deleteClient(id) {
+function deleteClient(id) {
   if (!confirm('이 거래처를 삭제할까요?')) return;
-  try {
-    await apiDelete(`/api/clients?id=${id}`);
-    masterClients = masterClients.filter(c => c.id !== id);
-    updateDataLists();
-    renderClientMaster();
-    showToast('거래처가 삭제되었습니다.');
-  } catch(e) {
-    alert('삭제 실패: ' + e.message);
-  }
+  masterClients = masterClients.filter(c => c.id !== id);
+  saveClients();
+  updateDataLists();
+  renderClientMaster();
 }
 
 function cancelClientEdit() {
@@ -1606,14 +1529,8 @@ function importCodesFromExcel(input) {
 // INIT
 // ══════════════════════════════════════════════
 setDefaultMonths();
+updateDataLists();
 for (let i = 0; i < 5; i++) addRow({});
-
-// Supabase에서 데이터 로드
-(async () => {
-  await loadClients();
-  await loadSessions();
-  updateDataLists();
-})();
 </script>
 </body>
 </html>
