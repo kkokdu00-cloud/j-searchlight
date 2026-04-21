@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDI 등록 — SS컴페어 입력</title>
+<style>
+/* ── Base ── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Malgun Gothic',sans-serif;font-size:14px;background:#f0f2f5;color:#222}
+input,select,textarea,button{font-family:inherit}
+a{color:#185FA5}
+
+/* ── Topbar ── */
+.topbar{background:#1a2233;color:#fff;padding:0 20px;display:flex;align-items:center;height:48px;gap:6px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.topbar-brand{font-size:16px;font-weight:700;white-space:nowrap;margin-right:8px}
+.topbar-brand .sep{color:#4466aa;margin:0 6px;font-weight:300}
+.topbar-brand .sub{font-size:13px;font-weight:400;color:#8899bb}
+.topbar-spacer{flex:1}
+.topbar-btn{height:32px;padding:0 14px;border:1px solid #3a4560;border-radius:6px;background:#2a3550;color:#ccd;cursor:pointer;font-size:13px;transition:all .15s;white-space:nowrap}
+.topbar-btn:hover{background:#3a4560;color:#fff}
+.topbar-btn.active{background:#185FA5;border-color:#185FA5;color:#fff}
+.topbar-btn.reset-btn{border-color:#6a3030;color:#ff9999;background:#2a1f1f}
+.topbar-btn.reset-btn:hover{background:#3a2020;color:#ffbbbb}
+
+/* ── Layout ── */
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:20px;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ── Form Fields ── */
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.field label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #d0d0d0;border-radius:6px;padding:0 10px;font-size:13px;background:#fff;color:#222}
+.field input,.field select{height:36px}
+.field textarea{padding:8px 10px;resize:vertical;min-height:68px;line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.12)}
+.required{color:#e24b4a}
+
+/* ── Buttons ── */
+.btn{height:34px;padding:0 16px;border:1px solid #d0d0d0;border-radius:6px;cursor:pointer;font-size:13px;background:#fff;color:#222;transition:background .12s;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.btn:hover{background:#f0f0f0}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover:not(:disabled){background:#0C447C}
+.btn-sm{height:28px;padding:0 12px;font-size:12px}
+.btn-danger{color:#e24b4a;border-color:#f0c0c0}
+.btn-danger:hover:not(:disabled){background:#fff0f0}
+.btn-success{background:#2e7d32;color:#fff;border-color:#2e7d32}
+.btn-success:hover:not(:disabled){background:#1b5e20}
+
+/* ── OCR Zone ── */
+.ocr-zone{border:2px dashed #c0d4ec;border-radius:10px;padding:16px;background:#f0f6ff}
+.ocr-drop{border:1px dashed #aabcd4;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#fff;transition:background .15s;user-select:none}
+.ocr-drop:hover,.ocr-drop.dragover{background:#e8f0fb;border-color:#185FA5}
+.ocr-drop input[type=file]{display:none}
+.ocr-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:flex-start}
+.ocr-preview-item{position:relative}
+.ocr-preview-item img{height:80px;border-radius:6px;border:1px solid #d0d0d0;display:block;cursor:pointer}
+.ocr-preview-item .file-badge{height:80px;width:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#f4f6fa;border:1px solid #d0d0d0;border-radius:6px;font-size:10px;color:#555;text-align:center;padding:4px;word-break:break-all;cursor:pointer}
+.ocr-btns{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.batch-info{font-size:11px;color:#888;padding:4px 8px;background:#f4f6fa;border-radius:4px}
+.ocr-result{margin-top:10px;padding:10px 12px;background:#fff;border:1px solid #d0d0d0;border-radius:8px;font-size:12px;color:#555;min-height:40px;white-space:pre-wrap;line-height:1.6}
+.ocr-loading{display:none;font-size:12px;color:#185FA5;padding:6px 0;align-items:center;gap:6px}
+.ocr-loading.show{display:flex}
+.spinner{width:14px;height:14px;border:2px solid #c0d4ec;border-top-color:#185FA5;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Progress ── */
+.progress-wrap{display:none;margin-top:8px}
+.progress-wrap.show{display:block}
+.progress-bar-bg{height:6px;background:#e0e8f4;border-radius:3px;overflow:hidden}
+.progress-bar{height:100%;background:#185FA5;border-radius:3px;transition:width .3s;width:0%}
+.progress-text{font-size:11px;color:#666;margin-top:4px}
+
+/* ── OCR Separation Panel ── */
+.ocr-sep-panel{margin-top:12px;padding:12px 14px;background:#f8fbff;border:1px solid #b8d0ee;border-radius:8px;display:none}
+.ocr-sep-panel.show{display:block}
+.sep-title{font-size:13px;font-weight:600;color:#185FA5;margin-bottom:8px}
+.sep-summary{font-size:12px;line-height:2;white-space:pre-wrap;background:#fff;padding:8px 10px;border-radius:6px;border:1px solid #dde8f4}
+.sep-subheader{font-size:12px;font-weight:600;margin:10px 0 6px;color:#555}
+.sep-row{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#fff;border:1px solid #e5e9f0;border-radius:6px;margin-bottom:4px;font-size:12px;flex-wrap:wrap}
+.sep-row input{height:28px;border:1px solid #d0d0d0;border-radius:4px;padding:0 8px;font-size:12px;background:#fff;min-width:140px;flex:1}
+.sep-actions{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sep-note{font-size:11px;color:#888}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+th{background:#f0f4fa;font-weight:600;padding:8px 6px;border:1px solid #dde3ee;text-align:center;white-space:nowrap;color:#334}
+td{border:1px solid #e5e9f0;padding:3px 4px}
+td input,td select{width:100%;height:30px;border:none;background:transparent;font-size:12px;padding:0 5px;color:#222;outline:none}
+td input:focus,td select:focus{background:#eef4ff;border-radius:4px}
+.num-cell{text-align:center;color:#888;font-size:11px;width:36px}
+.del-cell{width:40px;text-align:center}
+@keyframes fadeIn{from{background:#ddeeff}to{background:transparent}}
+tr.new-row{animation:fadeIn .4s ease}
+
+/* ── Attach Files ── */
+.attach-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.attach-controls{display:flex;gap:8px;align-items:center}
+.attach-list{display:flex;gap:10px;flex-wrap:wrap;min-height:50px;align-items:flex-start;padding:4px 0}
+.attach-item{display:flex;flex-direction:column;align-items:center;gap:5px;background:#f4f6fa;border:1px solid #d8dde8;padding:8px;border-radius:8px;font-size:11px;position:relative;max-width:110px;text-align:center}
+.attach-item img{max-width:90px;max-height:70px;border-radius:4px;cursor:pointer;border:1px solid #d0d0d0;display:block}
+.attach-item a{color:inherit;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:4px}
+.attach-item a:hover .attach-name{text-decoration:underline;color:#185FA5}
+.attach-file-icon{font-size:30px;line-height:1}
+.attach-name{font-size:10px;color:#555;word-break:break-all;display:block;max-width:96px}
+.attach-type-badge{font-size:10px;color:#555;background:#e0e4ec;padding:1px 6px;border-radius:4px}
+.attach-remove{position:absolute;top:2px;right:4px;cursor:pointer;color:#e24b4a;font-size:16px;line-height:1;background:rgba(255,255,255,.8);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+.attach-empty{font-size:12px;color:#aaa}
+
+/* ── Footer ── */
+.footer{display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px}
+.status{font-size:12px;color:#888}
+.footer-btns{display:flex;gap:8px}
+
+/* ── List View ── */
+.list-view-tabs{display:flex;gap:8px;margin-bottom:14px}
+.list-tab{padding:6px 16px;border:1px solid #d0d0d0;border-radius:20px;cursor:pointer;font-size:13px;background:#fff;color:#555;transition:all .12s}
+.list-tab:hover{background:#f0f4fa}
+.list-tab.active{background:#185FA5;color:#fff;border-color:#185FA5}
+.list-group{margin-bottom:14px}
+.list-group-title{font-size:13px;font-weight:600;color:#185FA5;margin-bottom:6px;background:#eef4ff;padding:6px 10px;border-radius:6px;display:flex;align-items:center;gap:6px}
+.list-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #e5e9f0;border-radius:6px;margin-bottom:4px;background:#fff;flex-wrap:wrap}
+.list-row label{display:flex;align-items:center;gap:6px;flex:1;cursor:pointer;min-width:120px;font-size:13px}
+.list-row .meta{font-size:12px;color:#888;white-space:nowrap}
+.list-row .list-btns{display:flex;gap:6px;flex-shrink:0}
+.export-bar{display:flex;gap:8px;align-items:center;padding-top:10px;border-top:1px solid #eee;margin-top:10px;flex-wrap:wrap}
+.attach-icon-badge{font-size:13px;opacity:.7;cursor:default}
+
+/* ── Master Management ── */
+.master-sections{display:flex;flex-direction:column;gap:16px}
+.master-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.master-tbl th{background:#f0f4fa;padding:7px 8px;border:1px solid #dde3ee;text-align:left;font-weight:600;white-space:nowrap}
+.master-tbl td{border:1px solid #e5e9f0;padding:6px 8px;vertical-align:middle}
+.master-tbl tr:hover td{background:#fafbff}
+.master-tbl .btns{display:flex;gap:4px;justify-content:flex-end}
+.master-form-area{margin-top:12px;padding:12px 14px;background:#f8fbff;border:1px solid #b8d0ee;border-radius:8px}
+.master-form-title{font-size:12px;font-weight:600;color:#185FA5;margin-bottom:10px}
+.master-form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end}
+.master-form-row .field{flex:1;min-width:110px}
+.master-form-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-active{background:#d4edda;color:#155724}
+.badge-inactive{background:#f8d7da;color:#721c24}
+.codes-cell{font-size:11px;color:#666;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty-tip{font-size:12px;color:#aaa;padding:12px 0;text-align:center}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#323232;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Gallery Modal ── */
+.gallery-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.gallery-box{background:#fff;border-radius:12px;max-width:960px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+.gallery-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #eee;font-size:15px;font-weight:600;flex-shrink:0}
+.gallery-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;padding:0 6px}
+.gallery-close:hover{color:#222}
+.gallery-grid{display:flex;flex-wrap:wrap;gap:16px;padding:18px;overflow-y:auto;align-items:flex-start}
+.gallery-item{display:flex;flex-direction:column;align-items:center;gap:6px;width:180px}
+.gallery-item a{text-decoration:none;display:flex;flex-direction:column;align-items:center}
+.gallery-item img{width:180px;height:140px;object-fit:contain;border-radius:6px;border:1px solid #ddd;background:#f4f4f4;cursor:pointer}
+.gallery-item a:hover img{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.2)}
+.gallery-pdf-icon{font-size:52px;line-height:1;cursor:pointer}
+.gallery-label{font-size:10px;color:#777;text-align:center;line-height:1.5;word-break:break-word;max-width:180px;margin-top:4px}
+.gallery-empty{padding:32px;color:#aaa;font-size:13px;text-align:center;width:100%}
+
+/* ── Responsive ── */
+@media(max-width:768px){.form-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ═══ Topbar ═══ -->
+<div class="topbar">
+  <div class="topbar-brand">EDI 등록<span class="sep">|</span><span class="sub">SS컴페어</span></div>
+  <div class="topbar-spacer"></div>
+  <button class="topbar-btn reset-btn" onclick="resetAll()">🔄 초기화</button>
+  <button class="topbar-btn active" id="nav-input"  onclick="showView('input')">신규 입력</button>
+  <button class="topbar-btn"        id="nav-list"   onclick="showView('list')">저장 목록</button>
+  <button class="topbar-btn"        id="nav-master" onclick="showView('master')">마스터 관리</button>
+</div>
+
+<div class="wrap">
+
+<!-- ════════════════════════════════════════════
+     VIEW: 신규 입력
+════════════════════════════════════════════ -->
+<div id="view-input">
+
+  <!-- 기본 정보 -->
+  <div class="card">
+    <div class="section-title">📋 기본 정보</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>병의원명 <span class="required">*</span></label>
+        <input type="text" id="h-hospital" list="hospitals-list" placeholder="거래처명 입력" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>사업자번호</label>
+        <input type="text" id="h-bizno" placeholder="000-00-00000" oninput="fmtBizno(this)">
+      </div>
+      <div class="field">
+        <label>제약사명 <span class="required">*</span></label>
+        <input type="text" id="h-pharma" list="pharma-list" placeholder="제약사명 입력" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>처방월 <span class="required">*</span></label>
+        <input type="month" id="h-presc">
+      </div>
+      <div class="field">
+        <label>정산월</label>
+        <input type="month" id="h-settle">
+      </div>
+      <div class="field">
+        <label>비고</label>
+        <input type="text" id="h-note" placeholder="메모">
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR -->
+  <div class="card">
+    <div class="section-title">
+      🔍 OCR 자동입력
+      <span style="font-size:11px;font-weight:400;color:#888;">이미지/PDF 업로드 → 급여내역 자동 추출</span>
+      <span id="batch-counter" class="batch-info" style="display:none;"></span>
+    </div>
+    <div class="ocr-zone">
+      <label class="ocr-drop" id="ocr-drop"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="event.preventDefault();this.classList.remove('dragover');handleOcrDrop(event)">
+        <input type="file" id="ocr-file" accept="image/*,.pdf" multiple onchange="handleOcrFile(this)">
+        <div id="ocr-drop-text" style="color:#666;font-size:13px;">
+          클릭하거나 파일을 드래그하세요<br>
+          <span style="font-size:11px;color:#aaa;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</span>
+        </div>
+      </label>
+      <div id="ocr-preview" class="ocr-preview"></div>
+      <div class="ocr-btns">
+        <button class="btn btn-primary btn-sm" id="btn-ocr-run" onclick="runOCR()">▶ OCR 실행</button>
+        <button class="btn btn-sm" onclick="clearOCR()">초기화</button>
+        <span id="ocr-loading" class="ocr-loading">
+          <span class="spinner"></span>AI가 분석 중입니다...
+        </span>
+      </div>
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar"></div></div>
+        <div class="progress-text" id="progress-text"></div>
+      </div>
+      <div class="ocr-result" id="ocr-result">OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 테이블에 자동 입력됩니다.</div>
+
+      <!-- 마스터 매칭 결과 패널 -->
+      <div id="ocr-separation" class="ocr-sep-panel">
+        <div class="sep-title">📊 마스터 매칭 결과</div>
+        <div class="sep-summary" id="sep-summary"></div>
+        <div id="sep-unmatched-section" style="display:none">
+          <div class="sep-subheader">❓ 미매칭 항목 — 제약사 지정 (선택)</div>
+          <div id="sep-unmatched-list"></div>
+        </div>
+        <div class="sep-actions">
+          <button class="btn btn-success btn-sm" onclick="doSplitSave()">📂 제약사별 분리 저장</button>
+          <span class="sep-note">분리 저장 전 병의원명·처방월·정산월을 확인하세요.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 급여내역 테이블 -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="section-title" style="margin:0;border:none;padding:0;">💊 급여내역</div>
+      <button class="btn btn-sm" onclick="addRow({},true)">+ 행 추가</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="del-cell"></th>
+            <th style="width:38px;">순번</th>
+            <th style="width:110px;">보험코드</th>
+            <th style="min-width:150px;">제품명</th>
+            <th style="width:90px;">단가</th>
+            <th style="width:78px;">원내수량</th>
+            <th style="width:78px;">원외수량</th>
+            <th style="width:80px;">처방/조제</th>
+            <th style="min-width:120px;">비고</th>
+          </tr>
+        </thead>
+        <tbody id="edi-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 첨부파일 -->
+  <div class="card">
+    <div class="attach-header">
+      <div class="section-title" style="margin:0;border:none;padding:0;">📎 첨부파일</div>
+      <div class="attach-controls">
+        <select id="attach-type" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size:12px;padding:0 8px;background:#fff;">
+          <option value="제약사">제약사별</option>
+          <option value="거래처">거래처별</option>
+        </select>
+        <label class="btn btn-sm" style="cursor:pointer;">
+          파일 추가 <input type="file" multiple style="display:none;" onchange="addAttach(this)">
+        </label>
+      </div>
+    </div>
+    <div class="attach-list" id="attach-list"><span class="attach-empty">첨부파일 없음</span></div>
+  </div>
+
+  <!-- 하단 -->
+  <div class="footer">
+    <span class="status" id="status-bar">행 <span id="row-count">0</span>개 입력됨</span>
+    <div class="footer-btns">
+      <button class="btn btn-primary" onclick="saveData()">저장</button>
+    </div>
+  </div>
+</div><!-- /view-input -->
+
+
+<!-- ════════════════════════════════════════════
+     VIEW: 저장 목록
+════════════════════════════════════════════ -->
+<div id="view-list" style="display:none">
+  <div class="card">
+    <div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>📁 저장 목록</span>
+      <div class="list-view-tabs">
+        <button class="list-tab active" id="tab-pharma"   onclick="switchListTab('pharma')">🏢 제약사별</button>
+        <button class="list-tab"        id="tab-hospital" onclick="switchListTab('hospital')">🏥 거래처별</button>
+      </div>
+    </div>
+    <div id="list-body"><p class="empty-tip">저장된 데이터가 없습니다.</p></div>
+    <div class="export-bar">
+      <button class="btn btn-primary" onclick="exportXlsx()">✦ 선택 항목 SS컴페어 내보내기 (.xlsx)</button>
+      <button class="btn btn-sm" onclick="openGallery()">🖼️ 첨부 이미지 보기</button>
+      <button class="btn btn-sm" onclick="selectAll()">전체 선택</button>
+      <button class="btn btn-sm" onclick="deselectAll()">선택 해제</button>
+    </div>
+  </div>
+</div><!-- /view-list -->
+
+
+<!-- ════════════════════════════════════════════
+     VIEW: 마스터 관리
+════════════════════════════════════════════ -->
+<div id="view-master" style="display:none">
+  <div class="master-sections">
+
+    <!-- 거래처 마스터 -->
+    <div class="card">
+      <div class="section-title">🏥 거래처(병의원) 마스터</div>
+      <div style="overflow-x:auto">
+        <table class="master-tbl" id="clients-tbl">
+          <thead>
+            <tr>
+              <th>거래처명</th><th>사업자번호</th><th>지역</th><th>담당자</th>
+              <th style="width:80px;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="clients-body"></tbody>
+        </table>
+        <div id="clients-empty" class="empty-tip">등록된 거래처가 없습니다.</div>
+      </div>
+      <div class="master-form-area" id="client-form-area">
+        <div class="master-form-title" id="client-form-title">+ 거래처 등록</div>
+        <div class="master-form-row">
+          <div class="field"><label>거래처명 <span class="required">*</span></label><input type="text" id="c-name" placeholder="병의원명"></div>
+          <div class="field"><label>사업자번호</label><input type="text" id="c-bizno" placeholder="000-00-00000" oninput="fmtBizno(this)"></div>
+        </div>
+        <div class="master-form-row">
+          <div class="field"><label>지역</label>
+            <select id="c-region">
+              <option value="">선택 안함</option>
+              <option>서울</option><option>경기</option><option>인천</option>
+              <option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>울산</option>
+              <option>세종</option><option>강원</option><option>충북</option><option>충남</option>
+              <option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option>
+            </select>
+          </div>
+          <div class="field"><label>담당자</label><input type="text" id="c-manager" placeholder="영업사원명"></div>
+          <div class="field"><label>비고</label><input type="text" id="c-note" placeholder="메모"></div>
+        </div>
+        <div class="master-form-btns">
+          <button class="btn btn-sm" id="client-cancel-btn" onclick="cancelClientEdit()" style="display:none">취소</button>
+          <button class="btn btn-primary btn-sm" id="client-save-btn" onclick="saveClientForm()">등록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제약사 마스터 -->
+    <div class="card">
+      <div class="section-title">
+        🏢 제약사 마스터
+        <label class="btn btn-sm" style="cursor:pointer;font-size:11px;margin-left:auto;">
+          📂 전체 일괄 등록 (엑셀)
+          <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="bulkImportPharma(this)">
+        </label>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="master-tbl" id="pharma-tbl">
+          <thead>
+            <tr>
+              <th>제약사명</th><th>보험코드</th><th>거래여부</th>
+              <th style="width:80px;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="pharma-body"></tbody>
+        </table>
+        <div id="pharma-empty" class="empty-tip">등록된 제약사가 없습니다.</div>
+      </div>
+      <div class="master-form-area" id="pharma-form-area">
+        <div class="master-form-title" id="pharma-form-title">+ 제약사 등록</div>
+        <div class="master-form-row">
+          <div class="field"><label>제약사명 <span class="required">*</span></label><input type="text" id="p-name" placeholder="제약사명"></div>
+          <div class="field"><label>거래여부</label>
+            <select id="p-active">
+              <option value="true">거래중</option>
+              <option value="false">거래안함</option>
+            </select>
+          </div>
+        </div>
+        <div class="master-form-row">
+          <div class="field" style="flex:1">
+            <label style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <span>보험코드 목록 <span style="font-size:10px;color:#888;">(쉼표 또는 줄바꿈으로 구분)</span></span>
+              <label class="btn btn-sm" style="cursor:pointer;font-size:11px;height:24px;padding:0 10px;">
+                📂 엑셀로 불러오기
+                <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importCodesFromExcel(this)">
+              </label>
+            </label>
+            <textarea id="p-codes" placeholder="643301120&#10;643301340&#10;..."></textarea>
+          </div>
+        </div>
+        <div class="master-form-btns">
+          <button class="btn btn-sm" id="pharma-cancel-btn" onclick="cancelPharmaEdit()" style="display:none">취소</button>
+          <button class="btn btn-primary btn-sm" id="pharma-save-btn" onclick="savePharmaForm()">등록</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /view-master -->
+
+</div><!-- /wrap -->
+
+<!-- Datalists for autocomplete -->
+<datalist id="hospitals-list"></datalist>
+<datalist id="pharma-list"></datalist>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Gallery Modal -->
+<div id="gallery-modal" class="gallery-modal" style="display:none" onclick="closeGallery(event)">
+  <div class="gallery-box" onclick="event.stopPropagation()">
+    <div class="gallery-header">
+      <span>🖼️ 첨부 이미지</span>
+      <button class="gallery-close" onclick="closeGallery()">✕</button>
+    </div>
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let rows        = [];         // 현재 입력 중인 급여내역 (메모리 전용 - BUG-4)
+let attachFiles = [];         // { file, name, fileType, label, url }
+let ocrFiles    = [];
+let ocrSepData  = null;       // OCR 후 매칭 결과
+
+// localStorage 기반 (영구 저장)
+let savedSessions = JSON.parse(localStorage.getItem('edi_sessions') || '[]');
+let masterClients = JSON.parse(localStorage.getItem('master_clients') || '[]');
+let masterPharma  = JSON.parse(localStorage.getItem('master_pharma')  || '[]');
+
+// 마스터 편집 상태
+let clientEditId = null;
+let pharmaEditId = null;
+
+// 목록 탭 상태
+let listTab = 'pharma';
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function esc(v) {
+  return (v || '').toString()
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmtBizno(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length > 10) v = v.slice(0, 10);
+  if (v.length > 5)      v = v.slice(0,3) + '-' + v.slice(3,5) + '-' + v.slice(5);
+  else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
+  el.value = v;
+}
+
+function saveSessions() { localStorage.setItem('edi_sessions',  JSON.stringify(savedSessions)); }
+function saveClients()  { localStorage.setItem('master_clients', JSON.stringify(masterClients)); }
+function savePharmaLS() { localStorage.setItem('master_pharma',  JSON.stringify(masterPharma)); }
+
+function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); }
+
+// ══════════════════════════════════════════════
+// VIEW MANAGEMENT
+// ══════════════════════════════════════════════
+function showView(v) {
+  ['input','list','master'].forEach(name => {
+    document.getElementById('view-' + name).style.display = (name === v) ? 'block' : 'none';
+    document.getElementById('nav-'  + name).classList.toggle('active', name === v);
+  });
+  if (v === 'list')   renderList();
+  if (v === 'master') { renderClientMaster(); renderPharmaMaster(); }
+}
+
+// ══════════════════════════════════════════════
+// DATALIST AUTOCOMPLETE
+// ══════════════════════════════════════════════
+function updateDataLists() {
+  const hList = document.getElementById('hospitals-list');
+  const pList = document.getElementById('pharma-list');
+  hList.innerHTML = masterClients.map(c => `<option value="${esc(c.name)}">`).join('');
+  pList.innerHTML  = masterPharma.map(p  => `<option value="${esc(p.name)}">`).join('');
+}
+
+// ══════════════════════════════════════════════
+// RESET (BUG-5)
+// ══════════════════════════════════════════════
+function resetAll() {
+  if (!confirm('현재 입력 내용을 초기화할까요?')) return;
+  rows = [];
+  attachFiles = [];
+  ['h-hospital','h-bizno','h-pharma','h-note'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  setDefaultMonths();
+  renderTable();
+  renderAttach();
+  clearOCR();
+  document.getElementById('status-bar').innerHTML = '행 <span id="row-count">0</span>개 입력됨';
+}
+
+function setDefaultMonths() {
+  const now = new Date();
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  document.getElementById('h-presc').value  =
+    prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0');
+  document.getElementById('h-settle').value =
+    now.getFullYear()  + '-' + String(now.getMonth() + 1).padStart(2, '0');
+}
+
+// ══════════════════════════════════════════════
+// TABLE
+// ══════════════════════════════════════════════
+function addRow(data, animate) {
+  rows.push(Object.assign({ code:'', name:'', price:'', qin:'', qout:'', type:'처방', note:'' }, data || {}));
+  renderTable(animate ? rows.length - 1 : -1);
+}
+
+function renderTable(newIdx) {
+  const tbody = document.getElementById('edi-body');
+  tbody.innerHTML = '';
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    if (i === newIdx) tr.classList.add('new-row');
+    tr.innerHTML = `
+      <td class="del-cell"><button class="btn btn-danger btn-sm" onclick="delRow(${i})">삭제</button></td>
+      <td class="num-cell">${i+1}</td>
+      <td><input value="${esc(r.code)}"  onchange="rows[${i}].code=this.value"  placeholder="643301120"></td>
+      <td><input value="${esc(r.name)}"  onchange="rows[${i}].name=this.value"  placeholder="제품명"></td>
+      <td><input value="${esc(r.price)}" onchange="rows[${i}].price=this.value" style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qin)}"   onchange="rows[${i}].qin=this.value"   style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qout)}"  onchange="rows[${i}].qout=this.value"  style="text-align:right" placeholder="0"></td>
+      <td><select onchange="rows[${i}].type=this.value">
+        <option ${r.type==='처방'?'selected':''}>처방</option>
+        <option ${r.type==='조제'?'selected':''}>조제</option>
+      </select></td>
+      <td><input value="${esc(r.note)}" onchange="rows[${i}].note=this.value"></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('row-count').textContent = rows.length;
+}
+
+function delRow(i) { rows.splice(i, 1); renderTable(); }
+
+// ══════════════════════════════════════════════
+// IMAGE RESIZE (BUG-1) — 긴 변 2400px, 4MB 이하
+// ══════════════════════════════════════════════
+function resizeImageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX_DIM  = 2400;
+      const MAX_BYTES = 4 * 1024 * 1024;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        if (w >= h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+        else        { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      let quality = 0.88;
+      let base64;
+      do {
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        base64 = dataUrl.split(',')[1];
+        if (base64.length * 0.75 <= MAX_BYTES) break;
+        quality -= 0.08;
+      } while (quality > 0.2);
+      resolve({ base64, mediaType: 'image/jpeg' });
+    };
+    img.onerror = () => reject(new Error('이미지 로드 실패'));
+    img.src = url;
+  });
+}
+
+async function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = e => res(e.target.result.split(',')[1]);
+    r.onerror = () => rej(new Error('파일 읽기 실패'));
+    r.readAsDataURL(file);
+  });
+}
+
+// ══════════════════════════════════════════════
+// OCR FILE HANDLING
+// ══════════════════════════════════════════════
+function handleOcrDrop(e) { setOcrFiles(Array.from(e.dataTransfer.files)); }
+function handleOcrFile(input) { setOcrFiles(Array.from(input.files)); }
+
+function setOcrFiles(files) {
+  if (!files.length) return;
+  ocrFiles = files;
+  const names = files.map(f => f.name).join(', ');
+  document.getElementById('ocr-drop-text').innerHTML =
+    `✓ ${files.length}개 파일 선택됨<br><span style="font-size:11px;color:#888;">${names}</span>`;
+
+  // 미리보기 (BUG-6 적용)
+  const prev = document.getElementById('ocr-preview');
+  prev.innerHTML = '';
+  files.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ocr-preview-item';
+    if (f.type.startsWith('image/')) {
+      const previewUrl = URL.createObjectURL(f);
+      const img = document.createElement('img');
+      img.src = previewUrl;
+      img.title = f.name;
+      img.onclick = () => window.open(previewUrl, '_blank');
+      wrap.appendChild(img);
+    } else {
+      const badge = document.createElement('div');
+      badge.className = 'file-badge';
+      badge.innerHTML = `<span style="font-size:24px;">${f.type==='application/pdf'?'📄':'📎'}</span><span>${f.name.length>12 ? f.name.slice(0,10)+'…' : f.name}</span>`;
+      const fileUrl = URL.createObjectURL(f);
+      badge.onclick = () => window.open(fileUrl, '_blank');
+      wrap.appendChild(badge);
+    }
+    prev.appendChild(wrap);
+  });
+
+  const counter = document.getElementById('batch-counter');
+  if (files.length > 1) {
+    counter.textContent = `${files.length}장 배치 모드`;
+    counter.style.display = 'inline';
+  } else {
+    counter.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════
+// OCR 실행 (BUG-3: rows 초기화 확인)
+// ══════════════════════════════════════════════
+async function runOCR() {
+  if (!ocrFiles.length) { alert('파일을 먼저 선택해주세요.'); return; }
+
+  // BUG-3: 기존 내역 확인 후 초기화
+  const hasData = rows.some(r => r.name || r.code);
+  if (hasData) {
+    if (!confirm('기존 내역을 지우고 새로 채울까요?')) return;
+  }
+  rows = [];
+  ocrSepData = null;
+  document.getElementById('ocr-separation').classList.remove('show');
+
+  const btnRun      = document.getElementById('btn-ocr-run');
+  const loading     = document.getElementById('ocr-loading');
+  const progressWrap = document.getElementById('progress-wrap');
+  const progressBar  = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const resultEl     = document.getElementById('ocr-result');
+
+  btnRun.disabled = true;
+  loading.classList.add('show');
+  progressWrap.classList.add('show');
+  progressBar.style.width = '0%';
+  resultEl.textContent = '';
+
+  let totalExtracted = 0;
+  const log = [];
+  const allExtracted = [];
+
+  for (let i = 0; i < ocrFiles.length; i++) {
+    const file = ocrFiles[i];
+    progressBar.style.width = Math.round((i / ocrFiles.length) * 100) + '%';
+    progressText.textContent = `(${i+1}/${ocrFiles.length}) ${file.name} 처리 중...`;
+
+    try {
+      let base64, mediaType;
+      if (file.type === 'application/pdf') {
+        // BUG-2: PDF는 원본 그대로
+        base64    = await fileToBase64(file);
+        mediaType = 'application/pdf';
+      } else {
+        // BUG-1: 이미지는 리사이즈+압축
+        ({ base64, mediaType } = await resizeImageToBase64(file));
+      }
+
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mediaType })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const clean  = data.text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        parsed.forEach(item => {
+          const row = { ...item, type: item.type || '처방' };
+          rows.push(row);
+          allExtracted.push(row);
+        });
+        totalExtracted += parsed.length;
+        log.push(`✅ [${i+1}] ${file.name} → ${parsed.length}건 추출`);
+      } else {
+        log.push(`⚠️ [${i+1}] ${file.name} → 추출 항목 없음`);
+      }
+    } catch(err) {
+      log.push(`❌ [${i+1}] ${file.name} → 실패: ${err.message}`);
+    }
+  }
+
+  progressBar.style.width = '100%';
+  progressText.textContent = '완료';
+  loading.classList.remove('show');
+  btnRun.disabled = false;
+
+  renderTable();
+
+  resultEl.textContent =
+    `총 ${ocrFiles.length}장 처리 완료 · ${totalExtracted}건 추출 → 테이블에 자동 입력됨\n\n` +
+    log.join('\n');
+
+  setTimeout(() => progressWrap.classList.remove('show'), 2500);
+
+  // 제약사 마스터 매칭
+  if (allExtracted.length > 0 && masterPharma.length > 0) {
+    ocrSepData = matchPharma(allExtracted);
+    renderSeparation(ocrSepData);
+  }
+}
+
+function clearOCR() {
+  ocrFiles = [];
+  ocrSepData = null;
+  document.getElementById('ocr-file').value = '';
+  document.getElementById('ocr-drop-text').innerHTML =
+    '클릭하거나 파일을 드래그하세요<br><span style="font-size:11px;color:#aaa;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</span>';
+  document.getElementById('ocr-preview').innerHTML = '';
+  document.getElementById('ocr-result').textContent = 'OCR 결과가 여기에 표시됩니다.';
+  document.getElementById('batch-counter').style.display = 'none';
+  document.getElementById('progress-wrap').classList.remove('show');
+  document.getElementById('ocr-separation').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════
+// OCR SEPARATION — 제약사 마스터 매칭
+// ══════════════════════════════════════════════
+function matchPharma(extractedRows) {
+  const matched = {};   // { pharmaName: { pharma, rows[] } }
+  const unknown = [];   // rows with no master match
+
+  extractedRows.forEach(row => {
+    const code = (row.code || '').trim();
+    const noteHint = (row.note || '').trim();
+
+    // 1) 보험코드로 매칭
+    let found = masterPharma.find(p => p.codes && p.codes.includes(code));
+
+    // 2) 코드 없으면 note(OCR인식 제약사명)로 이름 매칭
+    if (!found && noteHint) {
+      found = masterPharma.find(p =>
+        p.name && p.name.replace(/\s/g,'').includes(noteHint.replace(/\s/g,''))
+      );
+    }
+
+    if (found) {
+      if (!matched[found.name]) matched[found.name] = { pharma: found, rows: [] };
+      matched[found.name].rows.push(row);
+    } else {
+      unknown.push(row);
+    }
+  });
+
+  return { matched, unknown };
+}
+
+function renderSeparation(sepData) {
+  const panel = document.getElementById('ocr-separation');
+  const summaryEl = document.getElementById('sep-summary');
+  const unmatchedSection = document.getElementById('sep-unmatched-section');
+  const unmatchedList = document.getElementById('sep-unmatched-list');
+
+  const { matched, unknown } = sepData;
+  const lines = [];
+
+  const matchedKeys = Object.keys(matched);
+  if (matchedKeys.length > 0) {
+    const activePharma   = matchedKeys.filter(k => matched[k].pharma.active !== false);
+    const inactivePharma = matchedKeys.filter(k => matched[k].pharma.active === false);
+    if (activePharma.length)   lines.push('✅ 거래 제약사 매칭: ' + activePharma.map(k => `${k} ${matched[k].rows.length}건`).join(', '));
+    if (inactivePharma.length) lines.push('⚠️ 거래안함 제약사: '  + inactivePharma.map(k => `${k} ${matched[k].rows.length}건`).join(', '));
+  }
+  if (unknown.length) lines.push(`❓ 마스터 미등록 코드: ${unknown.length}건`);
+
+  summaryEl.textContent = lines.join('\n') || '매칭 결과 없음';
+
+  if (unknown.length > 0) {
+    unmatchedList.innerHTML = unknown.map((row, i) => `
+      <div class="sep-row">
+        <span style="color:#888;min-width:90px;">코드: ${esc(row.code||'없음')}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(row.name)}</span>
+        ${row.note ? `<span style="color:#185FA5;font-size:11px;">OCR: ${esc(row.note)}</span>` : ''}
+        <input class="pharma-assign" list="pharma-list" placeholder="제약사명 지정..."
+               value="${esc(row.note||'')}" autocomplete="off">
+      </div>`).join('');
+    unmatchedSection.style.display = 'block';
+  } else {
+    unmatchedSection.style.display = 'none';
+  }
+
+  panel.classList.add('show');
+}
+
+async function doSplitSave() {
+  const hospital = document.getElementById('h-hospital').value.trim();
+  const bizno    = document.getElementById('h-bizno').value.trim();
+  const presc    = document.getElementById('h-presc').value;
+  const settle   = document.getElementById('h-settle').value;
+
+  if (!hospital) { alert('병의원명을 입력해주세요.'); return; }
+  if (!presc)    { alert('처방월을 입력해주세요.'); return; }
+  if (!ocrSepData) return;
+
+  const { matched, unknown } = ocrSepData;
+  let savedCount = 0;
+
+  // 매칭된 그룹별 세션 생성
+  Object.keys(matched).forEach(pharmaName => {
+    const group = matched[pharmaName];
+    if (!group.rows.length) return;
+    savedSessions.push({
+      id: genId(), hospital, pharma: pharmaName, bizno, presc, settle,
+      note: 'OCR 자동분리',
+      rows: group.rows.map(r => ({ ...r, type: r.type || '처방' })),
+      attachFiles: [],
+      savedAt: new Date().toLocaleString('ko-KR')
+    });
+    savedCount++;
+  });
+
+  // 미매칭 항목 — 사용자가 지정한 제약사별 그룹화
+  const assignInputs = document.querySelectorAll('#sep-unmatched-list .pharma-assign');
+  const unmatchedByPharma = {};
+  unknown.forEach((row, i) => {
+    const val = assignInputs[i] ? assignInputs[i].value.trim() : '';
+    if (val) {
+      if (!unmatchedByPharma[val]) unmatchedByPharma[val] = [];
+      unmatchedByPharma[val].push(row);
+    }
+  });
+
+  Object.keys(unmatchedByPharma).forEach(pharmaName => {
+    savedSessions.push({
+      id: genId(), hospital, pharma: pharmaName, bizno, presc, settle,
+      note: 'OCR 자동분리(미매칭)',
+      rows: unmatchedByPharma[pharmaName].map(r => ({ ...r, type: r.type || '처방' })),
+      attachFiles: [],
+      savedAt: new Date().toLocaleString('ko-KR')
+    });
+    savedCount++;
+  });
+
+  if (savedCount === 0) { alert('저장할 데이터가 없습니다.'); return; }
+
+  saveSessions();
+  alert(`${savedCount}개 세션으로 분리 저장되었습니다.`);
+  document.getElementById('ocr-separation').classList.remove('show');
+  ocrSepData = null;
+}
+
+// ══════════════════════════════════════════════
+// ATTACH FILES (BUG-6: 썸네일 미리보기)
+// ══════════════════════════════════════════════
+function addAttach(input) {
+  const label = document.getElementById('attach-type').value;
+  Array.from(input.files).forEach(f => {
+    const url = URL.createObjectURL(f);
+    attachFiles.push({ file: f, name: f.name, fileType: f.type, label, url });
+  });
+  renderAttach();
+  input.value = '';
+}
+
+function removeAttach(i) {
+  if (attachFiles[i] && attachFiles[i].url) URL.revokeObjectURL(attachFiles[i].url);
+  attachFiles.splice(i, 1);
+  renderAttach();
+}
+
+function renderAttach() {
+  const el = document.getElementById('attach-list');
+  if (!attachFiles.length) {
+    el.innerHTML = '<span class="attach-empty">첨부파일 없음</span>';
+    return;
+  }
+  el.innerHTML = attachFiles.map((a, i) => {
+    const isImage    = a.fileType && a.fileType.startsWith('image/');
+    const icon       = a.fileType === 'application/pdf' ? '📄' : (isImage ? '' : '📎');
+    const displayUrl = a.url || a.dataUrl || '';
+    const preview    = isImage && displayUrl
+      ? `<a href="${displayUrl}" target="_blank"><img src="${displayUrl}" alt="${esc(a.name)}" title="${esc(a.name)}"></a>`
+      : `<a ${displayUrl ? `href="${displayUrl}" target="_blank"` : 'href="#"'} title="${esc(a.name)}">
+           <span class="attach-file-icon">${icon}</span>
+           <span class="attach-name">${esc(a.name)}</span>
+         </a>`;
+    return `
+      <div class="attach-item">
+        ${preview}
+        <span class="attach-type-badge">${esc(a.label||a.type||'')}</span>
+        <span class="attach-remove" onclick="removeAttach(${i})" title="삭제">×</span>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// IMAGE UTILS FOR SAVE
+// ══════════════════════════════════════════════
+function compressImageForStorage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1200;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX || h > MAX) {
+        if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+        else        { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = () => reject(new Error('이미지 로드 실패'));
+    img.src = url;
+  });
+}
+
+function fileToDataUrl(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej(new Error('읽기 실패'));
+    r.readAsDataURL(file);
+  });
+}
+
+// ══════════════════════════════════════════════
+// SAVE / LOAD SESSION
+// ══════════════════════════════════════════════
+async function saveData() {
+  const hospital = document.getElementById('h-hospital').value.trim();
+  const pharma   = document.getElementById('h-pharma').value.trim();
+  if (!hospital || !pharma) { alert('병의원명과 제약사명은 필수입니다.'); return; }
+  if (!rows.length) { alert('급여내역을 1건 이상 입력해주세요.'); return; }
+
+  // attachFiles → base64 변환 (이미지: Canvas 압축, PDF: 원본 dataUrl)
+  const savedAttachFiles = [];
+  for (const a of attachFiles) {
+    const meta = { name: a.name, type: a.label || '', fileType: a.fileType || '', dataUrl: a.dataUrl || '' };
+    if (a.file) {
+      try {
+        meta.dataUrl = (a.fileType || '').startsWith('image/')
+          ? await compressImageForStorage(a.file)
+          : await fileToDataUrl(a.file);
+      } catch(e) { /* 변환 실패 시 dataUrl 빈 문자열 유지 */ }
+    }
+    savedAttachFiles.push(meta);
+  }
+
+  savedSessions.push({
+    id: genId(), hospital, pharma,
+    bizno:  document.getElementById('h-bizno').value,
+    presc:  document.getElementById('h-presc').value,
+    settle: document.getElementById('h-settle').value,
+    note:   document.getElementById('h-note').value,
+    rows:   JSON.parse(JSON.stringify(rows)),
+    attachFiles: savedAttachFiles,
+    savedAt: new Date().toLocaleString('ko-KR')
+  });
+
+  // localStorage 쓰기 — 용량 초과 시 이미지 없이 재시도
+  const tryWrite = (withImages) => {
+    if (!withImages) {
+      const last = savedSessions[savedSessions.length - 1];
+      last.attachFiles = last.attachFiles.map(a => ({ ...a, dataUrl: '' }));
+    }
+    try { saveSessions(); return true; }
+    catch(e) { return false; }
+  };
+
+  if (!tryWrite(true)) {
+    if (confirm('저장 용량이 부족합니다. 이미지 없이 저장할까요?')) {
+      if (!tryWrite(false)) {
+        savedSessions.pop();
+        alert('저장에 실패했습니다. 기존 데이터를 일부 삭제한 후 다시 시도해주세요.');
+        return;
+      }
+    } else {
+      savedSessions.pop();
+      return;
+    }
+  }
+
+  const sb = document.getElementById('status-bar');
+  sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
+  setTimeout(() => {
+    sb.innerHTML = `행 <span id="row-count">${rows.length}</span>개 입력됨`;
+  }, 2800);
+}
+
+function loadSession(idx) {
+  const s = savedSessions[idx];
+  document.getElementById('h-hospital').value = s.hospital || '';
+  document.getElementById('h-pharma').value   = s.pharma   || '';
+  document.getElementById('h-bizno').value    = s.bizno    || '';
+  document.getElementById('h-presc').value    = s.presc    || '';
+  document.getElementById('h-settle').value   = s.settle   || '';
+  document.getElementById('h-note').value     = s.note     || '';
+  rows        = JSON.parse(JSON.stringify(s.rows || []));
+  // 로드된 세션은 File 객체 없음 — 저장된 dataUrl 사용
+  attachFiles = (s.attachFiles || []).map(a => ({
+    file: null, name: a.name, fileType: a.fileType || '', label: a.type || '',
+    url: '', dataUrl: a.dataUrl || ''
+  }));
+  renderTable();
+  renderAttach();
+  showView('input');
+}
+
+function deleteSession(idx) {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  savedSessions.splice(idx, 1);
+  saveSessions();
+  renderList();
+}
+
+// ══════════════════════════════════════════════
+// LIST VIEW
+// ══════════════════════════════════════════════
+function switchListTab(tab) {
+  listTab = tab;
+  document.getElementById('tab-pharma').classList.toggle('active',   tab === 'pharma');
+  document.getElementById('tab-hospital').classList.toggle('active', tab === 'hospital');
+  renderList();
+}
+
+function renderList() {
+  const el = document.getElementById('list-body');
+  if (!savedSessions.length) {
+    el.innerHTML = '<p class="empty-tip">저장된 데이터가 없습니다.</p>';
+    return;
+  }
+
+  const grouped = {};
+  savedSessions.forEach((s, i) => {
+    const key = listTab === 'pharma' ? (s.pharma || '미지정') : (s.hospital || '미지정');
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push({ ...s, idx: i });
+  });
+
+  const icon = listTab === 'pharma' ? '🏢' : '🏥';
+  el.innerHTML = Object.keys(grouped).sort().map(key => `
+    <div class="list-group">
+      <div class="list-group-title">${icon} ${esc(key)}</div>
+      ${grouped[key].map(s => {
+        const attachIcons = (s.attachFiles || []).map(a => {
+          if (a.dataUrl) {
+            const ico = (a.fileType||'').startsWith('image/') ? '🖼️' : '📄';
+            return `<a href="${a.dataUrl}" target="_blank" class="attach-icon-badge" title="${esc(a.name)}" style="text-decoration:none;">${ico}</a>`;
+          }
+          return a.name ? `<span class="attach-icon-badge" title="${esc(a.name)} (미저장)">📎</span>` : '';
+        }).join('');
+        const subInfo = listTab === 'pharma'
+          ? `<span class="meta">${esc(s.hospital||'')}</span>`
+          : `<span class="meta">${esc(s.pharma||'')}</span>`;
+        return `
+        <div class="list-row">
+          <label><input type="checkbox" data-idx="${s.idx}"> ${esc(listTab==='pharma'?s.hospital:s.pharma)}</label>
+          ${subInfo}
+          <span class="meta">${esc(s.presc)} 처방</span>
+          <span class="meta">정산 ${esc(s.settle)}</span>
+          <span class="meta">${s.rows?s.rows.length:0}건</span>
+          <span class="meta">${esc(s.savedAt)}</span>
+          ${attachIcons}
+          <div class="list-btns">
+            <button class="btn btn-sm" onclick="loadSession(${s.idx})">수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.idx})">삭제</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function selectAll()   { document.querySelectorAll('#list-body input[type=checkbox]').forEach(c => c.checked = true); }
+function deselectAll() { document.querySelectorAll('#list-body input[type=checkbox]').forEach(c => c.checked = false); }
+
+// ══════════════════════════════════════════════
+// EXCEL EXPORT
+// ══════════════════════════════════════════════
+function exportXlsx() {
+  const checks = Array.from(document.querySelectorAll('#list-body input[type=checkbox]:checked'));
+  if (!checks.length) { alert('내보낼 항목을 선택해주세요.'); return; }
+  const allRows = [];
+  checks.map(c => parseInt(c.dataset.idx)).forEach(i => {
+    const s = savedSessions[i];
+    (s.rows || []).forEach((r, ri) => allRows.push([
+      ri+1, s.presc, s.settle, s.hospital, s.bizno,
+      r.code, r.name, r.qin||0, r.qout||0, r.price||0, r.type||'처방', r.note||''
+    ]));
+  });
+  const header = ['순번','처방월','정산월','거래처명(병의원명)','사업자번호','보험코드','제품명','수량(원내)','수량(원외)','단가','처방/조제','비고'];
+  const ws = XLSX.utils.aoa_to_sheet([header, ...allRows]);
+  ws['!cols'] = [8,12,12,20,14,14,24,10,10,10,10,16].map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'SS컴페어');
+  XLSX.writeFile(wb, `SS컴페어_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ══════════════════════════════════════════════
+// MASTER — CLIENTS (거래처)
+// ══════════════════════════════════════════════
+function renderClientMaster() {
+  const tbody = document.getElementById('clients-body');
+  const empty = document.getElementById('clients-empty');
+  if (!masterClients.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = masterClients.map(c => `
+    <tr>
+      <td><strong>${esc(c.name)}</strong></td>
+      <td>${esc(c.bizno||'')}</td>
+      <td>${esc(c.region||'')}</td>
+      <td>${esc(c.manager||'')}</td>
+      <td>
+        <div class="btns">
+          <button class="btn btn-sm" onclick="editClient('${c.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">삭제</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function saveClientForm() {
+  const name = document.getElementById('c-name').value.trim();
+  if (!name) { alert('거래처명을 입력해주세요.'); return; }
+
+  const item = {
+    id:      clientEditId || genId(),
+    name,
+    bizno:   document.getElementById('c-bizno').value.trim(),
+    region:  document.getElementById('c-region').value,
+    manager: document.getElementById('c-manager').value.trim(),
+    note:    document.getElementById('c-note').value.trim()
+  };
+
+  if (clientEditId) {
+    const idx = masterClients.findIndex(c => c.id === clientEditId);
+    if (idx !== -1) masterClients[idx] = item;
+    clientEditId = null;
+    document.getElementById('client-form-title').textContent = '+ 거래처 등록';
+    document.getElementById('client-save-btn').textContent = '등록';
+    document.getElementById('client-cancel-btn').style.display = 'none';
+  } else {
+    masterClients.push(item);
+  }
+
+  saveClients();
+  updateDataLists();
+  clearClientForm();
+  renderClientMaster();
+}
+
+function editClient(id) {
+  const c = masterClients.find(x => x.id === id);
+  if (!c) return;
+  clientEditId = id;
+  document.getElementById('c-name').value    = c.name    || '';
+  document.getElementById('c-bizno').value   = c.bizno   || '';
+  document.getElementById('c-region').value  = c.region  || '';
+  document.getElementById('c-manager').value = c.manager || '';
+  document.getElementById('c-note').value    = c.note    || '';
+  document.getElementById('client-form-title').textContent = '✏️ 거래처 수정';
+  document.getElementById('client-save-btn').textContent   = '수정 완료';
+  document.getElementById('client-cancel-btn').style.display = 'inline-flex';
+  document.getElementById('c-name').focus();
+  document.getElementById('client-form-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function deleteClient(id) {
+  if (!confirm('이 거래처를 삭제할까요?')) return;
+  masterClients = masterClients.filter(c => c.id !== id);
+  saveClients();
+  updateDataLists();
+  renderClientMaster();
+}
+
+function cancelClientEdit() {
+  clientEditId = null;
+  clearClientForm();
+  document.getElementById('client-form-title').textContent   = '+ 거래처 등록';
+  document.getElementById('client-save-btn').textContent     = '등록';
+  document.getElementById('client-cancel-btn').style.display = 'none';
+}
+
+function clearClientForm() {
+  ['c-name','c-bizno','c-manager','c-note'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('c-region').value = '';
+}
+
+// ══════════════════════════════════════════════
+// MASTER — PHARMA (제약사)
+// ══════════════════════════════════════════════
+function renderPharmaMaster() {
+  const tbody = document.getElementById('pharma-body');
+  const empty = document.getElementById('pharma-empty');
+  if (!masterPharma.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = masterPharma.map(p => {
+    const codeCount = (p.codes || []).length;
+    const preview   = codeCount > 0
+      ? `${p.codes.slice(0,3).join(', ')}${codeCount > 3 ? ` 외 ${codeCount-3}개` : ''}`
+      : '(없음)';
+    const badgeClass = p.active !== false ? 'badge badge-active' : 'badge badge-inactive';
+    const badgeText  = p.active !== false ? '거래중' : '거래안함';
+    return `
+      <tr>
+        <td><strong>${esc(p.name)}</strong></td>
+        <td class="codes-cell" title="${esc((p.codes||[]).join(', '))}">${esc(preview)}</td>
+        <td><span class="${badgeClass}">${badgeText}</span></td>
+        <td>
+          <div class="btns">
+            <button class="btn btn-sm" onclick="editPharmaItem('${p.id}')">수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePharmaItem('${p.id}')">삭제</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function savePharmaForm() {
+  const name = document.getElementById('p-name').value.trim();
+  if (!name) { alert('제약사명을 입력해주세요.'); return; }
+
+  const rawCodes = document.getElementById('p-codes').value;
+  const codes = rawCodes.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+
+  const item = {
+    id:     pharmaEditId || genId(),
+    name,
+    codes,
+    active: document.getElementById('p-active').value === 'true'
+  };
+
+  if (pharmaEditId) {
+    const idx = masterPharma.findIndex(p => p.id === pharmaEditId);
+    if (idx !== -1) masterPharma[idx] = item;
+    pharmaEditId = null;
+    document.getElementById('pharma-form-title').textContent   = '+ 제약사 등록';
+    document.getElementById('pharma-save-btn').textContent     = '등록';
+    document.getElementById('pharma-cancel-btn').style.display = 'none';
+  } else {
+    masterPharma.push(item);
+  }
+
+  savePharmaLS();
+  updateDataLists();
+  clearPharmaForm();
+  renderPharmaMaster();
+}
+
+function editPharmaItem(id) {
+  const p = masterPharma.find(x => x.id === id);
+  if (!p) return;
+  pharmaEditId = id;
+  document.getElementById('p-name').value   = p.name   || '';
+  document.getElementById('p-codes').value  = (p.codes || []).join('\n');
+  document.getElementById('p-active').value = p.active !== false ? 'true' : 'false';
+  document.getElementById('pharma-form-title').textContent   = '✏️ 제약사 수정';
+  document.getElementById('pharma-save-btn').textContent     = '수정 완료';
+  document.getElementById('pharma-cancel-btn').style.display = 'inline-flex';
+  document.getElementById('p-name').focus();
+  document.getElementById('pharma-form-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function deletePharmaItem(id) {
+  if (!confirm('이 제약사를 삭제할까요?')) return;
+  masterPharma = masterPharma.filter(p => p.id !== id);
+  savePharmaLS();
+  updateDataLists();
+  renderPharmaMaster();
+}
+
+function cancelPharmaEdit() {
+  pharmaEditId = null;
+  clearPharmaForm();
+  document.getElementById('pharma-form-title').textContent   = '+ 제약사 등록';
+  document.getElementById('pharma-save-btn').textContent     = '등록';
+  document.getElementById('pharma-cancel-btn').style.display = 'none';
+}
+
+function clearPharmaForm() {
+  document.getElementById('p-name').value   = '';
+  document.getElementById('p-codes').value  = '';
+  document.getElementById('p-active').value = 'true';
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let _toastTimer = null;
+function showToast(msg, duration) {
+  duration = duration || 2500;
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ══════════════════════════════════════════════
+// BULK PHARMA IMPORT (A=보험코드, B=제약사명)
+// ══════════════════════════════════════════════
+function bulkImportPharma(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data    = new Uint8Array(e.target.result);
+      const wb      = XLSX.read(data, { type: 'array' });
+      const ws      = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      if (!rawRows.length) { showToast('파일에 데이터가 없습니다.'); return; }
+
+      // A1이 숫자가 아니면 헤더로 간주하고 스킵
+      let startIdx = 0;
+      const firstCell = String(rawRows[0][0] || '').trim();
+      if (firstCell && isNaN(firstCell.replace(/\D/g, ''))) startIdx = 1;
+
+      // A열=보험코드, B열=제약사명 → 제약사별 코드 집합
+      const pharmaMap = {}; // name → Set<code>
+      for (let i = startIdx; i < rawRows.length; i++) {
+        const code = String(rawRows[i][0] || '').trim().replace(/,/g, '');
+        const name = String(rawRows[i][1] || '').trim();
+        if (!code || !name) continue;
+        if (!pharmaMap[name]) pharmaMap[name] = new Set();
+        pharmaMap[name].add(code);
+      }
+
+      const pharmaNames = Object.keys(pharmaMap);
+      if (!pharmaNames.length) {
+        showToast('유효한 데이터가 없습니다. A열=보험코드, B열=제약사명 형식을 확인하세요.', 4000);
+        return;
+      }
+
+      const totalCodes = Object.values(pharmaMap).reduce((s, v) => s + v.size, 0);
+
+      pharmaNames.forEach(name => {
+        const newCodes = Array.from(pharmaMap[name]);
+        const existing = masterPharma.find(p => p.name === name);
+        if (existing) {
+          // 기존 제약사 — 코드 병합 (중복 제거)
+          const merged = Array.from(new Set([...(existing.codes || []), ...newCodes]));
+          existing.codes = merged;
+        } else {
+          masterPharma.push({ id: genId(), name, codes: newCodes, active: true });
+        }
+      });
+
+      savePharmaLS();
+      updateDataLists();
+      renderPharmaMaster();
+      showToast(`${pharmaNames.length}개 제약사, ${totalCodes}개 보험코드 등록 완료`);
+    } catch(err) {
+      showToast('파일 파싱 실패: ' + err.message, 3500);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ══════════════════════════════════════════════
+// GALLERY (첨부 이미지 모달)
+// ══════════════════════════════════════════════
+function openGallery() {
+  const checks = Array.from(document.querySelectorAll('#list-body input[type=checkbox]:checked'));
+  if (!checks.length) { alert('항목을 선택해주세요.'); return; }
+
+  const items = [];
+  checks.map(c => parseInt(c.dataset.idx)).forEach(i => {
+    const s = savedSessions[i];
+    (s.attachFiles || []).forEach(a => {
+      if (a.dataUrl) items.push({ ...a, session: s });
+    });
+  });
+
+  const grid = document.getElementById('gallery-grid');
+  if (!items.length) {
+    grid.innerHTML = '<div class="gallery-empty">선택된 항목에 저장된 첨부 파일이 없습니다.<br><span style="font-size:11px;color:#bbb;">파일을 첨부한 후 저장하면 이미지가 기록됩니다.</span></div>';
+  } else {
+    grid.innerHTML = items.map(item => {
+      const isImage = (item.fileType || '').startsWith('image/');
+      const label   = `${esc(item.session.hospital)} / ${esc(item.session.pharma)}<br>${esc(item.session.presc)}`;
+      const content = isImage
+        ? `<img src="${item.dataUrl}" alt="${esc(item.name)}">`
+        : `<span class="gallery-pdf-icon">📄</span>`;
+      return `
+        <div class="gallery-item">
+          <a href="${item.dataUrl}" target="_blank">${content}</a>
+          <div class="gallery-label">${esc(item.name)}<br>${label}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('gallery-modal').style.display = 'flex';
+}
+
+function closeGallery(e) {
+  if (!e || e.target.id === 'gallery-modal') {
+    document.getElementById('gallery-modal').style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════
+// EXCEL CODE IMPORT (제약사 보험코드 일괄 업로드)
+// ══════════════════════════════════════════════
+function importCodesFromExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb   = XLSX.read(data, { type: 'array' });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      if (!rows.length) { showToast('파일에 데이터가 없습니다.'); return; }
+
+      // 첫 번째 셀이 숫자가 아니면 헤더로 간주하고 스킵
+      let startIdx = 0;
+      const firstCell = String(rows[0][0] || '').trim();
+      if (firstCell && isNaN(firstCell.replace(/\D/g, ''))) startIdx = 1;
+
+      const codes = [];
+      for (let i = startIdx; i < rows.length; i++) {
+        const val = String(rows[i][0] || '').trim().replace(/,/g, '');
+        if (val) codes.push(val);
+      }
+
+      if (!codes.length) { showToast('읽어올 코드가 없습니다.'); return; }
+
+      const textarea = document.getElementById('p-codes');
+      const existing = textarea.value.trim();
+      textarea.value = existing
+        ? existing + '\n' + codes.join('\n')
+        : codes.join('\n');
+
+      showToast(`${codes.length}개 코드를 불러왔습니다.`);
+    } catch(err) {
+      showToast('파일 파싱 실패: ' + err.message, 3500);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+setDefaultMonths();
+updateDataLists();
+for (let i = 0; i < 5; i++) addRow({});
+</script>
+</body>
+</html>
