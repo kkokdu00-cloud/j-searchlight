@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>수수료 관리</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/drug-search/css/style.css" />
 </head>
 <body>
 
@@ -16,8 +16,8 @@
     </div>
     <div class="sidebar-nav">
       <div class="nav-section-title">메뉴</div>
-      <a href="/index.html"><span class="nav-icon">🔍</span> 제품 검색</a>
-      <a href="/upload.html" class="active"><span class="nav-icon">📋</span> 수수료 관리</a>
+      <a href="/drug-search"><span class="nav-icon">🔍</span> 제품 검색</a>
+      <a href="/drug-search/upload.html" class="active"><span class="nav-icon">📋</span> 수수료 관리</a>
     </div>
     <div class="sidebar-footer">ⓒ 2026 Pharma Drug Search</div>
   </nav>
@@ -123,7 +123,7 @@
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script src="/js/upload.js"></script>
+  <script src="/drug-search/js/upload.js"></script>
   <script>
 async function addManualDrug() {
   const product_name = document.getElementById('manualProductName').value.trim();

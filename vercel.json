@@ -11,6 +11,9 @@
     { "src": "/api/sessions(.*)",              "dest": "/api/sessions.js" },
     { "src": "/api/clients(.*)",               "dest": "/api/clients.js" },
     { "src": "/api/verify-codes",              "dest": "/api/verify-codes.js" },
+    { "src": "/drug-search/upload.html",       "dest": "/drug-search/upload.html" },
+    { "src": "/drug-search",                   "dest": "/drug-search/index.html" },
+    { "src": "/upload",                        "dest": "/drug-search/upload.html" },
     { "src": "/",                              "dest": "/index.html" },
     { "src": "/(.*)",                          "dest": "/$1" }
   ]
