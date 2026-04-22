@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EDI 등록 — JJ써치라이트 입력</title>
+<title>EDI 등록 — J써치라이트 입력</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
@@ -33,7 +33,7 @@
 html, body { height: 100%; }
 body {
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  font-size: 15px;
+  font-size: 17px;
   background: var(--gray-100);
   color: var(--gray-800);
   display: flex;
@@ -62,14 +62,14 @@ a { color: var(--blue); text-decoration: none; }
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .sidebar-logo .brand {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--white);
   letter-spacing: -.5px;
   line-height: 1.2;
 }
 .sidebar-logo .sub {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--accent);
   font-weight: 600;
   margin-top: 6px;
@@ -82,7 +82,7 @@ a { color: var(--blue); text-decoration: none; }
   overflow-y: auto;
 }
 .nav-group-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--gray-400);
   letter-spacing: 1px;
@@ -96,7 +96,7 @@ a { color: var(--blue); text-decoration: none; }
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: #94a3b8;
   transition: all .15s;
@@ -112,11 +112,11 @@ a { color: var(--blue); text-decoration: none; }
   color: var(--white);
   box-shadow: 0 2px 8px rgba(37,99,235,.4);
 }
-.nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-item .nav-icon { font-size: 18px; width: 20px; text-align: center; flex-shrink: 0; }
 .nav-divider { height: 1px; background: rgba(255,255,255,.07); margin: 10px 12px; }
 .sidebar-footer {
   padding: 16px 24px;
-  font-size: 11px;
+  font-size: 13px;
   color: #475569;
   border-top: 1px solid rgba(255,255,255,.06);
 }
@@ -143,7 +143,7 @@ a { color: var(--blue); text-decoration: none; }
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 .topbar-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--gray-800);
   flex: 1;
@@ -162,7 +162,7 @@ a { color: var(--blue); text-decoration: none; }
   box-shadow: var(--shadow);
 }
 .section-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--gray-800);
   margin-bottom: 16px;
@@ -172,17 +172,17 @@ a { color: var(--blue); text-decoration: none; }
   align-items: center;
   gap: 8px;
 }
-.section-title .title-icon { font-size: 16px; }
+.section-title .title-icon { font-size: 18px; }
 
 /* ══ FORM ══════════════════════════════ */
 .form-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
-.field label { font-size: 13px; color: var(--gray-600); display: block; margin-bottom: 6px; font-weight: 700; }
+.field label { font-size: 15px; color: var(--gray-600); display: block; margin-bottom: 6px; font-weight: 700; }
 .field input, .field select, .field textarea {
   width: 100%;
   border: 1.5px solid var(--gray-200);
   border-radius: 8px;
   padding: 0 12px;
-  font-size: 15px;
+  font-size: 17px;
   background: var(--white);
   color: var(--gray-800);
   transition: border-color .15s, box-shadow .15s;
@@ -203,7 +203,7 @@ a { color: var(--blue); text-decoration: none; }
   border: 1.5px solid var(--gray-200);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   background: var(--white);
   color: var(--gray-800);
@@ -218,7 +218,7 @@ a { color: var(--blue); text-decoration: none; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-primary { background: var(--blue); color: var(--white); border-color: var(--blue); }
 .btn-primary:hover:not(:disabled) { background: #1d4ed8; border-color: #1d4ed8; }
-.btn-sm { height: 32px; padding: 0 14px; font-size: 12px; }
+.btn-sm { height: 32px; padding: 0 14px; font-size: 14px; }
 .btn-danger { color: var(--red); border-color: #fecaca; }
 .btn-danger:hover:not(:disabled) { background: #fef2f2; }
 .btn-success { background: var(--green); color: var(--white); border-color: var(--green); }
@@ -245,10 +245,10 @@ a { color: var(--blue); text-decoration: none; }
 .ocr-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: flex-start; }
 .ocr-preview-item { position: relative; }
 .ocr-preview-item img { height: 80px; border-radius: 6px; border: 1.5px solid var(--gray-200); display: block; cursor: pointer; }
-.ocr-preview-item .file-badge { height: 80px; width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--gray-100); border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 10px; color: var(--gray-600); text-align: center; padding: 4px; word-break: break-all; cursor: pointer; }
+.ocr-preview-item .file-badge { height: 80px; width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--gray-100); border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 12px; color: var(--gray-600); text-align: center; padding: 4px; word-break: break-all; cursor: pointer; }
 .ocr-btns { display: flex; gap: 8px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
-.ocr-result { margin-top: 12px; padding: 12px 14px; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 13px; color: var(--gray-600); min-height: 44px; white-space: pre-wrap; line-height: 1.7; }
-.ocr-loading { display: none; font-size: 13px; color: var(--blue); padding: 6px 0; align-items: center; gap: 6px; }
+.ocr-result { margin-top: 12px; padding: 12px 14px; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 15px; color: var(--gray-600); min-height: 44px; white-space: pre-wrap; line-height: 1.7; }
+.ocr-loading { display: none; font-size: 15px; color: var(--blue); padding: 6px 0; align-items: center; gap: 6px; }
 .ocr-loading.show { display: flex; }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--gray-200); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -258,29 +258,29 @@ a { color: var(--blue); text-decoration: none; }
 .progress-wrap.show { display: block; }
 .progress-bar-bg { height: 6px; background: var(--gray-200); border-radius: 3px; overflow: hidden; }
 .progress-bar { height: 100%; background: var(--blue); border-radius: 3px; transition: width .3s; width: 0%; }
-.progress-text { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+.progress-text { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
 
 /* ══ OCR SEP PANEL ═══════════════════ */
 .ocr-sep-panel { margin-top: 12px; padding: 14px 16px; background: var(--blue-bg); border: 1.5px solid #bfdbfe; border-radius: 8px; display: none; }
 .ocr-sep-panel.show { display: block; }
-.sep-summary { font-size: 13px; line-height: 2; white-space: pre-wrap; background: var(--white); padding: 10px 12px; border-radius: 6px; border: 1.5px solid var(--gray-200); }
-.sep-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 6px; margin-bottom: 4px; font-size: 13px; flex-wrap: wrap; }
+.sep-summary { font-size: 15px; line-height: 2; white-space: pre-wrap; background: var(--white); padding: 10px 12px; border-radius: 6px; border: 1.5px solid var(--gray-200); }
+.sep-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 6px; margin-bottom: 4px; font-size: 15px; flex-wrap: wrap; }
 .sep-actions { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* ══ TABLE ═══════════════════════════ */
 .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1.5px solid var(--gray-200); }
-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 900px; }
-th { background: var(--gray-50); font-weight: 700; padding: 12px 10px; border-bottom: 2px solid var(--gray-200); text-align: center; white-space: nowrap; color: var(--gray-600); font-size: 13px; letter-spacing: .3px; }
+table { width: 100%; border-collapse: collapse; font-size: 16px; min-width: 900px; }
+th { background: var(--gray-50); font-weight: 700; padding: 12px 10px; border-bottom: 2px solid var(--gray-200); text-align: center; white-space: nowrap; color: var(--gray-600); font-size: 15px; letter-spacing: .3px; }
 td { padding: 11px 10px; border-bottom: 1px solid var(--gray-100); text-align: center; vertical-align: middle; color: var(--gray-800); }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--blue-bg); }
-td input { width: 100%; border: 1.5px solid transparent; border-radius: 6px; padding: 4px 8px; font-size: 13px; text-align: center; background: transparent; transition: all .15s; }
+td input { width: 100%; border: 1.5px solid transparent; border-radius: 6px; padding: 4px 8px; font-size: 15px; text-align: center; background: transparent; transition: all .15s; }
 td input:focus { outline: none; border-color: var(--blue); background: var(--white); box-shadow: 0 0 0 2px rgba(37,99,235,.1); }
-td select { border: 1.5px solid transparent; border-radius: 6px; padding: 4px 6px; font-size: 12px; background: transparent; cursor: pointer; }
+td select { border: 1.5px solid transparent; border-radius: 6px; padding: 4px 6px; font-size: 14px; background: transparent; cursor: pointer; }
 td select:focus { outline: none; border-color: var(--blue); background: var(--white); }
-.td-note { font-size: 12px; color: var(--gray-400); }
-.td-verify-ok { color: var(--green); font-size: 11px; font-weight: 700; }
-.td-verify-fail { color: var(--red); font-size: 11px; font-weight: 700; }
+.td-note { font-size: 14px; color: var(--gray-400); }
+.td-verify-ok { color: var(--green); font-size: 13px; font-weight: 700; }
+.td-verify-fail { color: var(--red); font-size: 13px; font-weight: 700; }
 
 /* ══ STATUS BAR ══════════════════════ */
 .status-bar {
@@ -290,7 +290,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
   padding: 12px 24px;
   background: var(--white);
   border-top: 1px solid var(--gray-200);
-  font-size: 13px;
+  font-size: 15px;
   color: var(--gray-600);
   flex-wrap: wrap;
   gap: 8px;
@@ -299,41 +299,41 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
   z-index: 50;
 }
 .footer-btns { display: flex; gap: 8px; }
-.status { font-size: 13px; color: var(--gray-400); }
+.status { font-size: 15px; color: var(--gray-400); }
 
 /* ══ ATTACH FILES ═════════════════════ */
 .attach-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
 .attach-controls { display: flex; gap: 8px; align-items: center; }
 .attach-list { display: flex; gap: 10px; flex-wrap: wrap; min-height: 56px; align-items: flex-start; padding: 4px 0; }
-.attach-item { display: flex; flex-direction: column; align-items: center; gap: 5px; background: var(--gray-50); border: 1.5px solid var(--gray-200); padding: 8px; border-radius: 8px; font-size: 11px; position: relative; max-width: 110px; text-align: center; }
+.attach-item { display: flex; flex-direction: column; align-items: center; gap: 5px; background: var(--gray-50); border: 1.5px solid var(--gray-200); padding: 8px; border-radius: 8px; font-size: 13px; position: relative; max-width: 110px; text-align: center; }
 .attach-item img { max-width: 90px; max-height: 70px; border-radius: 4px; cursor: pointer; border: 1px solid var(--gray-200); display: block; }
 .attach-item a { color: inherit; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .attach-item a:hover .attach-name { text-decoration: underline; color: var(--blue); }
-.attach-file-icon { font-size: 28px; line-height: 1; }
-.attach-name { font-size: 10px; color: var(--gray-600); word-break: break-all; display: block; max-width: 96px; }
-.attach-type-badge { font-size: 10px; color: var(--gray-600); background: var(--gray-100); padding: 1px 6px; border-radius: 4px; }
-.attach-remove { position: absolute; top: 2px; right: 4px; cursor: pointer; color: var(--red); font-size: 16px; line-height: 1; background: rgba(255,255,255,.9); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
-.attach-empty { font-size: 12px; color: var(--gray-400); }
-.attach-icon-badge { font-size: 13px; opacity: .7; cursor: default; }
+.attach-file-icon { font-size: 30px; line-height: 1; }
+.attach-name { font-size: 12px; color: var(--gray-600); word-break: break-all; display: block; max-width: 96px; }
+.attach-type-badge { font-size: 12px; color: var(--gray-600); background: var(--gray-100); padding: 1px 6px; border-radius: 4px; }
+.attach-remove { position: absolute; top: 2px; right: 4px; cursor: pointer; color: var(--red); font-size: 18px; line-height: 1; background: rgba(255,255,255,.9); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+.attach-empty { font-size: 14px; color: var(--gray-400); }
+.attach-icon-badge { font-size: 15px; opacity: .7; cursor: default; }
 
 /* ══ LIST VIEW ════════════════════════ */
 .list-view-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-.list-tab { padding: 7px 18px; border: 1.5px solid var(--gray-200); border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; background: var(--white); color: var(--gray-600); transition: all .15s; }
+.list-tab { padding: 7px 18px; border: 1.5px solid var(--gray-200); border-radius: 20px; cursor: pointer; font-size: 15px; font-weight: 600; background: var(--white); color: var(--gray-600); transition: all .15s; }
 .list-tab:hover { background: var(--gray-100); }
 .list-tab.active { background: var(--blue); color: var(--white); border-color: var(--blue); }
 .list-group { margin-bottom: 16px; }
-.list-group-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 8px; background: var(--blue-bg); padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
+.list-group-title { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 8px; background: var(--blue-bg); padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
 .list-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px; margin-bottom: 6px; background: var(--white); flex-wrap: wrap; transition: border-color .15s; }
 .list-row:hover { border-color: var(--blue-lt); }
-.list-row label { display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; min-width: 120px; font-size: 13px; }
-.list-row .meta { font-size: 12px; color: var(--gray-400); white-space: nowrap; }
+.list-row label { display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; min-width: 120px; font-size: 15px; }
+.list-row .meta { font-size: 14px; color: var(--gray-400); white-space: nowrap; }
 .list-row .list-btns { display: flex; gap: 6px; flex-shrink: 0; }
 .export-bar { display: flex; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex-wrap: wrap; }
 
 /* ══ MASTER VIEW ══════════════════════ */
 .master-tbl td:first-child { text-align: left; font-weight: 500; }
 .master-add-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 12px; border: 1.5px solid var(--gray-200); }
-.master-add-row input { height: 38px; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 0 12px; font-size: 13px; flex: 1; min-width: 140px; }
+.master-add-row input { height: 38px; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 0 12px; font-size: 15px; flex: 1; min-width: 140px; }
 .master-add-row input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
 
 /* ══ MODAL ════════════════════════════ */
@@ -360,8 +360,8 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
   overflow: hidden;
 }
 .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
-.modal-header h3 { font-size: 16px; font-weight: 700; color: var(--gray-800); }
-.modal-close { width: 32px; height: 32px; border: none; background: var(--gray-100); border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: var(--gray-600); transition: all .15s; }
+.modal-header h3 { font-size: 18px; font-weight: 700; color: var(--gray-800); }
+.modal-close { width: 32px; height: 32px; border: none; background: var(--gray-100); border-radius: 8px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; color: var(--gray-600); transition: all .15s; }
 .modal-close:hover { background: var(--gray-200); }
 .modal-body { flex: 1; overflow-y: auto; padding: 0; }
 
@@ -372,23 +372,23 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-top: 16px; }
 .gallery-item { border: 1.5px solid var(--gray-200); border-radius: 10px; overflow: hidden; background: var(--gray-50); }
 .gallery-item img { width: 100%; height: 140px; object-fit: cover; display: block; }
-.gallery-label { padding: 8px 10px; font-size: 11px; color: var(--gray-600); line-height: 1.5; }
-.gallery-empty { text-align: center; padding: 40px; color: var(--gray-400); font-size: 14px; }
+.gallery-label { padding: 8px 10px; font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+.gallery-empty { text-align: center; padding: 40px; color: var(--gray-400); font-size: 16px; }
 
 /* ══ LOADING OVERLAY ══════════════════ */
 .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.4); backdrop-filter: blur(2px); z-index: 2000; align-items: center; justify-content: center; }
 .loading-overlay.active { display: flex; }
-.loading-box { background: var(--white); border-radius: 14px; padding: 28px 36px; display: flex; align-items: center; gap: 14px; box-shadow: 0 16px 48px rgba(0,0,0,.2); font-size: 15px; font-weight: 600; color: var(--gray-800); }
+.loading-box { background: var(--white); border-radius: 14px; padding: 28px 36px; display: flex; align-items: center; gap: 14px; box-shadow: 0 16px 48px rgba(0,0,0,.2); font-size: 17px; font-weight: 600; color: var(--gray-800); }
 .loading-spinner { width: 28px; height: 28px; border: 3px solid var(--gray-200); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
 
 /* ══ BADGES ═══════════════════════════ */
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; vertical-align: middle; }
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 13px; font-weight: 700; vertical-align: middle; }
 .badge-bio { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 .badge-price-ok { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
 .badge-price-down { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
 .disease-codes-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
-.disease-label { font-size: 12px; color: var(--gray-600); font-weight: 700; margin-right: 4px; }
-.disease-tag { font-size: 12px; padding: 2px 10px; border-radius: 12px; background: var(--gray-100); color: var(--gray-600); }
+.disease-label { font-size: 14px; color: var(--gray-600); font-weight: 700; margin-right: 4px; }
+.disease-tag { font-size: 14px; padding: 2px 10px; border-radius: 12px; background: var(--gray-100); color: var(--gray-600); }
 .disease-tag.disease-primary { background: var(--blue-bg); color: var(--blue); font-weight: 700; }
 
 /* ══ DRUG SEARCH EMBEDDED ═════════════ */
@@ -408,7 +408,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 }
 #view-drug .page-header h2,
 #view-commission .page-header h2 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 900;
   color: var(--gray-800);
 }
@@ -433,19 +433,19 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 .search-card { background: var(--white); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px; border: 1.5px solid var(--gray-200); box-shadow: var(--shadow); }
 .search-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
 .search-input-wrap { flex: 1; position: relative; }
-.search-input-wrap input { width: 100%; height: 42px; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 0 14px; font-size: 14px; transition: all .15s; }
+.search-input-wrap input { width: 100%; height: 42px; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 0 14px; font-size: 16px; transition: all .15s; }
 .search-input-wrap input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
-.search-btn { height: 42px; padding: 0 22px; background: var(--blue); color: var(--white); border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; transition: background .15s; }
+.search-btn { height: 42px; padding: 0 22px; background: var(--blue); color: var(--white); border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 700; transition: background .15s; }
 .search-btn:hover { background: #1d4ed8; }
 .search-type-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-.radio-label { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; color: var(--gray-600); font-weight: 500; }
+.radio-label { display: flex; align-items: center; gap: 5px; font-size: 15px; cursor: pointer; color: var(--gray-600); font-weight: 500; }
 .filter-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
-.checkbox-label { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; color: var(--gray-600); font-weight: 500; }
+.checkbox-label { display: flex; align-items: center; gap: 5px; font-size: 15px; cursor: pointer; color: var(--gray-600); font-weight: 500; }
 .results-card { background: var(--white); border-radius: var(--radius); border: 1.5px solid var(--gray-200); box-shadow: var(--shadow); overflow: hidden; }
 .results-header { padding: 14px 18px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
-.results-count { font-size: 13px; color: var(--gray-600); font-weight: 600; }
+.results-count { font-size: 15px; color: var(--gray-600); font-weight: 600; }
 .empty-state { text-align: center; padding: 48px 20px; color: var(--gray-400); }
-.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-icon { font-size: 42px; margin-bottom: 12px; }
 
 /* 업로드 */
 .upload-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 16px; border: 1.5px solid var(--gray-200); box-shadow: var(--shadow); }
@@ -454,7 +454,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 .commission-list-card { background: var(--white); border-radius: var(--radius); border: 1.5px solid var(--gray-200); box-shadow: var(--shadow); overflow: hidden; }
 
 /* alert */
-.alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+.alert { padding: 10px 14px; border-radius: 8px; font-size: 15px; font-weight: 500; margin-bottom: 10px; }
 .alert-error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 .alert-info    { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
@@ -464,7 +464,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 .ingredient-modal.active { display: flex; }
 .ingredient-modal-box { background: var(--white); border-radius: 14px; width: 92%; max-width: 900px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,.22); overflow: hidden; }
 .ingredient-modal-header { padding: 18px 22px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
-.ingredient-modal-header h3 { font-size: 15px; font-weight: 700; }
+.ingredient-modal-header h3 { font-size: 17px; font-weight: 700; }
 .ingredient-modal-body { flex: 1; overflow-y: auto; }
 
 /* flex helper */
@@ -479,12 +479,16 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
 <!-- ═══ Sidebar ═══ -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="brand" onclick="location.reload()" style="cursor:pointer;">JJ써치라이트</div>
+    <div class="brand" onclick="location.reload()" style="cursor:pointer;">J써치라이트</div>
     <div class="sub">EDI 관리 시스템</div>
   </div>
   <nav class="sidebar-nav">
+    <button class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
+      <span class="nav-icon">🏠</span> 대시보드
+    </button>
+    <div class="nav-divider"></div>
     <div class="nav-group-label">EDI 관리</div>
-    <button class="nav-item active" id="nav-input"  onclick="showView('input')">
+    <button class="nav-item" id="nav-input"  onclick="showView('input')">
       <span class="nav-icon">📋</span> 신규 입력
     </button>
     <button class="nav-item" id="nav-list" onclick="showView('list')">
@@ -502,20 +506,63 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
       <span class="nav-icon">💊</span> 수수료 관리
     </button>
   </nav>
-  <div class="sidebar-footer">© 2026 JJ써치라이트</div>
+  <div class="sidebar-footer">© 2026 J써치라이트</div>
 </aside>
 
 <!-- ═══ Main Area ═══ -->
 <div class="main-area">
 
 <div class="topbar">
-  <span class="topbar-title" id="topbar-title">신규 입력</span>
+  <span class="topbar-title" id="topbar-title">대시보드</span>
   <div class="topbar-actions">
     <button class="btn reset-btn btn-sm" onclick="resetAll()">🔄 초기화</button>
   </div>
 </div>
 
 <div class="wrap">
+
+<!-- ════════════════════════════════════════════
+     VIEW: 대시보드
+════════════════════════════════════════════ -->
+<div id="view-dashboard" style="display:none;">
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px;">
+    <div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:34px; margin-bottom:6px;">🏥</div>
+      <div id="db-client-count" style="font-size:32px; font-weight:800; color:var(--blue); line-height:1;">-</div>
+      <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">등록 병의원</div>
+    </div>
+    <div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:34px; margin-bottom:6px;">💊</div>
+      <div id="db-pharma-count" style="font-size:32px; font-weight:800; color:#7c3aed; line-height:1;">-</div>
+      <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">등록 제약사</div>
+    </div>
+    <div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:34px; margin-bottom:6px;">📋</div>
+      <div id="db-session-count" style="font-size:32px; font-weight:800; color:#059669; line-height:1;">-</div>
+      <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">총 EDI 건수</div>
+    </div>
+    <div class="card" style="text-align:center; padding:24px 16px;">
+      <div style="font-size:34px; margin-bottom:6px;">📅</div>
+      <div id="db-month-count" style="font-size:32px; font-weight:800; color:#d97706; line-height:1;">-</div>
+      <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">이번달 EDI</div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+    <div class="card">
+      <div class="section-title">🕐 최근 등록 내역</div>
+      <div id="db-recent-list" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+        <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">🏥 병의원별 EDI 현황</div>
+      <div id="db-client-stats" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+        <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════════
      VIEW: 신규 입력
@@ -557,7 +604,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
   <div class="card">
     <div class="section-title">
       🔍 OCR 자동입력
-      <span style="font-size:11px;font-weight:400;color:#888;">이미지/PDF 업로드 → 급여내역 자동 추출</span>
+      <span style="font-size: 13px;font-weight:400;color:#888;">이미지/PDF 업로드 → 급여내역 자동 추출</span>
       <span id="batch-counter" class="batch-info" style="display:none;"></span>
     </div>
     <div class="ocr-zone">
@@ -566,9 +613,9 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
         ondragleave="this.classList.remove('dragover')"
         ondrop="event.preventDefault();this.classList.remove('dragover');handleOcrDrop(event)">
         <input type="file" id="ocr-file" accept="image/*,.pdf" multiple onchange="handleOcrFile(this)">
-        <div id="ocr-drop-text" style="color:#666;font-size:13px;">
+        <div id="ocr-drop-text" style="color:#666;font-size: 15px;">
           클릭하거나 파일을 드래그하세요<br>
-          <span style="font-size:11px;color:#aaa;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</span>
+          <span style="font-size: 13px;color:#aaa;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</span>
         </div>
       </label>
       <div id="ocr-preview" class="ocr-preview"></div>
@@ -632,7 +679,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     <div class="attach-header">
       <div class="section-title" style="margin:0;border:none;padding:0;">📎 첨부파일</div>
       <div class="attach-controls">
-        <select id="attach-type" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size:12px;padding:0 8px;background:#fff;">
+        <select id="attach-type" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size: 14px;padding:0 8px;background:#fff;">
           <option value="제약사">제약사별</option>
           <option value="거래처">거래처별</option>
         </select>
@@ -728,7 +775,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     <div class="card">
       <div class="section-title">
         🏢 제약사 마스터
-        <label class="btn btn-sm" style="cursor:pointer;font-size:11px;margin-left:auto;">
+        <label class="btn btn-sm" style="cursor:pointer;font-size: 13px;margin-left:auto;">
           📂 전체 일괄 등록 (엑셀)
           <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="bulkImportPharma(this)">
         </label>
@@ -759,8 +806,8 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
         <div class="master-form-row">
           <div class="field" style="flex:1">
             <label style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">
-              <span>보험코드 목록 <span style="font-size:10px;color:#888;">(쉼표 또는 줄바꿈으로 구분)</span></span>
-              <label class="btn btn-sm" style="cursor:pointer;font-size:11px;height:24px;padding:0 10px;">
+              <span>보험코드 목록 <span style="font-size: 12px;color:#888;">(쉼표 또는 줄바꿈으로 구분)</span></span>
+              <label class="btn btn-sm" style="cursor:pointer;font-size: 13px;height:24px;padding:0 10px;">
                 📂 엑셀로 불러오기
                 <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importCodesFromExcel(this)">
               </label>
@@ -790,13 +837,13 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
       <div style="display:flex; flex-direction:column; gap:14px;">
         <!-- 검색 타입 -->
         <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
-          <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:6px;font-size: 16px;font-weight:600;cursor:pointer;">
             <input type="radio" name="searchType" value="company" checked /> 제약사명
           </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:6px;font-size: 16px;font-weight:600;cursor:pointer;">
             <input type="radio" name="searchType" value="code" /> 제품코드
           </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:6px;font-size: 16px;font-weight:600;cursor:pointer;">
             <input type="radio" name="searchType" value="name" /> 제품명·성분명
           </label>
         </div>
@@ -804,26 +851,26 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
         <div style="display:flex; gap:10px; align-items:center;">
           <input type="text" id="searchInput" placeholder="검색어를 입력하세요..."
             autocomplete="off"
-            style="flex:1; height:44px; border:1.5px solid var(--gray-200); border-radius:8px; padding:0 14px; font-size:15px; transition:all .15s;"
+            style="flex:1; height:44px; border:1.5px solid var(--gray-200); border-radius:8px; padding:0 14px; font-size: 17px; transition:all .15s;"
             onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.1)'"
             onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'"
           />
-          <button class="btn btn-primary" onclick="searchDrugs()" style="height:44px; padding:0 28px; font-size:15px;">
+          <button class="btn btn-primary" onclick="searchDrugs()" style="height:44px; padding:0 28px; font-size: 17px;">
             🔍 검색
           </button>
         </div>
         <!-- 필터 -->
         <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center; padding:10px 14px; background:var(--gray-50); border-radius:8px; border:1.5px solid var(--gray-200);">
-          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;font-weight:500;">
+          <label style="display:flex;align-items:center;gap:7px;font-size: 16px;cursor:pointer;font-weight:500;">
             <input type="checkbox" id="bioFilter" onchange="applyFilters()" />
             <span class="badge badge-bio">생동성</span> 인정품목만 보기
           </label>
-          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;font-weight:500;">
+          <label style="display:flex;align-items:center;gap:7px;font-size: 16px;cursor:pointer;font-weight:500;">
             <input type="checkbox" id="priceFilter" onchange="applyFilters()" />
             <span class="badge badge-price-ok">약가유지</span> 품목만 보기
-            <span style="font-size:12px;color:var(--gray-400);">(자체생동+DMF 충족)</span>
+            <span style="font-size: 14px;color:var(--gray-400);">(자체생동+DMF 충족)</span>
           </label>
-          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer;font-weight:500;">
+          <label style="display:flex;align-items:center;gap:7px;font-size: 16px;cursor:pointer;font-weight:500;">
             <input type="checkbox" id="commissionFilter" onchange="applyFilters()" checked />
             수수료 등록 품목만 보기
           </label>
@@ -836,7 +883,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     <div id="resultsSection" style="display:none;">
       <div class="card" style="padding:0; overflow:hidden;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--gray-200);">
-          <span style="font-size:15px;font-weight:700;color:var(--gray-800);">
+          <span style="font-size: 17px;font-weight:700;color:var(--gray-800);">
             검색결과 <strong id="resultCount" style="color:var(--blue);">0</strong>건
           </span>
           <button class="btn btn-success btn-sm" onclick="downloadExcel(currentData, '의약품 검색결과')">
@@ -868,9 +915,9 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     <!-- 초기 상태 -->
     <div id="emptyState">
       <div style="text-align:center;padding:60px 20px;color:var(--gray-400);">
-        <div style="font-size:52px;margin-bottom:16px;">藥</div>
-        <p style="font-size:16px;font-weight:600;color:var(--gray-600);">검색어를 입력하고 검색 버튼을 눌러주세요</p>
-        <p style="margin-top:8px;font-size:13px;">제약사명, 제품코드, 제품명으로 검색하실 수 있습니다.</p>
+        <div style="font-size: 54px;margin-bottom:16px;">藥</div>
+        <p style="font-size: 18px;font-weight:600;color:var(--gray-600);">검색어를 입력하고 검색 버튼을 눌러주세요</p>
+        <p style="margin-top:8px;font-size: 15px;">제약사명, 제품코드, 제품명으로 검색하실 수 있습니다.</p>
       </div>
     </div>
 
@@ -924,7 +971,7 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     <div class="card">
       <div class="section-title"><span class="title-icon">📤</span> 수수료율 파일 업로드</div>
       <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="padding:14px 16px;background:var(--blue-bg);border:1.5px solid #bfdbfe;border-radius:8px;font-size:13px;line-height:2;color:var(--gray-800);">
+        <div style="padding:14px 16px;background:var(--blue-bg);border:1.5px solid #bfdbfe;border-radius:8px;font-size: 15px;line-height:2;color:var(--gray-800);">
           📌 엑셀(.xlsx, .xls) 파일만 업로드 가능합니다 &nbsp;|&nbsp;
           필수 컬럼: <strong>보험코드</strong>, <strong>수수료율(%)</strong> &nbsp;|&nbsp;
           기존 보험코드가 있으면 덮어씁니다(Upsert)
@@ -938,15 +985,15 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
           ondragover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-bg)';event.preventDefault();"
           ondragleave="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';"
           ondrop="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';event.preventDefault();const f=event.dataTransfer.files[0];if(f)setFile(f);">
-          <div style="font-size:36px;margin-bottom:10px;">📁</div>
-          <p style="font-size:15px;font-weight:600;color:var(--gray-600);">클릭하거나 파일을 드래그하여 업로드하세요</p>
-          <p style="font-size:13px;color:var(--gray-400);margin-top:6px;">지원 형식: .xlsx, .xls</p>
-          <p id="fileName" style="display:none;margin-top:10px;font-size:13px;font-weight:600;color:var(--blue);"></p>
+          <div style="font-size: 38px;margin-bottom:10px;">📁</div>
+          <p style="font-size: 17px;font-weight:600;color:var(--gray-600);">클릭하거나 파일을 드래그하여 업로드하세요</p>
+          <p style="font-size: 15px;color:var(--gray-400);margin-top:6px;">지원 형식: .xlsx, .xls</p>
+          <p id="fileName" style="display:none;margin-top:10px;font-size: 15px;font-weight:600;color:var(--blue);"></p>
           <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" style="display:none;" />
         </div>
         <div id="uploadAlert" style="display:none;"></div>
         <div style="text-align:right;">
-          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled style="height:42px;padding:0 28px;font-size:15px;">
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled style="height:42px;padding:0 28px;font-size: 17px;">
             📤 업로드
           </button>
         </div>
@@ -956,8 +1003,8 @@ td select:focus { outline: none; border-color: var(--blue); background: var(--wh
     <!-- 수수료율 목록 -->
     <div class="card" style="padding:0;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--gray-200);">
-        <span style="font-size:15px;font-weight:700;color:var(--gray-800);">📋 현재 수수료율 목록
-          <span id="listCount" style="font-size:13px;font-weight:500;color:var(--gray-400);margin-left:8px;"></span>
+        <span style="font-size: 17px;font-weight:700;color:var(--gray-800);">📋 현재 수수료율 목록
+          <span id="listCount" style="font-size: 15px;font-weight:500;color:var(--gray-400);margin-left:8px;"></span>
         </span>
         <button class="btn btn-success btn-sm" onclick="downloadCommissionExcel()">📥 엑셀 다운로드</button>
       </div>
@@ -1160,9 +1207,71 @@ async function loadClients() {
 function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); }
 
 // ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+async function renderDashboard() {
+  // 카운트 카드
+  document.getElementById('db-client-count').textContent = masterClients.length;
+  document.getElementById('db-pharma-count').textContent = masterPharma.length;
+  document.getElementById('db-session-count').textContent = sessions.length;
+
+  // 이번달 EDI 수
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthSessions = sessions.filter(s => (s.created_at||'').startsWith(ym));
+  document.getElementById('db-month-count').textContent = monthSessions.length;
+
+  // 최근 등록 내역 (최신 8건)
+  const sorted = [...sessions].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,8);
+  const recentEl = document.getElementById('db-recent-list');
+  if (sorted.length === 0) {
+    recentEl.innerHTML = '<div style="color:var(--gray-400);font-size:15px;text-align:center;padding:20px 0;">등록된 내역이 없습니다</div>';
+  } else {
+    recentEl.innerHTML = sorted.map(s => {
+      const date = (s.created_at||'').slice(0,10);
+      const hospital = esc(s.hospital_name||'-');
+      const pharma = esc(s.pharma_name||'-');
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200);">
+        <div>
+          <span style="font-size:15px;font-weight:700;color:var(--gray-800);">${hospital}</span>
+          <span style="font-size:13px;color:var(--gray-400);margin-left:6px;">${pharma}</span>
+        </div>
+        <span style="font-size:13px;color:var(--gray-400);">${date}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 병의원별 EDI 건수 TOP 8
+  const clientMap = {};
+  sessions.forEach(s => {
+    const k = s.hospital_name || '미입력';
+    clientMap[k] = (clientMap[k]||0) + 1;
+  });
+  const clientStats = Object.entries(clientMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const statsEl = document.getElementById('db-client-stats');
+  const maxVal = clientStats[0]?.[1] || 1;
+  if (clientStats.length === 0) {
+    statsEl.innerHTML = '<div style="color:var(--gray-400);font-size:15px;text-align:center;padding:20px 0;">데이터가 없습니다</div>';
+  } else {
+    statsEl.innerHTML = clientStats.map(([name, cnt]) => {
+      const pct = Math.round(cnt/maxVal*100);
+      return `<div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:100px;font-size:14px;color:var(--gray-700);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(name)}">${esc(name)}</div>
+        <div style="flex:1;background:var(--gray-100);border-radius:4px;height:18px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:var(--blue);border-radius:4px;transition:width .4s;"></div>
+        </div>
+        <div style="width:28px;text-align:right;font-size:14px;font-weight:700;color:var(--blue);">${cnt}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
 // VIEW MANAGEMENT
 // ══════════════════════════════════════════════
 const VIEW_TITLES = {
+  dashboard: '대시보드',
   input: '신규 입력',
   list: '저장 목록',
   master: '마스터 관리',
@@ -1171,7 +1280,7 @@ const VIEW_TITLES = {
 };
 
 function showView(v) {
-  ['input','list','master','drug','commission'].forEach(name => {
+  ['dashboard','input','list','master','drug','commission'].forEach(name => {
     const viewEl = document.getElementById('view-' + name);
     const navEl  = document.getElementById('nav-'  + name);
     if (viewEl) viewEl.style.display = (name === v) ? 'block' : 'none';
@@ -1179,6 +1288,7 @@ function showView(v) {
   });
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = VIEW_TITLES[v] || '';
+  if (v === 'dashboard')  renderDashboard();
   if (v === 'list')       renderList();
   if (v === 'master')     { renderClientMaster(); renderPharmaMaster(); }
   if (v === 'commission') loadCommissionList();
@@ -1308,7 +1418,7 @@ function setOcrFiles(files) {
   ocrFiles = files;
   const names = files.map(f => f.name).join(', ');
   document.getElementById('ocr-drop-text').innerHTML =
-    `✓ ${files.length}개 파일 선택됨<br><span style="font-size:11px;color:#888;">${names}</span>`;
+    `✓ ${files.length}개 파일 선택됨<br><span style="font-size: 13px;color:#888;">${names}</span>`;
 
   // 미리보기 (BUG-6 적용)
   const prev = document.getElementById('ocr-preview');
@@ -1326,7 +1436,7 @@ function setOcrFiles(files) {
     } else {
       const badge = document.createElement('div');
       badge.className = 'file-badge';
-      badge.innerHTML = `<span style="font-size:24px;">${f.type==='application/pdf'?'📄':'📎'}</span><span>${f.name.length>12 ? f.name.slice(0,10)+'…' : f.name}</span>`;
+      badge.innerHTML = `<span style="font-size: 26px;">${f.type==='application/pdf'?'📄':'📎'}</span><span>${f.name.length>12 ? f.name.slice(0,10)+'…' : f.name}</span>`;
       const fileUrl = URL.createObjectURL(f);
       badge.onclick = () => window.open(fileUrl, '_blank');
       wrap.appendChild(badge);
@@ -1443,7 +1553,7 @@ function clearOCR() {
   ocrSepData = null;
   document.getElementById('ocr-file').value = '';
   document.getElementById('ocr-drop-text').innerHTML =
-    '클릭하거나 파일을 드래그하세요<br><span style="font-size:11px;color:#aaa;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</span>';
+    '클릭하거나 파일을 드래그하세요<br><span style="font-size: 13px;color:#aaa;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</span>';
   document.getElementById('ocr-preview').innerHTML = '';
   document.getElementById('ocr-result').textContent = 'OCR 결과가 여기에 표시됩니다.';
   document.getElementById('batch-counter').style.display = 'none';
@@ -1531,7 +1641,7 @@ function renderSeparation(sepData) {
       <div class="sep-row">
         <span style="color:#888;min-width:90px;">코드: ${esc(row.code||'없음')}</span>
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(row.name)}</span>
-        ${row.note ? `<span style="color:#185FA5;font-size:11px;">OCR: ${esc(row.note)}</span>` : ''}
+        ${row.note ? `<span style="color:#185FA5;font-size: 13px;">OCR: ${esc(row.note)}</span>` : ''}
         <input class="pharma-assign" list="pharma-list" placeholder="제약사명 지정..."
                value="${esc(row.note||'')}" autocomplete="off">
       </div>`).join('');
@@ -1756,7 +1866,7 @@ function loadSession(idx) {
   }));
   renderTable();
   renderAttach();
-  showView('input');
+  showView('dashboard');
 }
 
 async function deleteSession(idx) {
@@ -2161,7 +2271,7 @@ function openGallery() {
 
   const grid = document.getElementById('gallery-grid');
   if (!items.length) {
-    grid.innerHTML = '<div class="gallery-empty">선택된 항목에 저장된 첨부 파일이 없습니다.<br><span style="font-size:11px;color:#bbb;">파일을 첨부한 후 저장하면 이미지가 기록됩니다.</span></div>';
+    grid.innerHTML = '<div class="gallery-empty">선택된 항목에 저장된 첨부 파일이 없습니다.<br><span style="font-size: 13px;color:#bbb;">파일을 첨부한 후 저장하면 이미지가 기록됩니다.</span></div>';
   } else {
     grid.innerHTML = items.map(item => {
       const isImage = (item.fileType || '').startsWith('image/');
@@ -2395,7 +2505,7 @@ function renderTable(data) {
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <p>검색 결과가 없습니다.</p>
-        <p style="margin-top:6px; font-size:12px; color:#adb5bd;">다른 검색어로 다시 시도하세요.</p>
+        <p style="margin-top:6px; font-size: 14px; color:#adb5bd;">다른 검색어로 다시 시도하세요.</p>
       </div>
     `;
     return;
@@ -2814,7 +2924,7 @@ async function loadCommissionList() {
     if (content) {
       content.innerHTML = `
         <div class="empty-state" style="padding:32px 20px;">
-          <div class="empty-icon" style="font-size:32px;">⚠️</div>
+          <div class="empty-icon" style="font-size: 34px;">⚠️</div>
           <p>목록을 불러오지 못했습니다: ${err.message}</p>
         </div>
       `;
@@ -2835,9 +2945,9 @@ function renderCommissionList(data) {
   if (data.length === 0) {
     content.innerHTML = `
       <div class="empty-state" style="padding:32px 20px;">
-        <div class="empty-icon" style="font-size:32px;">📋</div>
+        <div class="empty-icon" style="font-size: 34px;">📋</div>
         <p>등록된 수수료율 데이터가 없습니다.</p>
-        <p style="margin-top:6px; font-size:12px; color:#adb5bd;">엑셀 파일을 업로드하여 수수료율을 등록하세요.</p>
+        <p style="margin-top:6px; font-size: 14px; color:#adb5bd;">엑셀 파일을 업로드하여 수수료율을 등록하세요.</p>
       </div>
     `;
     return;
@@ -2875,7 +2985,7 @@ function renderCommissionList(data) {
         <td>${idx + 1}</td>
         <td>${escHtml(item.standard_code)}</td>
         <td class="${rateClass}">${rateNum > 0 ? rateNum.toFixed(2) + '%' : '-'}</td>
-        <td style="color:#6c757d; font-size:12px;">${updatedAt}</td>
+        <td style="color:#6c757d; font-size: 14px;">${updatedAt}</td>
       </tr>
     `;
   });
