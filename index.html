@@ -1866,8 +1866,19 @@ async function saveData() {
           body: JSON.stringify({ filename: a.name, contentType, dataBase64: base64 })
         });
         const result = await r.json();
-        if (result.url) meta.blobUrl = result.url;
-      } catch(e) { console.error('Blob 업로드 실패:', a.name, e); }
+        console.log('[blob-upload]', a.name, result);
+        if (result.url) {
+          meta.blobUrl = result.url;
+        } else if ((a.fileType || '').startsWith('image/')) {
+          meta.dataUrl = 'data:image/jpeg;base64,' + base64;
+          console.warn('[blob 실패→dataUrl폴백]', result.error);
+        }
+      } catch(e) {
+        console.error('Blob 업로드 실패:', a.name, e);
+        if ((a.fileType || '').startsWith('image/')) {
+          try { const du = await compressImageForStorage(a.file); meta.dataUrl = du; } catch(_) {}
+        }
+      }
     }
     savedAttachFiles.push(meta);
   }
@@ -1887,7 +1898,13 @@ async function saveData() {
 
   try {
     await apiPost('/api/sessions', session);
-    savedSessions.unshift({ ...session, attach_files: savedAttachFiles });
+    // attachFiles를 명시적으로 정규화해서 unshift (renderList에서 s.attachFiles 접근 보장)
+    const normalizedAttach = savedAttachFiles.map(a => ({
+      ...a,
+      blobUrl: a.blobUrl || '',
+      dataUrl: a.dataUrl || ''
+    }));
+    savedSessions.unshift({ ...session, attachFiles: normalizedAttach, attach_files: savedAttachFiles });
     const sb = document.getElementById('status-bar');
     sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
     setTimeout(() => {
