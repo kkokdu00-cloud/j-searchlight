@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 :root {
   --sidebar-w:  220px;
@@ -122,7 +123,7 @@ a { color: var(--gold); text-decoration: none; }
   color: var(--white);
   box-shadow: 0 2px 8px rgba(196,149,106,.45);
 }
-.nav-item .nav-icon { font-size: 18px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-item .nav-icon { width: 20px; height: 20px; text-align: center; flex-shrink: 0; display:flex; align-items:center; justify-content:center; }
 .nav-divider { height: 1px; background: rgba(255,255,255,.10); margin: 10px 12px; }
 .sidebar-footer {
   padding: 16px 24px;
@@ -681,26 +682,26 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   </div>
   <nav class="sidebar-nav">
     <button class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
-      <span class="nav-icon">🏠</span> 대시보드
+      <span class="nav-icon"><i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i></span> 대시보드
     </button>
     <div class="nav-divider"></div>
     <div class="nav-group-label">EDI 관리</div>
     <button class="nav-item" id="nav-input"  onclick="showView('input')">
-      <span class="nav-icon">📋</span> 신규 입력
+      <span class="nav-icon"><i data-lucide="file-plus" style="width:18px;height:18px;"></i></span> 신규 입력
     </button>
     <button class="nav-item" id="nav-list" onclick="showView('list')">
-      <span class="nav-icon">📁</span> 저장 목록
+      <span class="nav-icon"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></span> 저장 목록
     </button>
     <button class="nav-item" id="nav-master" onclick="showView('master')">
-      <span class="nav-icon">⚙️</span> 마스터 관리
+      <span class="nav-icon"><i data-lucide="settings-2" style="width:18px;height:18px;"></i></span> 마스터 관리
     </button>
     <div class="nav-divider"></div>
     <div class="nav-group-label">의약품</div>
     <button class="nav-item" id="nav-drug" onclick="showView('drug')">
-      <span class="nav-icon">🔍</span> 제품 검색
+      <span class="nav-icon"><i data-lucide="pill" style="width:18px;height:18px;"></i></span> 제품 검색
     </button>
     <button class="nav-item" id="nav-commission" onclick="showView('commission')">
-      <span class="nav-icon">💊</span> 수수료 관리
+      <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
     </button>
   </nav>
   <div class="sidebar-footer">© 2026 J써치라이트</div>
@@ -716,7 +717,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   </div>
   <div class="topbar-slogan">CSO의 방향을 제시합니다</div>
   <div class="topbar-actions">
-    <button class="btn reset-btn btn-sm" onclick="resetAll()">🔄 초기화</button>
+    <button class="btn reset-btn btn-sm" onclick="resetAll()"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> 초기화</button>
   </div>
 </div>
 
@@ -728,22 +729,22 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 <div id="view-dashboard" style="display:none;">
   <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:16px;">
     <div class="card" style="text-align:center; padding:16px 10px;">
-      <div style="font-size:34px; margin-bottom:6px;">🏥</div>
+      <div style="margin-bottom:6px;"><i data-lucide="hospital" style="width:32px;height:32px;color:var(--gold);"></i></div>
       <div id="db-client-count" style="font-size:32px; font-weight:800; color:var(--gold); line-height:1; font-family:'Noto Serif KR',serif;">-</div>
       <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">등록 병의원</div>
     </div>
     <div class="card" style="text-align:center; padding:16px 10px;">
-      <div style="font-size:34px; margin-bottom:6px;">💊</div>
+      <div style="margin-bottom:6px;"><i data-lucide="building-2" style="width:32px;height:32px;color:var(--brown2);"></i></div>
       <div id="db-pharma-count" style="font-size:32px; font-weight:800; color:var(--brown2); line-height:1; font-family:'Noto Serif KR',serif;">-</div>
       <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">등록 제약사</div>
     </div>
     <div class="card" style="text-align:center; padding:16px 10px;">
-      <div style="font-size:34px; margin-bottom:6px;">📋</div>
+      <div style="margin-bottom:6px;"><i data-lucide="clipboard-list" style="width:32px;height:32px;color:var(--green);"></i></div>
       <div id="db-session-count" style="font-size:32px; font-weight:800; color:var(--green); line-height:1; font-family:'Noto Serif KR',serif;">-</div>
       <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">총 EDI 건수</div>
     </div>
     <div class="card" style="text-align:center; padding:16px 10px;">
-      <div style="font-size:34px; margin-bottom:6px;">📅</div>
+      <div style="margin-bottom:6px;"><i data-lucide="calendar-check" style="width:32px;height:32px;color:var(--gold);"></i></div>
       <div id="db-month-count" style="font-size:32px; font-weight:800; color:var(--gold); line-height:1; font-family:'Noto Serif KR',serif;">-</div>
       <div style="font-size:15px; color:var(--gray-600); margin-top:6px; font-weight:600;">이번달 EDI</div>
     </div>
@@ -751,13 +752,13 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
     <div class="card">
-      <div class="section-title">🕐 최근 등록 내역</div>
+      <div class="section-title"><i data-lucide="clock" style="width:16px;height:16px;vertical-align:-3px;"></i> 최근 등록 내역</div>
       <div id="db-recent-list" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
         <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
       </div>
     </div>
     <div class="card">
-      <div class="section-title">🏥 병의원별 EDI 현황</div>
+      <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 병의원별 EDI 현황</div>
       <div id="db-client-stats" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
         <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
       </div>
@@ -772,7 +773,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 
   <!-- 기본 정보 -->
   <div class="card">
-    <div class="section-title">📋 기본 정보</div>
+    <div class="section-title"><i data-lucide="clipboard" style="width:16px;height:16px;vertical-align:-3px;"></i> 기본 정보</div>
     <div class="form-grid">
       <div class="field">
         <label>병의원명 <span class="required">*</span></label>
@@ -804,7 +805,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <!-- OCR -->
   <div class="card">
     <div class="section-title">
-      🔍 OCR 자동입력
+      <i data-lucide="scan-search" style="width:16px;height:16px;vertical-align:-3px;"></i> OCR 자동입력
       <span style="font-size: 13px;font-weight:400;color:#888;">이미지/PDF 업로드 → 급여내역 자동 추출</span>
       <span id="batch-counter" class="batch-info" style="display:none;"></span>
     </div>
@@ -842,7 +843,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
           <div id="sep-unmatched-list"></div>
         </div>
         <div class="sep-actions">
-          <button class="btn btn-success btn-sm" onclick="doSplitSave()">📂 제약사별 분리 저장</button>
+          <button class="btn btn-success btn-sm" onclick="doSplitSave()"><i data-lucide="git-fork" style="width:14px;height:14px;"></i> 제약사별 분리 저장</button>
           <span class="sep-note">분리 저장 전 병의원명·처방월·정산월을 확인하세요.</span>
         </div>
       </div>
@@ -852,7 +853,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <!-- 급여내역 테이블 -->
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="section-title" style="margin:0;border:none;padding:0;">💊 급여내역</div>
+      <div class="section-title" style="margin:0;border:none;padding:0;"><i data-lucide="table-2" style="width:16px;height:16px;vertical-align:-3px;"></i> 급여내역</div>
       <button class="btn btn-sm" onclick="addRow({},true)">+ 행 추가</button>
     </div>
     <div class="tbl-wrap">
@@ -878,7 +879,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <!-- 첨부파일 -->
   <div class="card">
     <div class="attach-header">
-      <div class="section-title" style="margin:0;border:none;padding:0;">📎 첨부파일</div>
+      <div class="section-title" style="margin:0;border:none;padding:0;"><i data-lucide="paperclip" style="width:16px;height:16px;vertical-align:-3px;"></i> 첨부파일</div>
       <div class="attach-controls">
         <select id="attach-type" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size: 14px;padding:0 8px;background:#fff;">
           <option value="제약사">제약사별</option>
@@ -908,16 +909,16 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 <div id="view-list" style="display:none">
   <div class="card">
     <div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <span>📁 저장 목록</span>
+      <span><i data-lucide="folder-open" style="width:16px;height:16px;vertical-align:-3px;"></i> 저장 목록</span>
       <div class="list-view-tabs">
-        <button class="list-tab active" id="tab-pharma"   onclick="switchListTab('pharma')">🏢 제약사별</button>
-        <button class="list-tab"        id="tab-hospital" onclick="switchListTab('hospital')">🏥 거래처별</button>
+        <button class="list-tab active" id="tab-pharma"   onclick="switchListTab('pharma')"><i data-lucide="building-2" style="width:14px;height:14px;vertical-align:-2px;"></i> 제약사별</button>
+        <button class="list-tab"        id="tab-hospital" onclick="switchListTab('hospital')"><i data-lucide="stethoscope" style="width:14px;height:14px;vertical-align:-2px;"></i> 거래처별</button>
       </div>
     </div>
     <div id="list-body"><p class="empty-tip">저장된 데이터가 없습니다.</p></div>
     <div class="export-bar">
       <button class="btn btn-primary" onclick="exportXlsx()">✦ 선택 항목 내보내기 (.xlsx)</button>
-      <button class="btn btn-sm" onclick="openGallery()">🖼️ 첨부 이미지 보기</button>
+      <button class="btn btn-sm" onclick="openGallery()"><i data-lucide="images" style="width:14px;height:14px;vertical-align:-2px;"></i> 첨부 이미지 보기</button>
       <button class="btn btn-sm" onclick="selectAll()">전체 선택</button>
       <button class="btn btn-sm" onclick="deselectAll()">선택 해제</button>
     </div>
@@ -933,7 +934,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 
     <!-- 거래처 마스터 -->
     <div class="card">
-      <div class="section-title">🏥 거래처(병의원) 마스터</div>
+      <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 거래처(병의원) 마스터</div>
       <div style="overflow-x:auto">
         <table class="master-tbl" id="clients-tbl">
           <thead>
@@ -1182,7 +1183,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
           기존 보험코드가 있으면 덮어씁니다(Upsert)
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
-          <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap;">📄 템플릿 다운로드</button>
+          <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap;"><i data-lucide="download" style="width:14px;height:14px;"></i> 템플릿 다운로드</button>
         </div>
         <!-- 드래그앤드롭 업로드존 -->
         <div id="uploadZone" onclick="document.getElementById('fileInput').click()"
@@ -1190,7 +1191,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
           ondragover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-bg)';event.preventDefault();"
           ondragleave="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';"
           ondrop="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';event.preventDefault();const f=event.dataTransfer.files[0];if(f)setFile(f);">
-          <div style="font-size: 38px;margin-bottom:10px;">📁</div>
+          <div style="margin-bottom:10px;"><i data-lucide="upload-cloud" style="width:40px;height:40px;color:var(--gray-400);"></i></div>
           <p style="font-size: 17px;font-weight:600;color:var(--gray-600);">클릭하거나 파일을 드래그하여 업로드하세요</p>
           <p style="font-size: 15px;color:var(--gray-400);margin-top:6px;">지원 형식: .xlsx, .xls</p>
           <p id="fileName" style="display:none;margin-top:10px;font-size: 15px;font-weight:600;color:var(--gold);"></p>
@@ -1245,7 +1246,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       </div>
       <div id="manualAlert" style="margin-top:12px;display:none;"></div>
       <div style="margin-top:16px;text-align:right;">
-        <button class="btn btn-primary" onclick="addManualDrug()">💊 비급여 제품 추가</button>
+        <button class="btn btn-primary" onclick="addManualDrug()"><i data-lucide="plus" style="width:14px;height:14px;"></i> 비급여 제품 추가</button>
       </div>
     </div>
 
@@ -1310,7 +1311,7 @@ async function addManualDrug() {
 <div id="gallery-modal" class="gallery-modal" style="display:none" onclick="closeGallery(event)">
   <div class="gallery-box" onclick="event.stopPropagation()">
     <div class="gallery-header">
-      <span>🖼️ 첨부 이미지</span>
+      <span><i data-lucide="images" style="width:16px;height:16px;vertical-align:-3px;"></i> 첨부 이미지</span>
       <button class="gallery-close" onclick="closeGallery()">✕</button>
     </div>
     <div class="gallery-grid" id="gallery-grid"></div>
@@ -1507,6 +1508,7 @@ function showView(v) {
   if (v === 'list')       renderList();
   if (v === 'master')     { renderClientMaster(); renderPharmaMaster(); }
   if (v === 'commission') loadCommissionList();
+  requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
 }
 
 // ══════════════════════════════════════════════
@@ -2696,6 +2698,7 @@ async function fillByDrugName(rowIdx, name) {
 // ══════════════════════════════════════════════
 setDefaultMonths();
 for (let i = 0; i < 5; i++) addRow({});
+lucide.createIcons();
 
 // Supabase에서 데이터 로드
 (async () => {
