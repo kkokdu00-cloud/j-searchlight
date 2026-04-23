@@ -162,7 +162,7 @@ a { color: var(--gold); text-decoration: none; }
 }
 .topbar-actions { display: flex; gap: 8px; align-items: center; }
 
-.wrap { padding: 28px 32px; flex: 1; }
+.wrap { padding: 28px 32px; flex: 1; overflow-x: hidden; }
 
 /* ══ CARDS ════════════════════════════ */
 .card {
@@ -338,11 +338,15 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .list-tab.active { background: var(--gold); color: var(--white); border-color: var(--gold); }
 .list-group { margin-bottom: 16px; }
 .list-group-title { font-size: 15px; font-weight: 700; color: var(--brown2); margin-bottom: 8px; background: var(--gold-bg); padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
-.list-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px; margin-bottom: 6px; background: var(--white); flex-wrap: wrap; transition: border-color .15s; }
+.list-row { display: flex; flex-direction: column; gap: 5px; padding: 12px 14px; border: 1.5px solid var(--gray-200); border-radius: 10px; margin-bottom: 8px; background: var(--white); transition: border-color .15s; }
 .list-row:hover { border-color: var(--gold-lt); }
-.list-row label { display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; min-width: 120px; font-size: 15px; }
-.list-row .meta { font-size: 14px; color: var(--gray-400); white-space: nowrap; }
-.list-row .list-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.list-row-top { display: flex; align-items: center; gap: 8px; }
+.list-row-top label { display: flex; align-items: center; gap: 6px; font-size: 15px; cursor: pointer; }
+.list-row-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 13px; color: var(--gray-400); }
+.list-row-date { font-size: 12px; color: var(--gray-400); }
+.meta-dot { color: var(--gray-200); }
+.list-row .meta { font-size: 13px; color: var(--gray-400); }
+.list-row .list-btns { display: flex; gap: 6px; flex-shrink: 0; margin-left: auto; }
 .export-bar { display: flex; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex-wrap: wrap; }
 
 /* ══ MASTER VIEW ══════════════════════ */
@@ -471,6 +475,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .alert-error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 .alert-info    { background: var(--gold-bg); color: var(--gold); border: 1px solid #bfdbfe; }
+.alert { word-break: keep-all; overflow-wrap: break-word; }
 
 /* modal (drug-search) */
 .ingredient-modal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
@@ -530,10 +535,10 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     color: rgba(255,255,255,.5);
   }
   .nav-item.active {
-    background: rgba(196,149,106,.25);
-    color: var(--gold);
+    background: rgba(196,149,106,.15);
+    color: var(--gold-lt);
     box-shadow: none;
-    border-top: 2px solid var(--gold);
+    border-top: 2px solid var(--gold-lt);
   }
   .nav-item .nav-icon { font-size: 20px; width: auto; }
 
@@ -580,15 +585,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   .footer-btns { width: 100%; justify-content: flex-end; }
 
   /* ── 저장목록 ── */
-  .list-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 12px;
-  }
-  .list-row label { width: 100%; }
-  .list-row .meta { font-size: 13px; }
-  .list-row .list-btns { width: 100%; justify-content: flex-end; }
+  .list-row { padding: 10px 12px; }
+  .list-row-top label { font-size: 14px; }
   .list-view-tabs { flex-wrap: wrap; }
 
   /* ── 마스터관리 ── */
@@ -2141,17 +2139,22 @@ function renderList() {
           : `<span class="meta">${esc(s.pharma||'')}</span>`;
         return `
         <div class="list-row">
-          <label><input type="checkbox" data-idx="${s.idx}"> ${esc(listTab==='pharma'?s.hospital:s.pharma)}</label>
-          ${subInfo}
-          <span class="meta">${esc(s.presc)} 처방</span>
-          <span class="meta">정산 ${esc(s.settle)}</span>
-          <span class="meta">${s.rows?s.rows.length:0}건</span>
-          <span class="meta">${esc(s.savedAt)}</span>
-          ${attachIcons}
-          <div class="list-btns">
-            <button class="btn btn-sm" onclick="loadSession(${s.idx})">수정</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.idx})">삭제</button>
+          <div class="list-row-top">
+            <label style="flex:1;font-weight:700;"><input type="checkbox" data-idx="${s.idx}"> ${esc(listTab==='pharma'?s.hospital:s.pharma)}</label>
+            <div class="list-btns">
+              <button class="btn btn-sm" onclick="loadSession(${s.idx})">수정</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.idx})">삭제</button>
+            </div>
           </div>
+          <div class="list-row-meta">
+            ${subInfo}
+            <span class="meta-dot">·</span>
+            <span class="meta">${esc(s.presc)} 처방 / 정산 ${esc(s.settle)}</span>
+            <span class="meta-dot">·</span>
+            <span class="meta">${s.rows?s.rows.length:0}건</span>
+            ${attachIcons ? '<span class="meta-dot">·</span>' + attachIcons : ''}
+          </div>
+          <div class="list-row-date">${esc(s.savedAt)}</div>
         </div>`;
       }).join('')}
     </div>`).join('');
