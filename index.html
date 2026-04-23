@@ -2383,8 +2383,7 @@ async function autoFillByCode(rowIdx, code) {
     });
     const { map } = await res.json();
     if (map && map[code]) {
-      rows[rowIdx].name = map[code].drug_name || '';
-      rows[rowIdx].price = map[code].price || '';
+      rows[rowIdx].name = map[code].product_name || '';
       renderTable();
     }
   } catch(e) { console.error('코드 자동완성 실패:', e); }
