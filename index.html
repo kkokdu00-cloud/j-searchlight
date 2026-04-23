@@ -2650,7 +2650,7 @@ async function openIngredientPopup(row) {
   modalBody.innerHTML = '';
   modalAlert.style.display = 'none';
 
-  modal.classList.add('active');
+  modal.classList.add('show');
   showLoading();
 
   try {
@@ -2746,7 +2746,7 @@ function renderModalTable(data) {
 
 function closeModal() {
   const modal = document.getElementById('ingredientModal');
-  modal.classList.remove('active');
+  modal.classList.remove('show');
   modalData = [];
   currentIngdNm = '';
 }
