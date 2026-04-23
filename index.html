@@ -1230,16 +1230,16 @@ async function renderDashboard() {
   // 카운트 카드
   document.getElementById('db-client-count').textContent = masterClients.length;
   document.getElementById('db-pharma-count').textContent = masterPharma.length;
-  document.getElementById('db-session-count').textContent = sessions.length;
+  document.getElementById('db-session-count').textContent = savedSessions.length;
 
   // 이번달 EDI 수
   const now = new Date();
   const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const monthSessions = sessions.filter(s => (s.created_at||'').startsWith(ym));
+  const monthSessions = savedSessions.filter(s => (s.created_at||'').startsWith(ym));
   document.getElementById('db-month-count').textContent = monthSessions.length;
 
   // 최근 등록 내역 (최신 8건)
-  const sorted = [...sessions].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,8);
+  const sorted = [...savedSessions].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,8);
   const recentEl = document.getElementById('db-recent-list');
   if (sorted.length === 0) {
     recentEl.innerHTML = '<div style="color:var(--gray-400);font-size:15px;text-align:center;padding:20px 0;">등록된 내역이 없습니다</div>';
@@ -1260,7 +1260,7 @@ async function renderDashboard() {
 
   // 병의원별 EDI 건수 TOP 8
   const clientMap = {};
-  sessions.forEach(s => {
+  savedSessions.forEach(s => {
     const k = s.hospital_name || '미입력';
     clientMap[k] = (clientMap[k]||0) + 1;
   });
@@ -2808,19 +2808,20 @@ function escHtmlModal(str) {
 
 
 /* ══ 수수료 업로드 JS ══ */
-// upload.js의 showLoading/hideLoading은 이미 위에 정의되어 있으므로 충돌 방지
-(function() {
-  const _uploadShowLoading = function(text) {
-    const overlay = document.getElementById('loadingOverlay');
-    const textEl = document.getElementById('loadingText');
-    if (overlay) overlay.classList.add('active');
-    if (textEl && text) textEl.textContent = text;
-  };
-  const _uploadHideLoading = function() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.classList.remove('active');
-  };
-  // Global state
+
+// 수수료 로딩 함수 (전역)
+function _uploadShowLoading(text) {
+  const overlay = document.getElementById('loadingOverlayCommission') || document.getElementById('loadingOverlay');
+  const textEl = document.getElementById('loadingText');
+  if (overlay) overlay.classList.add('active');
+  if (textEl && text) textEl.textContent = text;
+}
+function _uploadHideLoading() {
+  const overlay = document.getElementById('loadingOverlayCommission') || document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+// Global state
 let selectedFile = null;
 let commissionData = [];
 
@@ -3060,18 +3061,7 @@ function downloadCommissionExcel() {
 }
 
 // ===================== LOADING =====================
-
-function _uploadShowLoading(text) {
-  const overlay = document.getElementById('loadingOverlay');
-  const textEl = document.getElementById('loadingText');
-  if (overlay) overlay.classList.add('active');
-  if (textEl && text) textEl.textContent = text;
-}
-
-function _uploadHideLoading() {
-  const overlay = document.getElementById('loadingOverlay');
-  if (overlay) overlay.classList.remove('active');
-}
+// (함수는 아래 전역 스코프에서 정의됨)
 
 // ===================== ALERTS =====================
 
@@ -3099,7 +3089,6 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-})();
 </script>
 
 </body>
