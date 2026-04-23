@@ -68,7 +68,6 @@ a { color: var(--gold); text-decoration: none; }
 .sidebar-logo {
   padding: 32px 24px 22px;
   border-bottom: 1px solid rgba(255,255,255,.08);
-  display: none;
 }
 .sidebar-logo .brand {
   font-size: 22px;
@@ -156,7 +155,7 @@ a { color: var(--gold); text-decoration: none; }
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 .topbar-logo {
-  display: flex;
+  display: none;
   flex-direction: column;
   cursor: pointer;
   flex-shrink: 0;
@@ -589,6 +588,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     height: 52px;
     gap: 8px;
   }
+  .topbar-logo { display: flex !important; }
   .topbar-logo-brand { font-size: 16px; }
   .topbar-slogan { font-size: 11px; }
   .topbar-title { font-size: 17px; }
