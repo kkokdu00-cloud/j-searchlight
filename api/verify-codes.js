@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   // drug_master에서 보험코드 → 제약사명 일괄 조회
   const { data, error } = await supabase
     .from('drug_master')
-    .select('product_code, product_name, company_name')
+    .select('product_code, product_name, company_name, mx_cprc')
     .in('product_code', codes)
     .in('pay_tp_nm', ['급여', '삭제']);
 
@@ -27,7 +27,8 @@ export default async function handler(req, res) {
     if (!map[row.product_code]) {
       map[row.product_code] = {
         company_name: row.company_name,
-        product_name: row.product_name
+        product_name: row.product_name,
+        mx_cprc: row.mx_cprc
       };
     }
   });

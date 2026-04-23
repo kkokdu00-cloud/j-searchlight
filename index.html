@@ -2383,7 +2383,8 @@ async function autoFillByCode(rowIdx, code) {
     });
     const { map } = await res.json();
     if (map && map[code]) {
-      rows[rowIdx].name = map[code].product_name || '';
+      rows[rowIdx].name  = map[code].product_name || '';
+      rows[rowIdx].price = map[code].mx_cprc != null ? String(map[code].mx_cprc) : '';
       renderTable();
     }
   } catch(e) { console.error('코드 자동완성 실패:', e); }
