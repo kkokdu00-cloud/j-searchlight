@@ -1110,6 +1110,12 @@ async function addManualDrug() {
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Image Viewer Modal -->
+<div id="img-viewer" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;align-items:center;justify-content:center;padding:16px;" onclick="document.getElementById('img-viewer').style.display='none'">
+  <img id="img-viewer-img" src="" style="max-width:100%;max-height:90vh;border-radius:10px;box-shadow:0 8px 40px #000;" onclick="event.stopPropagation()">
+  <button onclick="document.getElementById('img-viewer').style.display='none'" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;">✕</button>
+</div>
+
 <!-- Gallery Modal -->
 <div id="gallery-modal" class="gallery-modal" style="display:none" onclick="closeGallery(event)">
   <div class="gallery-box" onclick="event.stopPropagation()">
@@ -1788,7 +1794,7 @@ function renderAttach() {
     const icon       = a.fileType === 'application/pdf' ? '📄' : (isImage ? '' : '📎');
     const displayUrl = a.url || a.dataUrl || '';
     const preview    = isImage && displayUrl
-      ? `<a href="${displayUrl}" target="_blank"><img src="${displayUrl}" alt="${esc(a.name)}" title="${esc(a.name)}"></a>`
+      ? `<img src="${displayUrl}" alt="${esc(a.name)}" title="${esc(a.name)}" style="cursor:pointer;" onclick="viewImg('${displayUrl}')">`
       : `<a ${displayUrl ? `href="${displayUrl}" target="_blank"` : 'href="#"'} title="${esc(a.name)}">
            <span class="attach-file-icon">${icon}</span>
            <span class="attach-name">${esc(a.name)}</span>
@@ -1989,7 +1995,7 @@ function renderList() {
           const displayUrl = a.blobUrl || a.dataUrl || '';
           if (displayUrl) {
             const ico = (a.fileType||'').startsWith('image/') ? '🖼️' : '📄';
-            return `<a href="${displayUrl}" target="_blank" class="attach-icon-badge" title="${esc(a.name)}" style="text-decoration:none;">${ico}</a>`;
+            return `<span class="attach-icon-badge" title="${esc(a.name)}" style="cursor:pointer;" onclick="viewImg('${displayUrl}')">${ico}</span>`;
           }
           return a.name ? `<span class="attach-icon-badge" title="${esc(a.name)} (미저장)">📎</span>` : '';
         }).join('');
@@ -2348,13 +2354,20 @@ function openGallery() {
         : `<span class="gallery-pdf-icon">📄</span>`;
       return `
         <div class="gallery-item">
-          <a href="${item.displayUrl}" target="_blank">${content}</a>
+          <span style="cursor:pointer;display:block;" onclick="viewImg('${item.displayUrl}')">${content}</span>
           <div class="gallery-label">${esc(item.name)}<br>${label}</div>
         </div>`;
     }).join('');
   }
 
   document.getElementById('gallery-modal').style.display = 'flex';
+}
+
+function viewImg(url) {
+  if (!url) return;
+  const viewer = document.getElementById('img-viewer');
+  document.getElementById('img-viewer-img').src = url;
+  viewer.style.display = 'flex';
 }
 
 function closeGallery(e) {
