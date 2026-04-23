@@ -1199,7 +1199,11 @@ async function loadSessions() {
     const { data } = await apiGet('/api/sessions');
     savedSessions = (data || []).map(s => ({
       ...s,
-      attachFiles: s.attach_files || [],
+      attachFiles: (s.attach_files || []).map(a => ({
+        ...a,
+        blobUrl: a.blobUrl || a.blob_url || '',
+        dataUrl: a.dataUrl || a.data_url || ''
+      })),
       savedAt: s.saved_at ? new Date(s.saved_at).toLocaleString('ko-KR') : ''
     }));
   } catch(e) {
@@ -1816,25 +1820,25 @@ async function saveData() {
   const savedAttachFiles = [];
   for (const a of attachFiles) {
     const meta = { name: a.name, type: a.label || '', fileType: a.fileType || '', blobUrl: a.blobUrl || '' };
-    if (a.file && !a.blobUrl) {
+    if (a.file) {
       try {
-        const dataUrl = (a.fileType || '').startsWith('image/')
-          ? await compressImageForStorage(a.file)
-          : await fileToDataUrl(a.file);
-        const base64 = dataUrl.split(',')[1];
-        const uniqueName = `${Date.now()}_${a.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-        const r = await fetch('/api/blob-upload', {
+        let base64, contentType;
+        if ((a.fileType || '').startsWith('image/')) {
+          const dataUrl = await compressImageForStorage(a.file);
+          base64 = dataUrl.split(',')[1];
+          contentType = 'image/jpeg';
+        } else {
+          base64 = await fileToBase64(a.file);
+          contentType = a.fileType || 'application/octet-stream';
+        }
+        const r = await fetch('/api/upload-blob', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: uniqueName, contentType: a.fileType || 'application/octet-stream', dataBase64: base64 })
+          body: JSON.stringify({ filename: a.name, contentType, base64 })
         });
-        if (r.ok) {
-          const j = await r.json();
-          meta.blobUrl = j.url;
-        }
-      } catch(e) { console.error('Blob upload failed:', e); }
-    } else if (a.blobUrl) {
-      meta.blobUrl = a.blobUrl;
+        const result = await r.json();
+        if (result.url) meta.blobUrl = result.url;
+      } catch(e) { console.error('Blob 업로드 실패:', a.name, e); }
     }
     savedAttachFiles.push(meta);
   }
@@ -1936,9 +1940,10 @@ function renderList() {
       <div class="list-group-title">${icon} ${esc(key)}</div>
       ${grouped[key].map(s => {
         const attachIcons = (s.attachFiles || []).map(a => {
-          if (a.dataUrl) {
+          const displayUrl = a.blobUrl || a.dataUrl || '';
+          if (displayUrl) {
             const ico = (a.fileType||'').startsWith('image/') ? '🖼️' : '📄';
-            return `<a href="${a.dataUrl}" target="_blank" class="attach-icon-badge" title="${esc(a.name)}" style="text-decoration:none;">${ico}</a>`;
+            return `<a href="${displayUrl}" target="_blank" class="attach-icon-badge" title="${esc(a.name)}" style="text-decoration:none;">${ico}</a>`;
           }
           return a.name ? `<span class="attach-icon-badge" title="${esc(a.name)} (미저장)">📎</span>` : '';
         }).join('');
@@ -2280,7 +2285,8 @@ function openGallery() {
   checks.map(c => parseInt(c.dataset.idx)).forEach(i => {
     const s = savedSessions[i];
     (s.attachFiles || []).forEach(a => {
-      if (a.blobUrl || a.dataUrl) items.push({ ...a, session: s });
+      const displayUrl = a.blobUrl || a.dataUrl || '';
+      if (displayUrl) items.push({ ...a, displayUrl, session: s });
     });
   });
 
@@ -2291,13 +2297,12 @@ function openGallery() {
     grid.innerHTML = items.map(item => {
       const isImage = (item.fileType || '').startsWith('image/');
       const label   = `${esc(item.session.hospital)} / ${esc(item.session.pharma)}<br>${esc(item.session.presc)}`;
-      const itemUrl = item.blobUrl || item.dataUrl || '';
       const content = isImage
-        ? `<img src="${itemUrl}" alt="${esc(item.name)}">`
+        ? `<img src="${item.displayUrl}" alt="${esc(item.name)}">`
         : `<span class="gallery-pdf-icon">📄</span>`;
       return `
         <div class="gallery-item">
-          <a href="${itemUrl}" target="_blank">${content}</a>
+          <a href="${item.displayUrl}" target="_blank">${content}</a>
           <div class="gallery-label">${esc(item.name)}<br>${label}</div>
         </div>`;
     }).join('');
