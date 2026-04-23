@@ -1366,8 +1366,16 @@ function renderTable(newIdx) {
     tr.innerHTML = `
       <td class="del-cell"><button class="btn btn-danger btn-sm" onclick="delRow(${i})">삭제</button></td>
       <td class="num-cell">${i+1}</td>
-      <td><input value="${esc(r.code)}"  onchange="rows[${i}].code=this.value"  placeholder="643301120"></td>
-      <td><input value="${esc(r.name)}"  onchange="rows[${i}].name=this.value"  placeholder="제품명"></td>
+      <td><input value="${esc(r.code)}"
+        onchange="rows[${i}].code=this.value; autoFillByCode(${i}, this.value)"
+        placeholder="643301120"></td>
+      <td><input value="${esc(r.name)}"
+        id="name-input-${i}"
+        list="drug-list-${i}"
+        oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
+        placeholder="제품명"
+        autocomplete="off">
+      <datalist id="drug-list-${i}"></datalist></td>
       <td><input value="${esc(r.price)}" onchange="rows[${i}].price=this.value" style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.qin)}"   onchange="rows[${i}].qin=this.value"   style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.qout)}"  onchange="rows[${i}].qout=this.value"  style="text-align:right" placeholder="0"></td>
@@ -1831,10 +1839,10 @@ async function saveData() {
           base64 = await fileToBase64(a.file);
           contentType = a.fileType || 'application/octet-stream';
         }
-        const r = await fetch('/api/upload-blob', {
+        const r = await fetch('/api/blob-upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: a.name, contentType, base64 })
+          body: JSON.stringify({ filename: a.name, contentType, dataBase64: base64 })
         });
         const result = await r.json();
         if (result.url) meta.blobUrl = result.url;
@@ -2360,6 +2368,44 @@ function importCodesFromExcel(input) {
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ══════════════════════════════════════════════
+// DB 자동완성
+// ══════════════════════════════════════════════
+async function autoFillByCode(rowIdx, code) {
+  if (!code || code.length < 6) return;
+  try {
+    const res = await fetch('/api/verify-codes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codes: [code] })
+    });
+    const { map } = await res.json();
+    if (map && map[code]) {
+      rows[rowIdx].name = map[code].drug_name || '';
+      rows[rowIdx].price = map[code].price || '';
+      renderTable();
+    }
+  } catch(e) { console.error('코드 자동완성 실패:', e); }
+}
+
+let _drugSearchTimer = null;
+async function searchDrugByName(rowIdx, keyword) {
+  if (!keyword || keyword.length < 2) return;
+  clearTimeout(_drugSearchTimer);
+  _drugSearchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/drugs/search?q=${encodeURIComponent(keyword)}&limit=10`);
+      const { data } = await res.json();
+      const dl = document.getElementById('drug-list-' + rowIdx);
+      if (dl && data) {
+        dl.innerHTML = data.map(d =>
+          `<option value="${esc(d.drug_name)}">${esc(d.insurance_code)} — ${esc(d.drug_name)}</option>`
+        ).join('');
+      }
+    } catch(e) {}
+  }, 300);
 }
 
 // ══════════════════════════════════════════════
