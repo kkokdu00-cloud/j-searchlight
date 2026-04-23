@@ -68,6 +68,7 @@ a { color: var(--gold); text-decoration: none; }
 .sidebar-logo {
   padding: 32px 24px 22px;
   border-bottom: 1px solid rgba(255,255,255,.08);
+  display: none;
 }
 .sidebar-logo .brand {
   font-size: 22px;
@@ -142,17 +143,49 @@ a { color: var(--gold); text-decoration: none; }
   max-width: 100%;
 }
 .topbar {
-  background: var(--white);
-  border-bottom: 1px solid var(--gray-200);
+  background: var(--brown);
+  border-bottom: 1px solid rgba(255,255,255,.08);
   height: 60px;
   display: flex;
   align-items: center;
-  padding: 0 32px;
+  padding: 0 24px;
   gap: 12px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.topbar-logo {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1.2;
+  user-select: none;
+}
+.topbar-logo-brand {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--white);
+  font-family: 'Noto Serif KR', 'Pretendard', serif;
+  letter-spacing: -.3px;
+}
+.topbar-logo-brand span { color: var(--gold); font-style: italic; }
+.topbar-logo-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,.45);
+  font-weight: 500;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+.topbar-slogan {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255,255,255,.5);
+  font-style: italic;
+  letter-spacing: .3px;
+  white-space: nowrap;
 }
 .topbar-title {
   font-size: 20px;
@@ -162,7 +195,9 @@ a { color: var(--gold); text-decoration: none; }
   font-family: 'Noto Serif KR', 'Pretendard', serif;
   letter-spacing: -.3px;
 }
-.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.topbar-actions .reset-btn { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.2); background: transparent; }
+.topbar-actions .reset-btn:hover { background: rgba(255,255,255,.1); color: var(--white); }
 
 .wrap { padding: 28px 32px; flex: 1; overflow-x: hidden; max-width: 100%; box-sizing: border-box; }
 
@@ -550,9 +585,12 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     padding-bottom: 60px; /* 탭바 높이 */
   }
   .topbar {
-    padding: 0 16px;
+    padding: 0 14px;
     height: 52px;
+    gap: 8px;
   }
+  .topbar-logo-brand { font-size: 16px; }
+  .topbar-slogan { font-size: 11px; }
   .topbar-title { font-size: 17px; }
   .wrap { padding: 14px 14px; }
 
@@ -672,7 +710,11 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 <div class="main-area">
 
 <div class="topbar">
-  <span class="topbar-title" id="topbar-title">대시보드</span>
+  <div class="topbar-logo" onclick="location.reload()" title="새로고침">
+    <div class="topbar-logo-brand"><span>J</span>써치라이트</div>
+    <div class="topbar-logo-sub">EDI 관리 시스템</div>
+  </div>
+  <div class="topbar-slogan">CSO의 방향을 제시합니다</div>
   <div class="topbar-actions">
     <button class="btn reset-btn btn-sm" onclick="resetAll()">🔄 초기화</button>
   </div>
