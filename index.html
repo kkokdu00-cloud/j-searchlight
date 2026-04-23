@@ -328,6 +328,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .attach-remove { position: absolute; top: 2px; right: 4px; cursor: pointer; color: var(--red); font-size: 18px; line-height: 1; background: rgba(255,255,255,.9); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
 .attach-empty { font-size: 14px; color: var(--gray-400); }
 .attach-icon-badge { font-size: 15px; opacity: .7; cursor: default; }
+.hide-mobile { display: table-cell; }
+.show-mobile { display: none; }
 
 /* ══ LIST VIEW ════════════════════════ */
 .list-view-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -1044,15 +1046,15 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
           <table id="resultsTable">
             <thead>
               <tr>
-                <th style="width:46px;">번호</th>
+                <th style="width:36px;">번호</th>
                 <th>제약사</th>
                 <th>제품명</th>
-                <th>성분명</th>
-                <th>보험가(원)</th>
+                <th class="hide-mobile">성분명</th>
+                <th>보험가</th>
                 <th>수수료율(%)</th>
-                <th>수수료환산(원)</th>
-                <th>제품코드</th>
-                <th>표준코드</th>
+                <th class="hide-mobile">수수료환산(원)</th>
+                <th class="hide-mobile">제품코드</th>
+                <th class="hide-mobile">표준코드</th>
                 <th>비고</th>
               </tr>
             </thead>
@@ -1090,14 +1092,14 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
           <table id="modalTable">
             <thead>
               <tr>
-                <th style="width:46px;">번호</th>
+                <th style="width:36px;">번호</th>
                 <th>제약사</th>
                 <th>제품명</th>
-                <th>보험가(원)</th>
+                <th>보험가</th>
                 <th>수수료율(%)</th>
-                <th>수수료환산(원)</th>
-                <th>제품코드</th>
-                <th>표준코드</th>
+                <th class="hide-mobile">수수료환산(원)</th>
+                <th class="hide-mobile">제품코드</th>
+                <th class="hide-mobile">표준코드</th>
                 <th>비고</th>
               </tr>
             </thead>
@@ -2830,15 +2832,18 @@ function renderDrugTable(data) {
     tr.title = '더블클릭: 동일성분 제약사 조회';
     tr.innerHTML = `
       <td>${idx + 1}</td>
-      <td class="td-left">${escHtml(row.cpnyNm)}</td>
-      <td class="td-left">${escHtml(row.itmNm)}${bioBadge ? ' ' + bioBadge : ''}</td>
-      <td class="td-left">${escHtml(row.ingdNm) || '<span style="color:#adb5bd;">-</span>'}</td>
+      <td class="td-left" style="white-space:nowrap;">${escHtml(row.cpnyNm)}</td>
+      <td class="td-left">
+        <div>${escHtml(row.itmNm)}${bioBadge ? ' ' + bioBadge : ''}</div>
+        <div class="show-mobile" style="font-size:12px;color:#a89880;margin-top:2px;">${escHtml(row.ingdNm)||''}</div>
+      </td>
+      <td class="td-left hide-mobile">${escHtml(row.ingdNm) || '<span style="color:#adb5bd;">-</span>'}</td>
       <td class="text-right">${formatNumber(row.clsgAmt)}</td>
       <td class="${rateClass}">${rateNum > 0 ? formatRate(rateNum) + '%' : '<span style="color:#adb5bd;">-</span>'}</td>
-      <td class="text-right">${rateNum > 0 ? formatNumber(row.commissionAmt) : '<span style="color:#adb5bd;">-</span>'}</td>
-      <td>${escHtml(row.itmCd)}</td>
-      <td>${escHtml(row.mnfSeq)}</td>
-      <td>${bioBadge} ${priceOkBadge}</td>
+      <td class="text-right hide-mobile">${rateNum > 0 ? formatNumber(row.commissionAmt) : '<span style="color:#adb5bd;">-</span>'}</td>
+      <td class="hide-mobile">${escHtml(row.itmCd)}</td>
+      <td class="hide-mobile">${escHtml(row.mnfSeq)}</td>
+      <td style="white-space:nowrap;">${bioBadge}${priceOkBadge}</td>
     `;
 
     tr.addEventListener('dblclick', () => {
@@ -3003,14 +3008,14 @@ function renderModalTable(data) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${idx + 1}</td>
-      <td class="td-left">${escHtmlModal(row.cpnyNm)}</td>
+      <td class="td-left" style="white-space:nowrap;">${escHtmlModal(row.cpnyNm)}</td>
       <td class="td-left">${escHtmlModal(row.itmNm)}${bioBadge ? ' ' + bioBadge : ''}</td>
       <td class="text-right">${row.clsgAmt > 0 ? formatNumberModal(row.clsgAmt) : '<span style="color:#adb5bd;">비급여</span>'}</td>
       <td class="${rateClass}">${rateNum > 0 ? parseFloat(rateNum).toFixed(2) + '%' : '<span style="color:#adb5bd;">-</span>'}</td>
-      <td class="text-right">${rateNum > 0 ? formatNumberModal(row.commissionAmt) : '<span style="color:#adb5bd;">-</span>'}</td>
-      <td>${escHtmlModal(row.itmCd)}</td>
-      <td>${escHtmlModal(row.mnfSeq)}</td>
-      <td>${bioBadge}</td>
+      <td class="text-right hide-mobile">${rateNum > 0 ? formatNumberModal(row.commissionAmt) : '<span style="color:#adb5bd;">-</span>'}</td>
+      <td class="hide-mobile">${escHtmlModal(row.itmCd)}</td>
+      <td class="hide-mobile">${escHtmlModal(row.mnfSeq)}</td>
+      <td style="white-space:nowrap;">${bioBadge}</td>
     `;
     tbody.appendChild(tr);
   });
