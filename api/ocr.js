@@ -31,27 +31,11 @@ export default async function handler(req, res) {
     : { type: 'image',    source: { type: 'base64', media_type: mediaType,          data: imageBase64 } };
 
   const prompt = `이 이미지는 병의원 EDI 급여청구 내역서입니다.
-아래 규칙에 따라 데이터를 추출해줘.
+보험코드(9-13자리 숫자) 정확하게 읽는 것이 최우선입니다.
+제품명은 이미지 글자 그대로만, 절대 추론하지 마세요.
 
-[최우선 규칙]
-- 보험코드(숫자 9-13자리)를 정확히 읽는 것이 가장 중요해
-- 보험코드가 불확실하면 빈칸으로 두고, 제품명은 이미지 텍스트 그대로 옮겨
-- 텍스트 기반 추론 금지 — 반드시 이미지에 보이는 숫자/문자만 입력
-- 제품명도 이미지에 보이는 글자 그대로만 옮겨. 절대 추론하거나 유사한 이름으로 바꾸지 마
-- 보험코드로 제품명을 유추하지 마. 이미지에 없으면 빈칸
-
-[추출 필드]
-- code: 보험코드 (숫자만, 하이픈 제거)
-- name: 제품명 (이미지에 보이는 그대로)
-- price: 단가 (숫자만)
-- qin: 원내수량 (숫자만)
-- qout: 원외수량 (숫자만)
-- type: "처방" 또는 "조제"
-- note: 제약사명이 보이면 입력, 없으면 빈칸
-
-[출력 형식]
-JSON 배열만 출력. 설명 없이.
-예시: [{"code":"6431031230","name":"아스피린정","price":"100","qin":"10","qout":"0","type":"처방","note":""}]`;
+출력 필드: code, name, price, qin, qout, type(처방/조제), note
+JSON 배열만 출력. 설명 없이.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {

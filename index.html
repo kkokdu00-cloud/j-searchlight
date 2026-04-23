@@ -1561,6 +1561,26 @@ async function runOCR() {
   loading.classList.remove('show');
   btnRun.disabled = false;
 
+  const codesForDb = rows.map(r => r.code).filter(Boolean);
+  if (codesForDb.length > 0) {
+    try {
+      const dbRes = await fetch('/api/verify-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codes: codesForDb })
+      });
+      const { map } = await dbRes.json();
+      if (map) {
+        rows.forEach(r => {
+          if (r.code && map[r.code]) {
+            r.name  = map[r.code].product_name || r.name;
+            r.price = map[r.code].mx_cprc      || r.price;
+          }
+        });
+      }
+    } catch(e) { console.error('DB 보정 실패:', e); }
+  }
+
   renderTable();
 
   resultEl.textContent =
