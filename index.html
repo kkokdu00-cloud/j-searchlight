@@ -2394,7 +2394,7 @@ async function autoFillByCode(rowIdx, code) {
 async function fillByDrugName(rowIdx, name) {
   if (!name || name.length < 2) return;
   try {
-    const res = await fetch(`/api/drugs/search?q=${encodeURIComponent(name)}&limit=1`);
+    const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(name)}&limit=1`);
     const { data } = await res.json();
     if (data && data[0] && data[0].itmNm === name) {
       rows[rowIdx].code  = data[0].itmCd  || rows[rowIdx].code;
@@ -2410,7 +2410,7 @@ async function searchDrugByName(rowIdx, keyword) {
   clearTimeout(_drugSearchTimer);
   _drugSearchTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`/api/drugs/search?q=${encodeURIComponent(keyword)}&limit=10`);
+      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=10`);
       const { data } = await res.json();
       const dl = document.getElementById('drug-list-' + rowIdx);
       if (dl && data) {
