@@ -2391,35 +2391,59 @@ async function autoFillByCode(rowIdx, code) {
   } catch(e) { console.error('코드 자동완성 실패:', e); }
 }
 
+let _drugSearchTimer = null;
+let _drugSearchCache = {};
+
+async function searchDrugByName(rowIdx, keyword) {
+  const dl = document.getElementById('drug-list-' + rowIdx);
+  if (!keyword || keyword.length < 1) {
+    if (dl) dl.innerHTML = '';
+    return;
+  }
+  clearTimeout(_drugSearchTimer);
+  _drugSearchTimer = setTimeout(async () => {
+    if (_drugSearchCache[keyword]) {
+      renderDrugList(rowIdx, _drugSearchCache[keyword]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=15`);
+      const { data } = await res.json();
+      _drugSearchCache[keyword] = data || [];
+      renderDrugList(rowIdx, _drugSearchCache[keyword]);
+    } catch(e) {}
+  }, 150);
+}
+
+function renderDrugList(rowIdx, data) {
+  const dl = document.getElementById('drug-list-' + rowIdx);
+  if (!dl) return;
+  dl.innerHTML = data.map(d =>
+    `<option value="${esc(d.itmNm)}" data-code="${esc(d.itmCd||'')}" data-price="${esc(d.mx_cprc||'')}">
+      ${esc(d.itmCd)} — ${esc(d.itmNm)}
+    </option>`
+  ).join('');
+}
+
 async function fillByDrugName(rowIdx, name) {
-  if (!name || name.length < 2) return;
+  if (!name) return;
+  const allCached = Object.values(_drugSearchCache).flat();
+  const match = allCached.find(d => d.itmNm === name);
+  if (match) {
+    rows[rowIdx].code  = match.itmCd   || rows[rowIdx].code;
+    rows[rowIdx].price = match.mx_cprc || rows[rowIdx].price;
+    renderTable();
+    return;
+  }
   try {
     const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(name)}&limit=1`);
     const { data } = await res.json();
     if (data && data[0] && data[0].itmNm === name) {
-      rows[rowIdx].code  = data[0].itmCd  || rows[rowIdx].code;
+      rows[rowIdx].code  = data[0].itmCd   || rows[rowIdx].code;
       rows[rowIdx].price = data[0].mx_cprc || rows[rowIdx].price;
       renderTable();
     }
-  } catch(e) { console.error('제품명 자동완성 실패:', e); }
-}
-
-let _drugSearchTimer = null;
-async function searchDrugByName(rowIdx, keyword) {
-  if (!keyword || keyword.length < 2) return;
-  clearTimeout(_drugSearchTimer);
-  _drugSearchTimer = setTimeout(async () => {
-    try {
-      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=10`);
-      const { data } = await res.json();
-      const dl = document.getElementById('drug-list-' + rowIdx);
-      if (dl && data) {
-        dl.innerHTML = data.map(d =>
-          `<option value="${esc(d.itmNm)}">${esc(d.itmCd)} — ${esc(d.itmNm)}</option>`
-        ).join('');
-      }
-    } catch(e) {}
-  }, 300);
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════════════
