@@ -1373,6 +1373,7 @@ function renderTable(newIdx) {
         id="name-input-${i}"
         list="drug-list-${i}"
         oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
+        onchange="fillByDrugName(${i}, this.value)"
         placeholder="제품명"
         autocomplete="off">
       <datalist id="drug-list-${i}"></datalist></td>
@@ -2390,6 +2391,19 @@ async function autoFillByCode(rowIdx, code) {
   } catch(e) { console.error('코드 자동완성 실패:', e); }
 }
 
+async function fillByDrugName(rowIdx, name) {
+  if (!name || name.length < 2) return;
+  try {
+    const res = await fetch(`/api/drugs/search?q=${encodeURIComponent(name)}&limit=1`);
+    const { data } = await res.json();
+    if (data && data[0] && data[0].itmNm === name) {
+      rows[rowIdx].code  = data[0].itmCd  || rows[rowIdx].code;
+      rows[rowIdx].price = data[0].mx_cprc || rows[rowIdx].price;
+      renderTable();
+    }
+  } catch(e) { console.error('제품명 자동완성 실패:', e); }
+}
+
 let _drugSearchTimer = null;
 async function searchDrugByName(rowIdx, keyword) {
   if (!keyword || keyword.length < 2) return;
@@ -2401,7 +2415,7 @@ async function searchDrugByName(rowIdx, keyword) {
       const dl = document.getElementById('drug-list-' + rowIdx);
       if (dl && data) {
         dl.innerHTML = data.map(d =>
-          `<option value="${esc(d.drug_name)}">${esc(d.insurance_code)} — ${esc(d.drug_name)}</option>`
+          `<option value="${esc(d.itmNm)}">${esc(d.itmCd)} — ${esc(d.itmNm)}</option>`
         ).join('');
       }
     } catch(e) {}
