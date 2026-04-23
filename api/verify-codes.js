@@ -16,8 +16,7 @@ export default async function handler(req, res) {
   const { data, error } = await supabase
     .from('drug_master')
     .select('product_code, product_name, company_name, mx_cprc')
-    .in('product_code', codes)
-    .in('pay_tp_nm', ['급여', '삭제']);
+    .in('product_code', codes);
 
   if (error) return res.status(500).json({ error: error.message });
 
