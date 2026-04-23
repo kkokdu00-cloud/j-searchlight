@@ -40,7 +40,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
   font-size: 17px;
   background: var(--cream);
   color: var(--brown);
@@ -406,11 +406,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 
 /* ══ DRUG SEARCH EMBEDDED ═════════════ */
 #view-drug, #view-commission {
-  background: var(--gray-100);
-}
-/* drug-search 뷰는 EDI wrap 사용 */
-#view-drug, #view-commission {
-  background: var(--gray-100);
+  background: var(--cream);
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
 }
 
 
@@ -421,9 +418,10 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 }
 #view-drug .page-header h2,
 #view-commission .page-header h2 {
-  font-size: 26px;
-  font-weight: 900;
-  color: var(--gray-800);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--brown);
+  font-family: 'Noto Serif KR', 'Pretendard', serif;
 }
 #view-drug .search-card,
 #view-commission .upload-card,
@@ -580,7 +578,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 <!-- ════════════════════════════════════════════
      VIEW: 신규 입력
 ════════════════════════════════════════════ -->
-<div id="view-input">
+<div id="view-input" style="display:none;">
 
   <!-- 기본 정보 -->
   <div class="card">
@@ -887,6 +885,10 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
             <input type="checkbox" id="commissionFilter" onchange="applyFilters()" checked />
             수수료 등록 품목만 보기
           </label>
+        </div>
+        <div id="drugSearchLoading" style="display:none; align-items:center; gap:10px; padding:12px 0; color:var(--brown3); font-size:15px; font-weight:600;">
+          <div style="width:20px;height:20px;border:2px solid var(--gray-200);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;"></div>
+          검색 중...
         </div>
         <div id="searchAlert" style="display:none;"></div>
       </div>
@@ -1875,7 +1877,7 @@ function loadSession(idx) {
   // 로드된 세션은 File 객체 없음 — 저장된 dataUrl 사용
   attachFiles = (s.attachFiles || []).map(a => ({
     file: null, name: a.name, fileType: a.fileType || '', label: a.type || '',
-    url: '', dataUrl: a.dataUrl || ''
+    url: a.blobUrl || a.url || '', dataUrl: a.dataUrl || '', blobUrl: a.blobUrl || ''
   }));
   renderTable();
   renderAttach();
@@ -2366,6 +2368,7 @@ for (let i = 0; i < 5; i++) addRow({});
   await loadClients();
   await loadSessions();
   updateDataLists();
+  showView('dashboard');
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -2405,11 +2408,12 @@ function hideAlert(containerId) {
 }
 
 function showLoading() {
-  const _lo = document.getElementById('loadingOverlayCommission') || document.getElementById('loadingOverlay'); if(_lo) _lo.classList.add('active');
+  const el = document.getElementById('drugSearchLoading');
+  if (el) el.style.display = 'flex';
 }
-
 function hideLoading() {
-  const _lo2 = document.getElementById('loadingOverlayCommission') || document.getElementById('loadingOverlay'); if(_lo2) _lo2.classList.remove('active');
+  const el = document.getElementById('drugSearchLoading');
+  if (el) el.style.display = 'none';
 }
 
 // ===================== SEARCH =====================
@@ -2449,7 +2453,7 @@ async function searchDrugs() {
     showAlert('searchAlert', '오류: ' + err.message, 'error');
     currentData = [];
     allDrugs = [];
-    renderTable([]);
+    renderDrugTable([]);
   } finally {
     hideLoading();
   }
@@ -2490,7 +2494,7 @@ function applyFilters() {
   }
 
   currentData = filtered;
-  renderTable(currentData);
+  renderDrugTable(currentData);
 
   if (currentData.length === 0 && allDrugs.length > 0) {
     showAlert('searchAlert', '필터 조건에 맞는 품목이 없습니다.', 'info');
@@ -2501,7 +2505,7 @@ function applyFilters() {
 
 // ===================== RENDER TABLE =====================
 
-function renderTable(data) {
+function renderDrugTable(data) {
   const tbody = document.getElementById('resultsBody');
   const resultCount = document.getElementById('resultCount');
   const resultsSection = document.getElementById('resultsSection');
