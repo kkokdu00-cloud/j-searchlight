@@ -668,10 +668,63 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   .card { max-width: 100%; overflow: hidden; }
   table { min-width: 620px; }
 }
+
+/* ── 로그인 화면 ── */
+#login-screen {
+  position: fixed; inset: 0; background: var(--cream);
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+}
+.login-box {
+  background: var(--white); border-radius: 16px;
+  padding: 48px 40px; width: 360px;
+  box-shadow: 0 8px 40px rgba(61,43,31,.12);
+}
+.login-brand { text-align: center; margin-bottom: 32px; }
+.login-brand .brand-name { font-size: 26px; font-weight: 800; color: var(--brown); }
+.login-brand .brand-name span { color: var(--gold); }
+.login-brand .brand-sub { font-size: 13px; color: var(--gray-500); margin-top: 4px; }
+.login-field { margin-bottom: 16px; }
+.login-field label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+.login-field input {
+  width: 100%; box-sizing: border-box;
+  padding: 10px 14px; border: 1.5px solid var(--gray-200);
+  border-radius: 8px; font-size: 15px; outline: none;
+  transition: border-color .15s;
+}
+.login-field input:focus { border-color: var(--gold); }
+.login-btn {
+  width: 100%; padding: 12px; background: var(--brown);
+  color: #fff; border: none; border-radius: 8px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  margin-top: 8px; transition: background .15s;
+}
+.login-btn:hover { background: var(--brown2); }
+.login-error { color: #e53e3e; font-size: 13px; text-align: center; margin-top: 10px; min-height: 20px; }
 </style>
 </head>
 <body>
-<div id="app">
+
+<!-- 로그인 화면 -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="brand-name"><span>J</span>써치라이트</div>
+      <div class="brand-sub">EDI 관리 시스템</div>
+    </div>
+    <div class="login-field">
+      <label>이메일</label>
+      <input type="email" id="login-email" placeholder="이메일 입력" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>비밀번호</label>
+      <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
 
 <!-- ═══ Sidebar ═══ -->
 <aside class="sidebar">
@@ -703,7 +756,18 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
     </button>
   </nav>
-  <div class="sidebar-footer">© 2026 J써치라이트</div>
+  <div id="nav-users-wrap" style="display:none;">
+    <div class="nav-divider"></div>
+    <div class="nav-group-label">관리자</div>
+    <button class="nav-item" id="nav-users" onclick="showView('users')">
+      <span class="nav-icon"><i data-lucide="users" style="width:18px;height:18px;"></i></span> 유저 관리
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div id="sidebar-user-name" style="font-size:13px;color:var(--gold);margin-bottom:6px;"></div>
+    <button onclick="doLogout()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;">로그아웃</button>
+    <div style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.3);">© 2026 J써치라이트</div>
+  </div>
 </aside>
 
 <!-- ═══ Main Area ═══ -->
@@ -1017,6 +1081,55 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 
   </div>
 </div><!-- /view-master -->
+
+<!-- ════════════════════════════════════════════
+     VIEW: 유저 관리 (관리자 전용)
+════════════════════════════════════════════ -->
+<div id="view-users" style="display:none">
+  <div class="master-sections">
+    <div class="card">
+      <div class="section-title"><i data-lucide="users" style="width:16px;height:16px;vertical-align:-3px;"></i> 유저 관리</div>
+      <div style="overflow-x:auto">
+        <table class="master-tbl" id="users-tbl">
+          <thead>
+            <tr><th>이름</th><th>이메일</th><th>권한</th><th>담당 거래처</th><th style="width:100px;text-align:right;">관리</th></tr>
+          </thead>
+          <tbody id="users-body"></tbody>
+        </table>
+        <div id="users-empty" class="empty-tip">등록된 유저가 없습니다.</div>
+      </div>
+      <div class="master-form-area">
+        <div class="master-form-title">+ 유저 등록</div>
+        <div class="master-form-row">
+          <div class="field"><label>이름 <span class="required">*</span></label><input type="text" id="u-name" placeholder="이름"></div>
+          <div class="field"><label>이메일 <span class="required">*</span></label><input type="email" id="u-email" placeholder="이메일"></div>
+          <div class="field"><label>비밀번호 <span class="required">*</span></label><input type="password" id="u-pw" placeholder="초기 비밀번호"></div>
+          <div class="field"><label>권한</label>
+            <select id="u-role">
+              <option value="user">일반</option>
+              <option value="admin">관리자</option>
+            </select>
+          </div>
+        </div>
+        <div class="master-form-btns">
+          <button class="btn btn-primary btn-sm" onclick="saveUserForm()">등록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 담당 거래처 배정 -->
+    <div class="card" id="assign-clients-card" style="display:none">
+      <div class="section-title"><i data-lucide="link" style="width:16px;height:16px;vertical-align:-3px;"></i> 담당 거래처 배정
+        <span id="assign-user-name" style="font-weight:400;font-size:14px;color:var(--gray-500);margin-left:8px;"></span>
+      </div>
+      <div id="assign-clients-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+      <div class="master-form-btns">
+        <button class="btn btn-sm" onclick="document.getElementById('assign-clients-card').style.display='none'">취소</button>
+        <button class="btn btn-primary btn-sm" onclick="saveAssignClients()">저장</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /view-users -->
 
 <!-- ════════════════════════════════════════════
      VIEW: 의약품 검색
@@ -1482,12 +1595,13 @@ const VIEW_TITLES = {
   input: '신규 입력',
   list: '저장 목록',
   master: '마스터 관리',
+  users: '유저 관리',
   drug: '제품 검색',
   commission: '수수료 관리'
 };
 
 function showView(v) {
-  ['dashboard','input','list','master','drug','commission'].forEach(name => {
+  ['dashboard','input','list','master','users','drug','commission'].forEach(name => {
     const viewEl = document.getElementById('view-' + name);
     const navEl  = document.getElementById('nav-'  + name);
     if (viewEl) viewEl.style.display = (name === v) ? 'block' : 'none';
@@ -1498,6 +1612,7 @@ function showView(v) {
   if (v === 'dashboard')  renderDashboard();
   if (v === 'list')       renderList();
   if (v === 'master')     { renderClientMaster(); renderPharmaMaster(); }
+  if (v === 'users')      renderUserMaster();
   if (v === 'commission') loadCommissionList();
   requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
 }
@@ -2082,7 +2197,8 @@ async function saveData() {
     note:        document.getElementById('h-note').value,
     rows:        JSON.parse(JSON.stringify(rows)),
     attachFiles: savedAttachFiles,
-    savedAt:     new Date().toLocaleString('ko-KR')
+    savedAt:     new Date().toLocaleString('ko-KR'),
+    user_id:     currentUser ? currentUser.id : null
   };
 
   try {
@@ -2685,18 +2801,205 @@ async function fillByDrugName(rowIdx, name) {
 }
 
 // ══════════════════════════════════════════════
+// AUTH (로그인/로그아웃)
+// ══════════════════════════════════════════════
+let currentUser = null;
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  if (!email || !pw) { errEl.textContent = '이메일과 비밀번호를 입력해주세요.'; return; }
+
+  try {
+    const res = await fetch('/api/auth?action=login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '로그인 실패'; return; }
+
+    currentUser = data.user;
+    sessionStorage.setItem('jsearch_user', JSON.stringify(currentUser));
+    await afterLogin();
+  } catch(e) {
+    errEl.textContent = '서버 오류가 발생했습니다.';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('jsearch_user');
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+async function afterLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = '';
+
+  // 사이드바 유저명 표시
+  document.getElementById('sidebar-user-name').textContent = currentUser.name + ' 님';
+
+  // 관리자 메뉴 표시/숨김
+  const isAdmin = currentUser.role === 'admin';
+  document.getElementById('nav-users-wrap').style.display = isAdmin ? '' : 'none';
+  document.getElementById('nav-master').style.display = isAdmin ? '' : 'none';
+
+  // 일반 유저면 담당 거래처만 로드
+  if (!isAdmin) {
+    await loadUserClients();
+  } else {
+    await Promise.all([loadClients(), loadSessions()]);
+    updateDataLists();
+  }
+
+  if (isAdmin) {
+    await loadSessions();
+  } else {
+    await loadSessionsForUser();
+  }
+
+  updateDataLists();
+  showView('dashboard');
+}
+
+// 일반유저 담당 거래처 로드
+async function loadUserClients() {
+  try {
+    const res = await fetch('/api/auth?action=user_clients&user_id=' + currentUser.id);
+    const { data } = await res.json();
+    // 전체 거래처 중 본인 담당만 필터
+    const allRes = await apiGet('/api/clients');
+    masterClients = (allRes.data || []).filter(c => data.includes(c.id));
+    updateDataLists();
+  } catch(e) { masterClients = []; }
+}
+
+// 일반유저 본인 세션만 로드
+async function loadSessionsForUser() {
+  try {
+    const { data } = await apiGet('/api/sessions?user_id=' + currentUser.id);
+    savedSessions = data || [];
+  } catch(e) { savedSessions = []; }
+}
+
+// ══════════════════════════════════════════════
+// USER MANAGEMENT (관리자)
+// ══════════════════════════════════════════════
+let allUsers = [];
+let assignTargetUserId = null;
+
+async function renderUserMaster() {
+  const res = await fetch('/api/auth?action=users');
+  const { data } = await res.json();
+  allUsers = data || [];
+  const tbody = document.getElementById('users-body');
+  const empty = document.getElementById('users-empty');
+  if (!allUsers.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display = 'none';
+
+  // 각 유저의 담당 거래처 수 조회
+  const clientCounts = await Promise.all(allUsers.map(async u => {
+    const r = await fetch('/api/auth?action=user_clients&user_id=' + u.id);
+    const d = await r.json();
+    return d.data ? d.data.length : 0;
+  }));
+
+  tbody.innerHTML = allUsers.map((u, i) => `
+    <tr>
+      <td>${esc(u.name)}</td>
+      <td>${esc(u.email)}</td>
+      <td><span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${u.role==='admin'?'var(--gold)':'var(--gray-200)'};color:${u.role==='admin'?'#fff':'var(--gray-700)'};">${u.role==='admin'?'관리자':'일반'}</span></td>
+      <td><button class="btn btn-sm" onclick="openAssignClients('${u.id}','${esc(u.name)}')" style="font-size:12px;">${clientCounts[i]}개 배정</button></td>
+      <td style="text-align:right;">
+        <button class="btn btn-sm" onclick="resetUserPw('${u.id}','${esc(u.name)}')" style="font-size:12px;">PW초기화</button>
+        <button class="btn btn-sm" onclick="deleteUser('${u.id}')" style="font-size:12px;color:#e53e3e;margin-left:4px;">삭제</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function saveUserForm() {
+  const name  = document.getElementById('u-name').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const pw    = document.getElementById('u-pw').value;
+  const role  = document.getElementById('u-role').value;
+  if (!name || !email || !pw) { alert('이름, 이메일, 비밀번호를 입력해주세요.'); return; }
+
+  const res = await fetch('/api/auth?action=create', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, email, password: pw, role })
+  });
+  const d = await res.json();
+  if (!res.ok) { alert(d.error || '등록 실패'); return; }
+  ['u-name','u-email','u-pw'].forEach(id => document.getElementById(id).value = '');
+  renderUserMaster();
+}
+
+async function deleteUser(id) {
+  if (!confirm('이 유저를 삭제할까요?')) return;
+  await fetch('/api/auth?action=delete&id=' + id, { method: 'DELETE' });
+  renderUserMaster();
+}
+
+async function resetUserPw(id, name) {
+  const pw = prompt(name + ' 의 새 비밀번호를 입력하세요:');
+  if (!pw) return;
+  await fetch('/api/auth?action=password', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id, password: pw })
+  });
+  alert('비밀번호가 변경되었습니다.');
+}
+
+async function openAssignClients(userId, userName) {
+  assignTargetUserId = userId;
+  document.getElementById('assign-user-name').textContent = '— ' + userName;
+  document.getElementById('assign-clients-card').style.display = '';
+
+  // 현재 배정된 거래처 조회
+  const res = await fetch('/api/auth?action=user_clients&user_id=' + userId);
+  const { data: assigned } = await res.json();
+
+  // 전체 거래처 체크박스 렌더
+  const all = await apiGet('/api/clients');
+  const clients = all.data || [];
+  document.getElementById('assign-clients-list').innerHTML = clients.map(c => `
+    <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:14px;">
+      <input type="checkbox" value="${c.id}" ${assigned.includes(c.id)?'checked':''}>
+      ${esc(c.name)}
+    </label>`).join('');
+}
+
+async function saveAssignClients() {
+  const checks = [...document.querySelectorAll('#assign-clients-list input[type=checkbox]')];
+  const client_ids = checks.filter(c=>c.checked).map(c=>c.value);
+  await fetch('/api/auth?action=set_clients', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id: assignTargetUserId, client_ids })
+  });
+  document.getElementById('assign-clients-card').style.display = 'none';
+  renderUserMaster();
+  alert('저장되었습니다.');
+}
+
+// ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
 setDefaultMonths();
 for (let i = 0; i < 5; i++) addRow({});
 lucide.createIcons();
 
-// Supabase에서 데이터 로드
-(async () => {
-  await Promise.all([loadClients(), loadSessions()]);
-  updateDataLists();
-  showView('dashboard');
-})();
+// 세션 복원 또는 로그인 화면
+const savedUser = sessionStorage.getItem('jsearch_user');
+if (savedUser) {
+  currentUser = JSON.parse(savedUser);
+  afterLogin();
+}
+// (로그인 화면은 기본으로 보임)
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 

@@ -7,13 +7,12 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // GET — 목록 조회
+  // GET — 목록 조회 (user_id 파라미터 있으면 해당 유저만)
   if (req.method === 'GET') {
-    const { data, error } = await supabase
-      .from('edi_sessions')
-      .select('*')
-      .order('saved_at', { ascending: false });
-
+    const { user_id } = req.query;
+    let query = supabase.from('edi_sessions').select('*').order('saved_at', { ascending: false });
+    if (user_id) query = query.eq('user_id', user_id);
+    const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ data });
   }
