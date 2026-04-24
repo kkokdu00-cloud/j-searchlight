@@ -1093,9 +1093,9 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <div id="pharma-empty" class="empty-tip">등록된 제약사가 없습니다.</div>
       <div class="master-form-area" id="pharma-form-area">
         <div class="master-form-title" id="pharma-form-title">+ 제약사 등록</div>
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px;">
-          <div class="field"><label>제약사명 <span class="required">*</span></label><input type="text" id="p-name" placeholder="제약사명"></div>
-          <div class="field"><label>거래여부</label>
+        <div style="display:flex;gap:12px;margin-bottom:12px;max-width:500px;">
+          <div class="field" style="flex:2;"><label>제약사명 <span class="required">*</span></label><input type="text" id="p-name" placeholder="제약사명"></div>
+          <div class="field" style="flex:1;min-width:120px;"><label>거래여부</label>
             <select id="p-active">
               <option value="true">거래중</option>
               <option value="false">거래안함</option>
