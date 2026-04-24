@@ -385,6 +385,32 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .list-row .list-btns { display: flex; gap: 6px; flex-shrink: 0; margin-left: auto; }
 .export-bar { display: flex; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex-wrap: wrap; }
 
+/* ══ TOAST ════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--brown);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s, transform .25s;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 /* ══ MASTER VIEW ══════════════════════ */
 .master-tbl td:first-child { text-align: left; font-weight: 500; }
 .master-add-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 12px; border: 1.5px solid var(--gray-200); }
@@ -2634,9 +2660,9 @@ function renderClientMaster() {
   tbody.innerHTML = masterClients.map(c => `
     <tr>
       <td style="width:28%;word-break:break-all;"><strong>${esc(c.name)}</strong></td>
-      <td style="width:18%;word-break:break-all;">${esc(c.bizno||'')}</td>
-      <td style="width:10%;text-align:center;">${esc(c.region||'')}</td>
-      <td style="width:18%;color:var(--gold);font-weight:600;">${esc(c.manager||'')}</td>
+      <td style="text-align:left;word-break:break-all;">${esc(c.bizno||'')}</td>
+      <td style="text-align:center;">${esc(c.region||'')}</td>
+      <td style="text-align:left;color:var(--gold);font-weight:600;">${esc(c.manager||'')}</td>
       <td style="width:auto;text-align:right;">
         <div class="btns" style="justify-content:flex-end;">
           <button class="btn btn-sm" onclick="editClient('${c.id}')">수정</button>
