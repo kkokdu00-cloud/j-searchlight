@@ -2875,8 +2875,7 @@ function savePharmaForm() {
   // 엑셀에서 불러온 codeRates 우선, 없으면 textarea 파싱
   let codeRates = textarea._codeRates || null;
   if (!codeRates) {
-    codeRates = textarea.value.split(/[
-,]+/).map(s => {
+    codeRates = textarea.value.split(/[\r\n,]+/).map(s => {
       const [code, rate] = s.trim().split(':');
       return code ? { code: code.trim(), rate: parseFloat(rate) || 0 } : null;
     }).filter(Boolean);
