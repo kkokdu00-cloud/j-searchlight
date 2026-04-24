@@ -2424,6 +2424,14 @@ function renderList() {
     return;
   }
 
+  // 기존 세션에 manager 없으면 masterClients에서 자동 매핑
+  savedSessions.forEach(s => {
+    if (!s.manager && s.hospital) {
+      const c = masterClients.find(c => c.name === s.hospital);
+      if (c && c.manager) s.manager = c.manager;
+    }
+  });
+
   const grouped = {};
   savedSessions.forEach((s, i) => {
     let key;
