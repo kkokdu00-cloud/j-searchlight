@@ -5,21 +5,30 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+let _commissionMapCache = null;
+let _commissionMapLoading = null;
+
 async function fetchCommissionMap() {
-  const map = {};
-  let from = 0;
-  const pageSize = 1000;
-  while (true) {
-    const { data, error } = await supabase
-      .from('drug_commission')
-      .select('standard_code, commission_rate')
-      .range(from, from + pageSize - 1);
-    if (error) { console.error('Supabase error:', error); break; }
-    if (data) data.forEach(item => { map[item.standard_code] = item.commission_rate; });
-    if (!data || data.length < pageSize) break;
-    from += pageSize;
-  }
-  return map;
+  if (_commissionMapCache) return _commissionMapCache;
+  if (_commissionMapLoading) return _commissionMapLoading;
+  _commissionMapLoading = (async () => {
+    const map = {};
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('drug_commission')
+        .select('standard_code, commission_rate')
+        .range(from, from + pageSize - 1);
+      if (error) { console.error('Supabase error:', error); break; }
+      if (data) data.forEach(item => { map[item.standard_code] = item.commission_rate; });
+      if (!data || data.length < pageSize) break;
+      from += pageSize;
+    }
+    _commissionMapCache = map;
+    return map;
+  })();
+  return _commissionMapLoading;
 }
 
 function extractKoreanIngredientName(itmNm) {
@@ -71,16 +80,18 @@ module.exports = async (req, res) => {
       }
     }
 
-    const { data: rows, error } = await query.limit(1000);
+    const limitCount = req.query.limit ? parseInt(req.query.limit) : 1000;
+    const { data: rows, error } = await query.limit(Math.min(limitCount, 1000));
     if (error) throw new Error(error.message);
 
-    const commissionMap = await fetchCommissionMap();
+    const isAutocomplete = req.query.autocomplete === '1';
+    const commissionMap = isAutocomplete ? {} : await fetchCommissionMap();
 
     const data = (rows || []).map(row => {
       const mdsCd = String(row.product_code || '');
-      const commissionRate = commissionMap[mdsCd] || 0;
       const mxCprc = parseFloat(row.mx_cprc) || 0;
-      const commissionAmt = Math.round(mxCprc * commissionRate / 100);
+      const commissionRate = isAutocomplete ? 0 : (commissionMap[mdsCd] || 0);
+      const commissionAmt = isAutocomplete ? 0 : Math.round(mxCprc * commissionRate / 100);
       return {
         itmNm: row.product_name || '',
         cpnyNm: row.company_name || '',
