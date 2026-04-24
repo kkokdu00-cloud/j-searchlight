@@ -1102,25 +1102,23 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
             </select>
           </div>
         </div>
-        <div class="master-form-row">
-          <div class="field" style="flex:1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+          <div class="field">
             <label style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">
-              <span>보험코드 목록 <span style="font-size: 12px;color:#888;">(쉼표 또는 줄바꿈으로 구분)</span></span>
-              <label class="btn btn-sm" style="cursor:pointer;font-size: 13px;height:24px;padding:0 10px;">
-                📂 엑셀로 불러오기
+              <span>보험코드 목록 <span style="font-size:12px;color:#888;">(줄바꿈/쉼표)</span></span>
+              <label class="btn btn-sm" style="cursor:pointer;font-size:12px;height:22px;padding:0 8px;">
+                📂 엑셀
                 <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importCodesFromExcel(this)">
               </label>
             </label>
-            <textarea id="p-codes" placeholder="643301120&#10;643301340&#10;..."></textarea>
+            <textarea id="p-codes" placeholder="643301120&#10;643301340&#10;..." style="height:90px;"></textarea>
           </div>
-        </div>
-        <div class="master-form-row">
-          <div class="field" style="flex:1">
+          <div class="field">
             <label style="display:flex;align-items:center;justify-content:space-between;">
-              <span>비급여 제품 목록 <span style="font-size:12px;color:#888;">(제품명|단가 형식, 줄바꿈으로 구분)</span></span>
-              <button type="button" class="btn btn-sm" onclick="addNhisRow()" style="font-size:12px;height:24px;padding:0 10px;">+ 행 추가</button>
+              <span>비급여 제품 목록 <span style="font-size:12px;color:#888;">(제품명|단가)</span></span>
+              <button type="button" class="btn btn-sm" onclick="addNhisRow()" style="font-size:12px;height:22px;padding:0 8px;">+ 추가</button>
             </label>
-            <div id="p-noninsured-list" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <div id="p-noninsured-list" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;min-height:90px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:8px;padding:8px;"></div>
           </div>
         </div>
         <div class="master-form-btns">
@@ -2867,6 +2865,7 @@ function clearPharmaForm() {
   document.getElementById('p-codes').value  = '';
   document.getElementById('p-active').value = 'true';
   document.getElementById('p-noninsured-list').innerHTML = '';
+  for (let i = 0; i < 3; i++) addNhisRow('', '');
 }
 
 function addNhisRow(name, price) {
