@@ -2944,9 +2944,8 @@ function bulkImportPharma(input) {
         const newCodes = Array.from(pharmaMap[name]);
         const existing = masterPharma.find(p => p.name === name);
         if (existing) {
-          // 기존 제약사 — 코드 병합 (중복 제거)
-          const merged = Array.from(new Set([...(existing.codes || []), ...newCodes]));
-          existing.codes = merged;
+          // 기존 제약사 — 코드 교체 (엑셀 기준으로 덮어쓰기)
+          existing.codes = newCodes;
         } else {
           masterPharma.push({ id: genId(), name, codes: newCodes, active: true });
         }
