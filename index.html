@@ -872,17 +872,25 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <div class="card">
     <div class="section-title"><i data-lucide="clipboard" style="width:16px;height:16px;vertical-align:-3px;"></i> 기본 정보</div>
     <div class="form-grid">
-      <div class="field">
+      <div class="field" style="position:relative;">
         <label>병의원명 <span class="required">*</span></label>
-        <input type="text" id="h-hospital" list="hospitals-list" placeholder="거래처명 입력" autocomplete="off">
+        <input type="text" id="h-hospital" placeholder="거래처명 입력" autocomplete="off"
+          oninput="showCustomDrop('h-hospital','hospitals-drop',masterClients.map(c=>c.name))"
+          onblur="setTimeout(()=>hideCustomDrop('hospitals-drop'),200)"
+          onfocus="showCustomDrop('h-hospital','hospitals-drop',masterClients.map(c=>c.name))">
+        <div id="hospitals-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;background:#fff;border:1.5px solid var(--gold-lt);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);max-height:200px;overflow-y:auto;"></div>
       </div>
       <div class="field">
         <label>사업자번호</label>
         <input type="text" id="h-bizno" placeholder="000-00-00000" oninput="fmtBizno(this)">
       </div>
-      <div class="field">
+      <div class="field" style="position:relative;">
         <label>제약사명 <span class="required">*</span></label>
-        <input type="text" id="h-pharma" list="pharma-list" placeholder="제약사명 입력" autocomplete="off">
+        <input type="text" id="h-pharma" placeholder="제약사명 입력" autocomplete="off"
+          oninput="showCustomDrop('h-pharma','pharma-drop',masterPharma.map(p=>p.name))"
+          onblur="setTimeout(()=>hideCustomDrop('pharma-drop'),200)"
+          onfocus="showCustomDrop('h-pharma','pharma-drop',masterPharma.map(p=>p.name))">
+        <div id="pharma-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;background:#fff;border:1.5px solid var(--gold-lt);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);max-height:200px;overflow-y:auto;"></div>
       </div>
       <div class="field">
         <label>처방월 <span class="required">*</span></label>
@@ -1729,8 +1737,8 @@ function renderTable(newIdx) {
         style="text-align:right;${r.priceFixed?'background:#eef2ff;color:#444;cursor:not-allowed;':''}"
         placeholder="0"
         title="${r.priceFixed?'급여 고정단가 (변경불가)':''}"></td>
-      <td><input value="${esc(r.qin)}"   onchange="rows[${i}].qin=this.value"   style="text-align:right" placeholder="0"></td>
-      <td><input value="${esc(r.qout)}"  onchange="rows[${i}].qout=this.value"  style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qin)}"   oninput="rows[${i}].qin=this.value; updateTotals()"   style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()"  style="text-align:right" placeholder="0"></td>
       <td><select onchange="rows[${i}].type=this.value">
         <option ${r.type==='처방'?'selected':''}>처방</option>
         <option ${r.type==='조제'?'selected':''}>조제</option>
@@ -1739,8 +1747,35 @@ function renderTable(newIdx) {
     tbody.appendChild(tr);
   });
   document.getElementById('row-count').textContent = rows.length;
+  updateTotals();
+}
 
-  // 합계 계산
+function showCustomDrop(inputId, dropId, items) {
+  const input = document.getElementById(inputId);
+  const drop  = document.getElementById(dropId);
+  if (!input || !drop) return;
+  const val = input.value.trim().toLowerCase();
+  const filtered = val ? items.filter(s => s.toLowerCase().includes(val)) : items;
+  if (!filtered.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = filtered.map(s => `
+    <div onmousedown="document.getElementById('${inputId}').value='${s.replace(/'/g,"\'")}';hideCustomDrop('${dropId}');${inputId==='h-hospital'?`autofillHospital('${s.replace(/'/g,"\'")}')`:inputId==='h-pharma'?`document.getElementById('h-pharma').dispatchEvent(new Event('change'))`:''}"
+      style="padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--gray-100);"
+      onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">${s}</div>`).join('');
+  drop.style.display = 'block';
+}
+
+function hideCustomDrop(dropId) {
+  const drop = document.getElementById(dropId);
+  if (drop) drop.style.display = 'none';
+}
+
+function autofillHospital(name) {
+  const c = masterClients.find(c => c.name === name);
+  if (!c) return;
+  if (c.bizno) document.getElementById('h-bizno').value = c.bizno;
+}
+
+function updateTotals() {
   let totalIn = 0, totalOut = 0, totalAmt = 0;
   rows.forEach(r => {
     const price = parseFloat(String(r.price).replace(/,/g,'')) || 0;
@@ -1753,8 +1788,8 @@ function renderTable(newIdx) {
   const fi = document.getElementById('foot-in');
   const fo = document.getElementById('foot-out');
   const ft = document.getElementById('foot-total');
-  if (fi) fi.textContent = totalIn  > 0 ? totalIn  : '';
-  if (fo) fo.textContent = totalOut > 0 ? totalOut : '';
+  if (fi) fi.textContent = totalIn  > 0 ? totalIn.toLocaleString()  : '';
+  if (fo) fo.textContent = totalOut > 0 ? totalOut.toLocaleString() : '';
   if (ft) ft.textContent = totalAmt > 0 ? '💰 ' + totalAmt.toLocaleString() + '원' : '';
 }
 
