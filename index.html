@@ -2180,6 +2180,11 @@ async function saveData() {
   const savedAttachFiles = [];
   for (const a of attachFiles) {
     const meta = { name: a.name, type: a.label || '', fileType: a.fileType || '', blobUrl: a.blobUrl || '' };
+    // 이미 저장된 파일(수정 모드)은 blobUrl 그대로 유지
+    if (!a.file && a.blobUrl) {
+      savedAttachFiles.push(meta);
+      continue;
+    }
     if (a.file) {
       try {
         let base64, contentType;
