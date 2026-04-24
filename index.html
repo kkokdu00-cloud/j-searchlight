@@ -3046,7 +3046,7 @@ function renderDrugDrop(rowIdx, keyword, data) {
 
   // 급여 제품
   data.forEach(d => {
-    items.push({ name: d.itmNm, code: d.itmCd||'', price: d.mx_cprc||'', nonInsured: false });
+    items.push({ name: d.itmNm, code: d.itmCd||'', price: d.clsgAmt||d.mx_cprc||'', nonInsured: false });
   });
 
   // 비급여 제품 (해당 제약사)
@@ -3077,7 +3077,7 @@ async function fillByDrugName(rowIdx, name) {
   const match = allCached.find(d => d.itmNm === name);
   if (match) {
     rows[rowIdx].code  = match.itmCd || rows[rowIdx].code;
-    if (match.mx_cprc) { rows[rowIdx].price = match.mx_cprc; rows[rowIdx].priceFixed = true; }
+    if (match.clsgAmt||match.mx_cprc) { rows[rowIdx].price = match.clsgAmt||match.mx_cprc; rows[rowIdx].priceFixed = true; }
     renderTable();
     return;
   }
@@ -3086,7 +3086,7 @@ async function fillByDrugName(rowIdx, name) {
     const { data } = await res.json();
     if (data && data[0] && data[0].itmNm === name) {
       rows[rowIdx].code  = data[0].itmCd || rows[rowIdx].code;
-      if (data[0].mx_cprc) { rows[rowIdx].price = data[0].mx_cprc; rows[rowIdx].priceFixed = true; }
+    if (data[0].clsgAmt||data[0].mx_cprc) { rows[rowIdx].price = data[0].clsgAmt||data[0].mx_cprc; rows[rowIdx].priceFixed = true; }
       renderTable();
     }
   } catch(e) {}
