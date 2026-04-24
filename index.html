@@ -198,15 +198,15 @@ a { color: var(--gold); text-decoration: none; }
 .topbar-actions .reset-btn { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.2); background: transparent; }
 .topbar-actions .reset-btn:hover { background: rgba(255,255,255,.1); color: var(--white); }
 
-.wrap { padding: 28px 32px; flex: 1; overflow-x: hidden; max-width: 100%; box-sizing: border-box; }
+.wrap { padding: 32px 36px; flex: 1; overflow-x: hidden; max-width: 100%; box-sizing: border-box; }
 
 /* ══ CARDS ════════════════════════════ */
 .card {
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: 16px;
-  padding: 24px 26px;
-  margin-bottom: 18px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
   box-shadow: 0 2px 12px rgba(61,43,31,.06);
 }
 .section-title {
@@ -224,7 +224,7 @@ a { color: var(--gold); text-decoration: none; }
 .section-title .title-icon { font-size: 18px; }
 
 /* ══ FORM ══════════════════════════════ */
-.form-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; max-width: 780px; }
 .field label { font-size: 14px; color: var(--brown3); display: block; margin-bottom: 6px; font-weight: 700; letter-spacing: .2px; }
 .field input, .field select, .field textarea {
   width: 100%;
@@ -416,6 +416,16 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .master-add-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 12px; border: 1.5px solid var(--gray-200); }
 .master-add-row input { height: 38px; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 0 12px; font-size: 15px; flex: 1; min-width: 140px; }
 .master-add-row input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(196,149,106,.15); }
+.master-sections { display: flex; flex-direction: column; gap: 0; }
+.master-form-area { margin-top: 20px; padding: 20px; background: var(--gray-50); border-radius: 12px; border: 1.5px solid var(--gray-200); }
+.master-form-title { font-size: 15px; font-weight: 700; color: var(--brown2); margin-bottom: 14px; }
+.master-form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.master-form-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.empty-tip { text-align: center; color: var(--gray-400); font-size: 15px; padding: 24px 0; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-active { background: #d1fae5; color: #065f46; }
+.badge-inactive { background: var(--gray-100); color: var(--gray-600); }
+.codes-cell { font-size: 13px; color: var(--gray-400); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ══ MODAL ════════════════════════════ */
 .modal-overlay {
@@ -1044,19 +1054,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     <!-- 거래처 마스터 -->
     <div class="card">
       <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 거래처(병의원) 마스터</div>
-      <div style="overflow-x:auto">
-        <table class="master-tbl" id="clients-tbl" style="table-layout:fixed;width:100%;">
-          <colgroup><col style="width:30%"><col style="width:20%"><col style="width:10%"><col style="width:20%"><col style="width:20%"></colgroup>
-          <thead>
-            <tr>
-              <th style="text-align:left;">거래처명</th><th style="text-align:left;">사업자번호</th><th style="text-align:center;">지역</th><th style="text-align:left;">업체</th>
-              <th style="text-align:right;">관리</th>
-            </tr>
-          </thead>
-          <tbody id="clients-body"></tbody>
-        </table>
-        <div id="clients-empty" class="empty-tip">등록된 거래처가 없습니다.</div>
-      </div>
+      <div id="clients-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:4px;"></div>
+      <div id="clients-empty" class="empty-tip">등록된 거래처가 없습니다.</div>
       <div class="master-form-area" id="client-form-area">
         <div class="master-form-title" id="client-form-title">+ 거래처 등록</div>
         <div class="master-form-row">
@@ -2657,27 +2656,34 @@ function exportXlsx() {
 // MASTER — CLIENTS (거래처)
 // ══════════════════════════════════════════════
 function renderClientMaster() {
-  const tbody = document.getElementById('clients-body');
+  const grid = document.getElementById('clients-grid');
   const empty = document.getElementById('clients-empty');
   if (!masterClients.length) {
-    tbody.innerHTML = '';
+    grid.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
-  tbody.innerHTML = masterClients.map(c => `
-    <tr>
-      <td style="width:28%;word-break:break-all;"><strong>${esc(c.name)}</strong></td>
-      <td style="text-align:left;word-break:break-all;">${esc(c.bizno||'')}</td>
-      <td style="text-align:center;">${esc(c.region||'')}</td>
-      <td style="text-align:left;color:var(--gold);font-weight:600;">${esc(c.manager||'')}</td>
-      <td style="width:auto;text-align:right;">
-        <div class="btns" style="justify-content:flex-end;">
+  grid.innerHTML = masterClients.map(c => `
+    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;transition:box-shadow .15s,border-color .15s;"
+      onmouseover="this.style.borderColor='var(--gold-lt)';this.style.boxShadow='0 4px 16px rgba(196,149,106,.12)'"
+      onmouseout="this.style.borderColor='var(--gray-200)';this.style.boxShadow=''">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--brown);margin-bottom:2px;">${esc(c.name)}</div>
+          ${c.manager ? `<div style="font-size:12px;font-weight:600;color:var(--gold);background:var(--gold-bg);padding:2px 8px;border-radius:20px;display:inline-block;">${esc(c.manager)}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
           <button class="btn btn-sm" onclick="editClient('${c.id}')">수정</button>
           <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">삭제</button>
         </div>
-      </td>
-    </tr>`).join('');
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;">
+        ${c.bizno ? `<span style="font-size:12px;color:var(--gray-600);background:var(--gray-50);padding:3px 10px;border-radius:6px;border:1px solid var(--gray-200);">📋 ${esc(c.bizno)}</span>` : ''}
+        ${c.region ? `<span style="font-size:12px;color:var(--gray-600);background:var(--gray-50);padding:3px 10px;border-radius:6px;border:1px solid var(--gray-200);">📍 ${esc(c.region)}</span>` : ''}
+        ${c.note ? `<span style="font-size:12px;color:var(--gray-400);padding:3px 0;">${esc(c.note)}</span>` : ''}
+      </div>
+    </div>`).join('');
 }
 
 async function saveClientForm() {
