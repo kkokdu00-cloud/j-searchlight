@@ -3110,14 +3110,17 @@ async function searchDrugByName(rowIdx, keyword) {
     return;
   }
 
+  const _pharmaKey = document.getElementById('h-pharma')?.value?.trim() || '';
+  const _cacheKey = _pharmaKey + '::' + keyword;
+
   // 1. 정확한 캐시 히트 → 즉시
-  if (_drugSearchCache[keyword]) {
-    renderDrugDrop(rowIdx, keyword, _drugSearchCache[keyword]);
+  if (_drugSearchCache[_cacheKey]) {
+    renderDrugDrop(rowIdx, keyword, _drugSearchCache[_cacheKey]);
     return;
   }
 
-  // 2. prefix 캐시에서 즉시 필터링 (타이핑 중 앞글자 결과 재활용)
-  const prefixMatch = Object.keys(_drugSearchCache).find(k => keyword.startsWith(k) && _drugSearchCache[k].length > 0);
+  // 2. prefix 캐시에서 즉시 필터링 (같은 제약사 내에서만)
+  const prefixMatch = Object.keys(_drugSearchCache).find(k => k.startsWith(_pharmaKey + '::') && k.slice(_pharmaKey.length+2).length < keyword.length && keyword.startsWith(k.slice(_pharmaKey.length+2)) && _drugSearchCache[k].length > 0);
   if (prefixMatch) {
     const filtered = _drugSearchCache[prefixMatch].filter(d =>
       (d.itmNm||'').includes(keyword)
@@ -3125,10 +3128,11 @@ async function searchDrugByName(rowIdx, keyword) {
     if (filtered.length > 0) {
       renderDrugDrop(rowIdx, keyword, filtered);
       // 백그라운드에서 더 정확한 결과로 교체
-      fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20`)
+      const _pharma1 = document.getElementById('h-pharma')?.value?.trim();
+      fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20${_pharma1?'&company='+encodeURIComponent(_pharma1):''}`)
         .then(r => r.json()).then(({ data }) => {
           if (data) {
-            _drugSearchCache[keyword] = data;
+            _drugSearchCache[_cacheKey] = data;
             const cur = document.getElementById('name-input-' + rowIdx)?.value;
             if (cur === keyword) renderDrugDrop(rowIdx, keyword, data);
           }
@@ -3141,11 +3145,12 @@ async function searchDrugByName(rowIdx, keyword) {
   clearTimeout(_drugSearchTimer);
   _drugSearchTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20`);
+      const _pharma2 = document.getElementById('h-pharma')?.value?.trim();
+      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20${_pharma2?'&company='+encodeURIComponent(_pharma2):''}`);
       const { data } = await res.json();
-      _drugSearchCache[keyword] = data || [];
+      _drugSearchCache[_cacheKey] = data || [];
       const cur = document.getElementById('name-input-' + rowIdx)?.value;
-      if (cur === keyword) renderDrugDrop(rowIdx, keyword, _drugSearchCache[keyword]);
+      if (cur === keyword) renderDrugDrop(rowIdx, keyword, _drugSearchCache[_cacheKey]);
     } catch(e) {}
   }, 50);
 }
@@ -3194,7 +3199,8 @@ async function fillByDrugName(rowIdx, name) {
     return;
   }
   try {
-    const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(name)}&limit=1`);
+    const _pharma3 = document.getElementById('h-pharma')?.value?.trim();
+    const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(name)}&limit=1${_pharma3?'&company='+encodeURIComponent(_pharma3):''}`);
     const { data } = await res.json();
     if (data && data[0] && data[0].itmNm === name) {
       rows[rowIdx].code  = data[0].itmCd || rows[rowIdx].code;

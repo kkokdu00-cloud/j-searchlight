@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { searchType, keyword, bioequivalence } = req.query;
+    const { searchType, keyword, bioequivalence, company } = req.query;
 
     if (!keyword || keyword.trim() === '') {
       return res.status(400).json({ error: '검색어를 입력하세요' });
@@ -66,6 +66,9 @@ module.exports = async (req, res) => {
       query = query.eq('product_code', kw);
     } else {
       query = query.ilike('product_name', `%${kw}%`);
+      if (company && company.trim()) {
+        query = query.ilike('company_name', `%${company.trim()}%`);
+      }
     }
 
     const { data: rows, error } = await query.limit(1000);
