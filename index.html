@@ -972,6 +972,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
             <th style="width:75px;">단가</th>
             <th style="width:62px;">원내수량</th>
             <th style="width:62px;">원외수량</th>
+            <th style="width:60px;">수수료%</th>
             <th style="width:70px;">처방/조제</th>
             <th style="min-width:80px;">비고</th>
           </tr>
@@ -982,7 +983,11 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
             <td colspan="5" style="text-align:right;padding:8px 10px;font-size:13px;color:var(--gray-500);">합계</td>
             <td id="foot-in" style="text-align:center;padding:8px 4px;font-size:13px;font-weight:600;color:var(--brown);"></td>
             <td id="foot-out" style="text-align:center;padding:8px 4px;font-size:13px;font-weight:600;color:var(--brown);"></td>
-            <td colspan="2" style="text-align:right;padding:8px 10px;font-size:14px;font-weight:700;color:var(--gold);" id="foot-total"></td>
+            <td style="padding:4px;"></td>
+            <td colspan="2" style="text-align:right;padding:8px 10px;">
+              <div id="foot-total" style="font-size:14px;font-weight:700;color:var(--gold);"></div>
+              <div id="foot-commission" style="font-size:13px;font-weight:700;color:#2d6a4f;margin-top:2px;"></div>
+            </td>
           </tr>
         </tfoot>
       </table>
@@ -1739,6 +1744,9 @@ function renderTable(newIdx) {
         title="${r.priceFixed?'급여 고정단가 (변경불가)':''}"></td>
       <td><input value="${esc(r.qin)}"   oninput="rows[${i}].qin=this.value; updateTotals()"   style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()"  style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.commission||'')}" oninput="rows[${i}].commission=this.value; updateTotals()" type="number" min="0" max="100" step="0.1"
+        style="text-align:right;${r.commissionFixed?'background:#eef2ff;color:#444;':''}" placeholder="0"
+        ${r.commissionFixed?'readonly':''}></td>
       <td><select onchange="rows[${i}].type=this.value">
         <option ${r.type==='처방'?'selected':''}>처방</option>
         <option ${r.type==='조제'?'selected':''}>조제</option>
@@ -1776,21 +1784,25 @@ function autofillHospital(name) {
 }
 
 function updateTotals() {
-  let totalIn = 0, totalOut = 0, totalAmt = 0;
+  let totalIn = 0, totalOut = 0, totalAmt = 0, totalComm = 0;
   rows.forEach(r => {
     const price = parseFloat(String(r.price).replace(/,/g,'')) || 0;
     const qin   = parseInt(r.qin)  || 0;
     const qout  = parseInt(r.qout) || 0;
-    totalIn  += qin;
-    totalOut += qout;
-    totalAmt += price * (qin + qout);
+    const comm  = parseFloat(r.commission) || 0;
+    totalIn   += qin;
+    totalOut  += qout;
+    totalAmt  += price * (qin + qout);
+    totalComm += price * (qin + qout) * comm / 100;
   });
   const fi = document.getElementById('foot-in');
   const fo = document.getElementById('foot-out');
   const ft = document.getElementById('foot-total');
+  const fc = document.getElementById('foot-commission');
   if (fi) fi.textContent = totalIn  > 0 ? totalIn.toLocaleString()  : '';
   if (fo) fo.textContent = totalOut > 0 ? totalOut.toLocaleString() : '';
-  if (ft) ft.textContent = totalAmt > 0 ? '💰 ' + totalAmt.toLocaleString() + '원' : '';
+  if (ft) ft.textContent = totalAmt  > 0 ? '💰 ' + Math.round(totalAmt).toLocaleString()  + '원' : '';
+  if (fc) fc.textContent = totalComm > 0 ? '📊 정산 ' + Math.round(totalComm).toLocaleString() + '원' : '';
 }
 
 function delRow(i) { rows.splice(i, 1); renderTable(); }
@@ -2856,7 +2868,8 @@ function savePharmaForm() {
   document.querySelectorAll('#p-noninsured-list .ni-row').forEach(row => {
     const nm = row.querySelector('.ni-name').value.trim();
     const pr = row.querySelector('.ni-price').value.trim();
-    if (nm) nonInsured.push({ name: nm, price: pr || '' });
+    const cm = row.querySelector('.ni-commission').value.trim();
+    if (nm) nonInsured.push({ name: nm, price: pr || '', commission: cm || '' });
   });
 
   const item = {
@@ -2894,7 +2907,7 @@ function editPharmaItem(id) {
   // 비급여 제품 로드
   const niList = document.getElementById('p-noninsured-list');
   niList.innerHTML = '';
-  (p.nonInsured || []).forEach(ni => addNhisRow(ni.name, ni.price));
+  (p.nonInsured || []).forEach(ni => addNhisRow(ni.name, ni.price, ni.commission));
   document.getElementById('pharma-form-title').textContent   = '✏️ 제약사 수정';
   document.getElementById('pharma-save-btn').textContent     = '수정 완료';
   document.getElementById('pharma-cancel-btn').style.display = 'inline-flex';
@@ -2924,10 +2937,10 @@ function clearPharmaForm() {
   document.getElementById('p-codes').value  = '';
   document.getElementById('p-active').value = 'true';
   document.getElementById('p-noninsured-list').innerHTML = '';
-  for (let i = 0; i < 3; i++) addNhisRow('', '');
+  for (let i = 0; i < 3; i++) addNhisRow('', '', '');
 }
 
-function addNhisRow(name, price) {
+function addNhisRow(name, price, commission) {
   const div = document.createElement('div');
   div.className = 'ni-row';
   div.style.cssText = 'display:flex;gap:6px;align-items:center;';
@@ -2936,6 +2949,8 @@ function addNhisRow(name, price) {
       style="flex:2;padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;">
     <input class="ni-price" type="text" placeholder="단가" value="${price||''}"
       style="flex:1;padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;text-align:right;">
+    <input class="ni-commission" type="number" placeholder="수수료%" value="${commission||''}" min="0" max="100" step="0.1"
+      style="width:72px;padding:6px 8px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;text-align:right;">
     <button type="button" onclick="this.parentElement.remove()"
       style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:18px;line-height:1;">×</button>`;
   document.getElementById('p-noninsured-list').appendChild(div);
@@ -3143,11 +3158,12 @@ function closeDrugDrop(rowIdx) {
   if (drop) drop.style.display = 'none';
 }
 
-function selectDrugItem(rowIdx, name, code, price, nonInsured) {
+function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   rows[rowIdx].name  = name;
   rows[rowIdx].code  = code || rows[rowIdx].code;
   if (price) rows[rowIdx].price = price;
   rows[rowIdx].priceFixed = !nonInsured && !!price;
+  if (commission) { rows[rowIdx].commission = commission; rows[rowIdx].commissionFixed = true; }
   closeDrugDrop(rowIdx);
   renderTable();
   // 포커스 다음 칸으로
@@ -3227,13 +3243,13 @@ function renderDrugDrop(rowIdx, keyword, data) {
     const kw = keyword.toLowerCase();
     pharma.nonInsured
       .filter(ni => ni.name.toLowerCase().includes(kw))
-      .forEach(ni => items.push({ name: ni.name, code: '', price: ni.price||'', nonInsured: true }));
+      .forEach(ni => items.push({ name: ni.name, code: '', price: ni.price||'', nonInsured: true, commission: ni.commission||'' }));
   }
 
   if (!items.length) { drop.style.display = 'none'; return; }
 
   drop.innerHTML = items.map(it => `
-    <div onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured})"
+    <div onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')"
       style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;"
       onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background=''">
       <span>${it.nonInsured ? '<span style=\"color:#e67e22;font-size:11px;margin-right:4px;\">[비급여]</span>' : ''}${esc(it.name)}</span>
