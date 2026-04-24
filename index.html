@@ -3013,13 +3013,12 @@ function doLogout() {
 }
 
 async function afterLogin() {
+  // 1. 화면 즉시 표시
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = '';
 
-  // 사이드바 유저명 표시
+  // 2. 사이드바 유저명 + 권한 메뉴 즉시 처리
   document.getElementById('sidebar-user-name').textContent = currentUser.name + ' 님';
-
-  // 관리자 메뉴 표시/숨김
   const isAdmin = currentUser.role === 'admin';
   document.getElementById('nav-users-wrap').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-master').style.display = isAdmin ? '' : 'none';
@@ -3027,23 +3026,17 @@ async function afterLogin() {
     el.style.display = isAdmin ? '' : 'none';
   });
 
-  // 일반 유저면 담당 거래처만 로드
-  if (!isAdmin) {
-    await loadUserClients();
-  } else {
-    await Promise.all([loadClients(), loadSessions()]);
-    updateDataLists();
-  }
+  // 3. 대시보드 즉시 표시 (데이터 없이 빈 상태)
+  showView('dashboard');
 
+  // 4. 백그라운드에서 데이터 로드 후 갱신
   if (isAdmin) {
-    await loadSessions();
+    await Promise.all([loadClients(), loadSessions()]);
   } else {
-    await loadSessionsForUser();
+    await Promise.all([loadUserClients(), loadSessionsForUser()]);
   }
-
   updateDataLists();
   renderDashboard();
-  showView('dashboard');
 }
 
 // 일반유저 담당 거래처 로드
