@@ -1694,10 +1694,10 @@ function renderTable(newIdx) {
         autocomplete="off">
       <datalist id="drug-list-${i}"></datalist></td>
       <td><input value="${esc(r.price)}"
-        ${r.priceFixed ? 'readonly onclick="alert('급여 고정단가입니다. 변경할 수 없습니다.')"' : `onchange="rows[${i}].price=this.value"`}
+        ${r.priceFixed ? 'readonly' : `onchange="rows[${i}].price=this.value"`}
         style="text-align:right;${r.priceFixed?'background:#eef2ff;color:#444;cursor:not-allowed;':''}"
         placeholder="0"
-        title="${r.priceFixed?'급여 고정단가':'}"></td>
+        title="${r.priceFixed?'급여 고정단가 (변경불가)':''}"></td>
       <td><input value="${esc(r.qin)}"   onchange="rows[${i}].qin=this.value"   style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.qout)}"  onchange="rows[${i}].qout=this.value"  style="text-align:right" placeholder="0"></td>
       <td><select onchange="rows[${i}].type=this.value">
