@@ -641,11 +641,17 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   .card { padding: 16px 14px; border-radius: 12px; }
 
   /* ── 테이블 ── */
-  .tbl-wrap { border-radius: 6px; }
-  table { font-size: 14px; min-width: 700px; }
-  th { padding: 9px 6px; font-size: 13px; }
-  td { padding: 8px 6px; }
-  td input { font-size: 14px; padding: 3px 5px; }
+  .tbl-wrap { border-radius: 6px; overflow-x: auto; }
+  table { font-size: 12px; min-width: unset; width: 100%; }
+  th { padding: 7px 4px; font-size: 11px; white-space: nowrap; }
+  td { padding: 6px 3px; font-size: 12px; }
+  td input { font-size: 12px; padding: 3px 4px; }
+  td select { font-size: 11px; padding: 2px 2px; }
+  /* 처방입력 테이블 모바일 최적화 */
+  .del-cell { display: none !important; }
+  .num-cell { width: 20px !important; padding: 4px 2px !important; }
+  #edi-body tr td:first-child { display: none; }
+  th.del-cell { display: none !important; }
 
   /* ── OCR 영역 ── */
   .ocr-drop { padding: 18px 12px; }
