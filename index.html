@@ -972,6 +972,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <div class="list-view-tabs">
         <button class="list-tab active" id="tab-pharma"   onclick="switchListTab('pharma')"><i data-lucide="building-2" style="width:14px;height:14px;vertical-align:-2px;"></i> 제약사별</button>
         <button class="list-tab"        id="tab-hospital" onclick="switchListTab('hospital')"><i data-lucide="stethoscope" style="width:14px;height:14px;vertical-align:-2px;"></i> 거래처별</button>
+        <button class="list-tab"        id="tab-user"     onclick="switchListTab('user')"><i data-lucide="user" style="width:14px;height:14px;vertical-align:-2px;"></i> 입력자별</button>
+        <button class="list-tab"        id="tab-month"    onclick="switchListTab('month')"><i data-lucide="calendar" style="width:14px;height:14px;vertical-align:-2px;"></i> 월별</button>
       </div>
     </div>
     <div id="list-body"><p class="empty-tip">저장된 데이터가 없습니다.</p></div>
@@ -2371,6 +2373,8 @@ function switchListTab(tab) {
   listTab = tab;
   document.getElementById('tab-pharma').classList.toggle('active',   tab === 'pharma');
   document.getElementById('tab-hospital').classList.toggle('active', tab === 'hospital');
+  document.getElementById('tab-user').classList.toggle('active',     tab === 'user');
+  document.getElementById('tab-month').classList.toggle('active',    tab === 'month');
   renderList();
 }
 
@@ -2383,12 +2387,16 @@ function renderList() {
 
   const grouped = {};
   savedSessions.forEach((s, i) => {
-    const key = listTab === 'pharma' ? (s.pharma || '미지정') : (s.hospital || '미지정');
+    let key;
+    if (listTab === 'pharma')    key = s.pharma    || '미지정';
+    else if (listTab === 'hospital') key = s.hospital || '미지정';
+    else if (listTab === 'user') key = s.user_name || '미지정';
+    else if (listTab === 'month') key = s.presc     || '미지정';
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push({ ...s, idx: i });
   });
 
-  const icon = listTab === 'pharma' ? '🏢' : '🏥';
+  const icon = listTab === 'pharma' ? '🏢' : listTab === 'hospital' ? '🏥' : listTab === 'user' ? '👤' : '📅';
   el.innerHTML = Object.keys(grouped).sort().map(key => `
     <div class="list-group">
       <div class="list-group-title">${icon} ${esc(key)}</div>
@@ -2401,13 +2409,20 @@ function renderList() {
           }
           return a.name ? `<span class="attach-icon-badge" title="${esc(a.name)} (미저장)">📎</span>` : '';
         }).join('');
-        const subInfo = listTab === 'pharma'
-          ? `<span class="meta">${esc(s.hospital||'')}</span>`
-          : `<span class="meta">${esc(s.pharma||'')}</span>`;
+        let mainLabel, subInfo;
+        if (listTab === 'pharma') {
+          mainLabel = s.hospital || ''; subInfo = `<span class="meta">${esc(s.pharma||'')}</span>`;
+        } else if (listTab === 'hospital') {
+          mainLabel = s.pharma || ''; subInfo = `<span class="meta">${esc(s.hospital||'')}</span>`;
+        } else if (listTab === 'user') {
+          mainLabel = s.hospital || ''; subInfo = `<span class="meta">${esc(s.pharma||'')} · ${esc(s.user_name||'')}</span>`;
+        } else {
+          mainLabel = s.hospital || ''; subInfo = `<span class="meta">${esc(s.pharma||'')} · ${esc(s.user_name||'')}</span>`;
+        }
         return `
         <div class="list-row">
           <div class="list-row-top">
-            <label style="flex:1;font-weight:700;"><input type="checkbox" data-id="${s.id}"> ${esc(listTab==='pharma'?s.hospital:s.pharma)}</label>
+            <label style="flex:1;font-weight:700;"><input type="checkbox" data-id="${s.id}"> ${esc(mainLabel)}</label>
             <div class="list-btns">
               <button class="btn btn-sm" onclick="loadSessionById('${s.id}')">수정</button>
               <button class="btn btn-danger btn-sm" onclick="deleteSessionById('${s.id}')">삭제</button>
