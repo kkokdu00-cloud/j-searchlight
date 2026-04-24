@@ -1694,13 +1694,15 @@ function renderTable(newIdx) {
       <td><input value="${esc(r.code)}"
         onchange="rows[${i}].code=this.value; autoFillByCode(${i}, this.value)"
         placeholder="643301120"></td>
-      <td><input value="${esc(r.name)}"
-        id="name-input-${i}"
-        list="drug-list-${i}"
-        oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value); pickDrugFromList(${i}, this.value)"
-        placeholder="제품명"
-        autocomplete="off">
-      <datalist id="drug-list-${i}"></datalist></td>
+      <td style="position:relative;">
+        <input value="${esc(r.name)}"
+          id="name-input-${i}"
+          oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
+          onblur="setTimeout(()=>closeDrugDrop(${i}),200)"
+          placeholder="제품명"
+          autocomplete="off">
+        <div id="drug-drop-${i}" style="display:none;position:absolute;top:100%;left:0;z-index:999;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:220px;overflow-y:auto;min-width:280px;"></div>
+      </td>
       <td><input value="${esc(r.price)}"
         ${r.priceFixed ? 'readonly' : `onchange="rows[${i}].price=this.value"`}
         style="text-align:right;${r.priceFixed?'background:#eef2ff;color:#444;cursor:not-allowed;':''}"
@@ -2991,71 +2993,82 @@ async function autoFillByCode(rowIdx, code) {
 
 let _drugSearchTimer = null;
 let _drugSearchCache = {};
-let _lastSearchKeyword = {};
+
+function closeDrugDrop(rowIdx) {
+  const drop = document.getElementById('drug-drop-' + rowIdx);
+  if (drop) drop.style.display = 'none';
+}
+
+function selectDrugItem(rowIdx, name, code, price, nonInsured) {
+  rows[rowIdx].name  = name;
+  rows[rowIdx].code  = code || rows[rowIdx].code;
+  if (price) rows[rowIdx].price = price;
+  rows[rowIdx].priceFixed = !nonInsured && !!price;
+  closeDrugDrop(rowIdx);
+  renderTable();
+  // 포커스 다음 칸으로
+  setTimeout(() => {
+    const priceInput = document.querySelector(`#edi-body tr:nth-child(${rowIdx+1}) td:nth-child(5) input`);
+    if (priceInput && !rows[rowIdx].priceFixed) priceInput.focus();
+  }, 50);
+}
 
 async function searchDrugByName(rowIdx, keyword) {
-  const dl = document.getElementById('drug-list-' + rowIdx);
-  if (!keyword) { if (dl) dl.innerHTML = ''; return; }
-
-  // 캐시 히트 → 즉시 반영
-  if (_drugSearchCache[keyword]) {
-    renderDrugList(rowIdx, _drugSearchCache[keyword]);
+  const drop = document.getElementById('drug-drop-' + rowIdx);
+  if (!keyword || keyword.length < 1) {
+    if (drop) drop.style.display = 'none';
     return;
   }
 
-  // 이전 타이머 취소
+  // 캐시 히트 → 즉시 드롭다운 표시
+  if (_drugSearchCache[keyword]) {
+    renderDrugDrop(rowIdx, keyword, _drugSearchCache[keyword]);
+    return;
+  }
+
   clearTimeout(_drugSearchTimer);
   _drugSearchTimer = setTimeout(async () => {
-    // 중복 요청 방지
-    if (_lastSearchKeyword[rowIdx] === keyword) return;
-    _lastSearchKeyword[rowIdx] = keyword;
     try {
       const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20`);
       const { data } = await res.json();
       _drugSearchCache[keyword] = data || [];
-      // 현재 입력값이 여전히 같을 때만 렌더
       const cur = document.getElementById('name-input-' + rowIdx)?.value;
-      if (cur === keyword) renderDrugList(rowIdx, _drugSearchCache[keyword]);
+      if (cur === keyword) renderDrugDrop(rowIdx, keyword, _drugSearchCache[keyword]);
     } catch(e) {}
   }, 50);
 }
 
-function renderDrugList(rowIdx, data) {
-  const dl = document.getElementById('drug-list-' + rowIdx);
-  if (!dl) return;
+function renderDrugDrop(rowIdx, keyword, data) {
+  const drop = document.getElementById('drug-drop-' + rowIdx);
+  if (!drop) return;
+
+  const items = [];
+
   // 급여 제품
-  let opts = data.map(d =>
-    `<option value="${esc(d.itmNm)}" data-code="${esc(d.itmCd||'')}" data-price="${esc(d.mx_cprc||'')}">${esc(d.itmCd)} — ${esc(d.itmNm)}</option>`
-  ).join('');
-  // 현재 입력 중인 제약사의 비급여 제품도 추가
+  data.forEach(d => {
+    items.push({ name: d.itmNm, code: d.itmCd||'', price: d.mx_cprc||'', nonInsured: false });
+  });
+
+  // 비급여 제품 (해당 제약사)
   const pharmaName = document.getElementById('h-pharma')?.value?.trim();
   const pharma = masterPharma.find(p => p.name === pharmaName);
   if (pharma && pharma.nonInsured) {
-    const keyword = document.getElementById('name-input-' + rowIdx)?.value?.toLowerCase() || '';
+    const kw = keyword.toLowerCase();
     pharma.nonInsured
-      .filter(ni => !keyword || ni.name.toLowerCase().includes(keyword))
-      .forEach(ni => {
-        opts += `<option value="${esc(ni.name)}" data-code="" data-price="${esc(ni.price||'')}" data-noninsured="true">[비급여] ${esc(ni.name)}</option>`;
-      });
+      .filter(ni => ni.name.toLowerCase().includes(kw))
+      .forEach(ni => items.push({ name: ni.name, code: '', price: ni.price||'', nonInsured: true }));
   }
-  dl.innerHTML = opts;
-}
 
-function pickDrugFromList(rowIdx, name) {
-  if (!name) return;
-  // datalist option에서 직접 data-code, data-price 읽기
-  const dl = document.getElementById('drug-list-' + rowIdx);
-  if (!dl) return;
-  const opt = Array.from(dl.options).find(o => o.value === name);
-  if (opt) {
-    const code       = opt.dataset.code;
-    const price      = opt.dataset.price;
-    const nonInsured = opt.dataset.noninsured === 'true';
-    if (code)  rows[rowIdx].code = code;
-    if (price) rows[rowIdx].price = price;
-    rows[rowIdx].priceFixed = !nonInsured && !!price; // 비급여는 단가 수정 가능
-    renderTable();
-  }
+  if (!items.length) { drop.style.display = 'none'; return; }
+
+  drop.innerHTML = items.map(it => `
+    <div onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured})"
+      style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;"
+      onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background=''">
+      <span>${it.nonInsured ? '<span style=\"color:#e67e22;font-size:11px;margin-right:4px;\">[비급여]</span>' : ''}${esc(it.name)}</span>
+      <span style="color:${it.nonInsured?'#e67e22':'var(--gold)'};font-size:12px;font-weight:600;margin-left:8px;">${it.price ? Number(it.price).toLocaleString()+'원' : ''}</span>
+    </div>`).join('');
+  drop.style.display = 'block';
 }
 
 async function fillByDrugName(rowIdx, name) {
