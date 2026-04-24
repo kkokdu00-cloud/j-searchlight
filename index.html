@@ -2371,10 +2371,19 @@ async function deleteSession(idx) {
 // ══════════════════════════════════════════════
 function switchListTab(tab) {
   listTab = tab;
+  _openGroups = {};
   document.getElementById('tab-pharma').classList.toggle('active',   tab === 'pharma');
   document.getElementById('tab-hospital').classList.toggle('active', tab === 'hospital');
   document.getElementById('tab-user').classList.toggle('active',     tab === 'user');
   document.getElementById('tab-month').classList.toggle('active',    tab === 'month');
+  renderList();
+}
+
+// 열린 그룹 상태 기억
+let _openGroups = {};
+
+function toggleGroup(key) {
+  _openGroups[key] = !_openGroups[key];
   renderList();
 }
 
@@ -2388,59 +2397,87 @@ function renderList() {
   const grouped = {};
   savedSessions.forEach((s, i) => {
     let key;
-    if (listTab === 'pharma')    key = s.pharma    || '미지정';
-    else if (listTab === 'hospital') key = s.hospital || '미지정';
-    else if (listTab === 'user') key = s.user_name || '미지정';
-    else if (listTab === 'month') key = s.presc     || '미지정';
+    if      (listTab === 'pharma')   key = s.pharma    || '미지정';
+    else if (listTab === 'hospital') key = s.hospital  || '미지정';
+    else if (listTab === 'user')     key = s.user_name || '미지정';
+    else if (listTab === 'month')    key = s.presc     || '미지정';
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push({ ...s, idx: i });
   });
 
   const icon = listTab === 'pharma' ? '🏢' : listTab === 'hospital' ? '🏥' : listTab === 'user' ? '👤' : '📅';
-  el.innerHTML = Object.keys(grouped).sort().map(key => `
-    <div class="list-group">
-      <div class="list-group-title">${icon} ${esc(key)}</div>
-      ${grouped[key].map(s => {
-        const attachIcons = (s.attachFiles || []).map(a => {
-          const displayUrl = a.blobUrl || a.dataUrl || '';
-          if (displayUrl) {
-            const ico = (a.fileType||'').startsWith('image/') ? '🖼️' : '📄';
-            return `<span class="attach-icon-badge" title="${esc(a.name)}" style="cursor:pointer;" onclick="viewImg('${displayUrl}')">${ico}</span>`;
-          }
-          return a.name ? `<span class="attach-icon-badge" title="${esc(a.name)} (미저장)">📎</span>` : '';
-        }).join('');
-        let mainLabel, subInfo;
-        if (listTab === 'pharma') {
-          mainLabel = s.hospital || ''; subInfo = `<span class="meta">${esc(s.pharma||'')}</span>`;
-        } else if (listTab === 'hospital') {
-          mainLabel = s.pharma || ''; subInfo = `<span class="meta">${esc(s.hospital||'')}</span>`;
-        } else if (listTab === 'user') {
-          mainLabel = s.hospital || ''; subInfo = `<span class="meta">${esc(s.pharma||'')} · ${esc(s.user_name||'')}</span>`;
-        } else {
-          mainLabel = s.hospital || ''; subInfo = `<span class="meta">${esc(s.pharma||'')} · ${esc(s.user_name||'')}</span>`;
+
+  // 탭 변경 시 첫 번째 그룹 자동 열기
+  const keys = Object.keys(grouped).sort((a,b) => a.localeCompare(b,'ko'));
+  if (keys.length && Object.keys(_openGroups).length === 0) _openGroups[keys[0]] = true;
+
+  el.innerHTML = keys.map(key => {
+    const isOpen = !!_openGroups[key];
+    const sessions = grouped[key];
+    const totalRows = sessions.reduce((sum, s) => sum + (s.rows ? s.rows.length : 0), 0);
+
+    const rowsHtml = sessions.map(s => {
+      const attachIcons = (s.attachFiles || []).map(a => {
+        const displayUrl = a.blobUrl || a.dataUrl || '';
+        if (displayUrl) {
+          const ico = (a.fileType||'').startsWith('image/') ? '🖼️' : '📄';
+          return `<span class="attach-icon-badge" title="${esc(a.name)}" style="cursor:pointer;" onclick="viewImg('${displayUrl}')">${ico}</span>`;
         }
-        return `
-        <div class="list-row">
-          <div class="list-row-top">
-            <label style="flex:1;font-weight:700;"><input type="checkbox" data-id="${s.id}"> ${esc(mainLabel)}</label>
-            <div class="list-btns">
-              <button class="btn btn-sm" onclick="loadSessionById('${s.id}')">수정</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteSessionById('${s.id}')">삭제</button>
-            </div>
+        return a.name ? `<span class="attach-icon-badge" title="${esc(a.name)} (미저장)">📎</span>` : '';
+      }).join('');
+
+      let mainLabel, subInfo;
+      if (listTab === 'pharma') {
+        mainLabel = s.hospital || '';
+        subInfo = `<span class="meta">${esc(s.pharma||'')}</span>`;
+      } else if (listTab === 'hospital') {
+        mainLabel = s.pharma || '';
+        subInfo = `<span class="meta">${esc(s.hospital||'')}</span>`;
+      } else if (listTab === 'user') {
+        mainLabel = s.hospital || '';
+        subInfo = `<span class="meta">${esc(s.pharma||'')} · ${esc(s.user_name||'')}</span>`;
+      } else {
+        mainLabel = s.hospital || '';
+        subInfo = `<span class="meta">${esc(s.pharma||'')} · ${esc(s.user_name||'')}</span>`;
+      }
+
+      return `
+      <div class="list-row">
+        <div class="list-row-top">
+          <label style="flex:1;font-weight:700;"><input type="checkbox" data-id="${s.id}"> ${esc(mainLabel)}</label>
+          <div class="list-btns">
+            <button class="btn btn-sm" onclick="loadSessionById('${s.id}')">수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSessionById('${s.id}')">삭제</button>
           </div>
-          <div class="list-row-meta">
-            ${subInfo}
-            <span class="meta-dot">·</span>
-            <span class="meta">${esc(s.presc)} 처방 / 정산 ${esc(s.settle)}</span>
-            <span class="meta-dot">·</span>
-            <span class="meta">${s.rows?s.rows.length:0}건</span>
-            ${s.user_name ? '<span class="meta-dot">·</span><span class="meta" style="color:var(--gold);font-weight:600;">👤 ' + esc(s.user_name) + '</span>' : ''}
-            ${attachIcons ? '<span class="meta-dot">·</span>' + attachIcons : ''}
-          </div>
-          <div class="list-row-date">${esc(s.savedAt)}</div>
-        </div>`;
-      }).join('')}
-    </div>`).join('');
+        </div>
+        <div class="list-row-meta">
+          ${subInfo}
+          <span class="meta-dot">·</span>
+          <span class="meta">${esc(s.presc)} 처방 / 정산 ${esc(s.settle)}</span>
+          <span class="meta-dot">·</span>
+          <span class="meta">${s.rows?s.rows.length:0}건</span>
+          ${s.user_name ? '<span class="meta-dot">·</span><span class="meta" style="color:var(--gold);font-weight:600;">👤 ' + esc(s.user_name) + '</span>' : ''}
+          ${attachIcons ? '<span class="meta-dot">·</span>' + attachIcons : ''}
+        </div>
+        <div class="list-row-date">${esc(s.savedAt)}</div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="list-group" style="margin-bottom:6px;">
+      <div class="list-group-title" onclick="toggleGroup(${JSON.stringify(key)})"
+        style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+        <span>${icon} ${esc(key)}</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:12px;color:#888;font-weight:400;">${sessions.length}건 · ${totalRows.toLocaleString()}개 품목</span>
+          <span style="font-size:16px;transition:transform .2s;display:inline-block;transform:rotate(${isOpen?'90':'0'}deg);">▶</span>
+        </span>
+      </div>
+      <div style="display:${isOpen?'block':'none'};">
+        ${rowsHtml}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function selectAll()   { document.querySelectorAll('#list-body input[type=checkbox]').forEach(c => c.checked = true); }
