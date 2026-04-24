@@ -969,6 +969,14 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
           </tr>
         </thead>
         <tbody id="edi-body"></tbody>
+        <tfoot id="edi-foot" style="border-top:2px solid var(--gold-lt);">
+          <tr style="background:var(--gray-50);">
+            <td colspan="5" style="text-align:right;padding:8px 10px;font-size:13px;color:var(--gray-500);">합계</td>
+            <td id="foot-in" style="text-align:center;padding:8px 4px;font-size:13px;font-weight:600;color:var(--brown);"></td>
+            <td id="foot-out" style="text-align:center;padding:8px 4px;font-size:13px;font-weight:600;color:var(--brown);"></td>
+            <td colspan="2" style="text-align:right;padding:8px 10px;font-size:14px;font-weight:700;color:var(--gold);" id="foot-total"></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
@@ -1731,6 +1739,23 @@ function renderTable(newIdx) {
     tbody.appendChild(tr);
   });
   document.getElementById('row-count').textContent = rows.length;
+
+  // 합계 계산
+  let totalIn = 0, totalOut = 0, totalAmt = 0;
+  rows.forEach(r => {
+    const price = parseFloat(String(r.price).replace(/,/g,'')) || 0;
+    const qin   = parseInt(r.qin)  || 0;
+    const qout  = parseInt(r.qout) || 0;
+    totalIn  += qin;
+    totalOut += qout;
+    totalAmt += price * (qin + qout);
+  });
+  const fi = document.getElementById('foot-in');
+  const fo = document.getElementById('foot-out');
+  const ft = document.getElementById('foot-total');
+  if (fi) fi.textContent = totalIn  > 0 ? totalIn  : '';
+  if (fo) fo.textContent = totalOut > 0 ? totalOut : '';
+  if (ft) ft.textContent = totalAmt > 0 ? '💰 ' + totalAmt.toLocaleString() + '원' : '';
 }
 
 function delRow(i) { rows.splice(i, 1); renderTable(); }
