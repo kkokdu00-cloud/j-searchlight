@@ -713,11 +713,11 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     </div>
     <div class="login-field">
       <label>아이디</label>
-      <input type="text" id="login-email" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
+      <input type="text" id="login-email" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="off">
     </div>
     <div class="login-field">
       <label>비밀번호</label>
-      <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="new-password">
     </div>
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-error" id="login-error"></div>
@@ -1553,6 +1553,7 @@ async function loadClients() {
 }
 
 function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); }
+let editingSessionId = null;  // 수정 중인 세션 ID
 
 // ══════════════════════════════════════════════
 
@@ -1649,6 +1650,9 @@ function resetAll(skipConfirm) {
   renderTable();
   renderAttach();
   clearOCR();
+  editingSessionId = null;
+  const saveBtn = document.querySelector('.footer-btns .btn-primary');
+  if (saveBtn) saveBtn.textContent = '저장';
   document.getElementById('status-bar').innerHTML = '행 <span id="row-count">5</span>개 입력됨';
 }
 
@@ -1690,10 +1694,10 @@ function renderTable(newIdx) {
         autocomplete="off">
       <datalist id="drug-list-${i}"></datalist></td>
       <td><input value="${esc(r.price)}"
-        onchange="if(!rows[${i}].priceFixed){rows[${i}].price=this.value;}else{this.value=rows[${i}].price;}"
-        style="text-align:right;${r.priceFixed?'background:#f0f4ff;color:#555;':''}" 
+        ${r.priceFixed ? 'readonly onclick="alert('급여 고정단가입니다. 변경할 수 없습니다.')"' : `onchange="rows[${i}].price=this.value"`}
+        style="text-align:right;${r.priceFixed?'background:#eef2ff;color:#444;cursor:not-allowed;':''}"
         placeholder="0"
-        title="${r.priceFixed?'급여 고정단가 (변경 불가)':''}"></td>
+        title="${r.priceFixed?'급여 고정단가':'}"></td>
       <td><input value="${esc(r.qin)}"   onchange="rows[${i}].qin=this.value"   style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.qout)}"  onchange="rows[${i}].qout=this.value"  style="text-align:right" placeholder="0"></td>
       <td><select onchange="rows[${i}].type=this.value">
@@ -2247,7 +2251,7 @@ async function saveData() {
   }
 
   const session = {
-    id:          genId(),
+    id:          editingSessionId || genId(),
     hospital,
     pharma,
     bizno:       document.getElementById('h-bizno').value,
@@ -2269,13 +2273,19 @@ async function saveData() {
       blobUrl: a.blobUrl || '',
       dataUrl: a.dataUrl || ''
     }));
-    savedSessions.unshift({ ...session, attachFiles: normalizedAttach, attach_files: savedAttachFiles });
+    // 수정이면 기존 항목 교체, 신규면 앞에 추가
+    if (editingSessionId) {
+      const idx = savedSessions.findIndex(s => s.id === editingSessionId);
+      if (idx !== -1) savedSessions.splice(idx, 1, { ...session, attachFiles: normalizedAttach, attach_files: savedAttachFiles });
+    } else {
+      savedSessions.unshift({ ...session, attachFiles: normalizedAttach, attach_files: savedAttachFiles });
+    }
+    editingSessionId = null;
+    const saveBtn = document.querySelector('.footer-btns .btn-primary');
+    if (saveBtn) saveBtn.textContent = '저장';
     renderDashboard();
-    const sb = document.getElementById('status-bar');
-    sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
-    setTimeout(() => {
-      resetAll(true);
-    }, 1500);
+    showToast(`✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건`);
+    setTimeout(() => { resetAll(true); }, 1500);
   } catch(e) {
     alert('저장 실패: ' + e.message);
   }
@@ -2283,6 +2293,7 @@ async function saveData() {
 
 function loadSession(idx) {
   const s = savedSessions[idx];
+  editingSessionId = s.id;  // 수정 모드
   document.getElementById('h-hospital').value = s.hospital || '';
   document.getElementById('h-pharma').value   = s.pharma   || '';
   document.getElementById('h-bizno').value    = s.bizno    || '';
@@ -2290,13 +2301,15 @@ function loadSession(idx) {
   document.getElementById('h-settle').value   = s.settle   || '';
   document.getElementById('h-note').value     = s.note     || '';
   rows        = JSON.parse(JSON.stringify(s.rows || []));
-  // 로드된 세션은 File 객체 없음 — 저장된 dataUrl 사용
   attachFiles = (s.attachFiles || []).map(a => ({
     file: null, name: a.name, fileType: a.fileType || '', label: a.type || '',
     url: a.blobUrl || a.url || '', dataUrl: a.dataUrl || '', blobUrl: a.blobUrl || ''
   }));
   renderTable();
   renderAttach();
+  // 저장 버튼 텍스트 변경
+  const saveBtn = document.querySelector('.footer-btns .btn-primary');
+  if (saveBtn) saveBtn.textContent = '수정 저장';
   showView('input');
 }
 
@@ -2709,6 +2722,7 @@ function deletePharmaItem(id) {
   savePharmaLS();
   updateDataLists();
   renderPharmaMaster();
+  showToast('삭제되었습니다.');
 }
 
 function cancelPharmaEdit() {
@@ -3155,7 +3169,7 @@ async function saveAssignClients() {
   });
   document.getElementById('assign-clients-card').style.display = 'none';
   renderUserMaster();
-  alert('저장되었습니다.');
+  showToast('거래처 배정이 저장되었습니다.');
 }
 
 // ══════════════════════════════════════════════
