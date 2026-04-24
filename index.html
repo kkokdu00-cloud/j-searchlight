@@ -749,18 +749,10 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     </div>
   </div>
 
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-    <div class="card">
-      <div class="section-title"><i data-lucide="clock" style="width:16px;height:16px;vertical-align:-3px;"></i> 최근 등록 내역</div>
-      <div id="db-recent-list" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-        <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 병의원별 EDI 현황</div>
-      <div id="db-client-stats" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-        <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
-      </div>
+  <div class="card">
+    <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 병의원별 EDI 현황</div>
+    <div id="db-client-stats" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+      <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
     </div>
   </div>
 </div>
@@ -805,7 +797,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <div class="card">
     <div class="section-title">
       <i data-lucide="scan-search" style="width:16px;height:16px;vertical-align:-3px;"></i> OCR 자동입력
-      <span style="font-size: 13px;font-weight:400;color:#888;">이미지/PDF 업로드 → 급여내역 자동 추출</span>
+      <span style="font-size: 13px;font-weight:400;color:#888;">이미지/PDF 업로드 → 처방입력 자동 추출</span>
       <span id="batch-counter" class="batch-info" style="display:none;"></span>
     </div>
     <div class="ocr-zone">
@@ -852,7 +844,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <!-- 급여내역 테이블 -->
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="section-title" style="margin:0;border:none;padding:0;"><i data-lucide="table-2" style="width:16px;height:16px;vertical-align:-3px;"></i> 급여내역</div>
+      <div class="section-title" style="margin:0;border:none;padding:0;"><i data-lucide="table-2" style="width:16px;height:16px;vertical-align:-3px;"></i> 처방입력</div>
       <button class="btn btn-sm" onclick="addRow({},true)">+ 행 추가</button>
     </div>
     <div class="tbl-wrap">
@@ -1322,7 +1314,7 @@ async function addManualDrug() {
 // ══════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════
-let rows        = [];         // 현재 입력 중인 급여내역 (메모리 전용 - BUG-4)
+let rows        = [];         // 현재 입력 중인 처방입력 (메모리 전용 - BUG-4)
 let attachFiles = [];         // { file, name, fileType, label, url }
 let ocrFiles    = [];
 let ocrSepData  = null;       // OCR 후 매칭 결과
@@ -2040,7 +2032,7 @@ async function saveData() {
   const hospital = document.getElementById('h-hospital').value.trim();
   const pharma   = document.getElementById('h-pharma').value.trim();
   if (!hospital || !pharma) { alert('병의원명과 제약사명은 필수입니다.'); return; }
-  if (!rows.length) { alert('급여내역을 1건 이상 입력해주세요.'); return; }
+  if (!rows.length) { alert('처방입력을 1건 이상 입력해주세요.'); return; }
 
   // attachFiles → Vercel Blob 업로드
   const savedAttachFiles = [];
