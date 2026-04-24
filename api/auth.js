@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const { data, error } = await supabase
       .from('app_users')
       .select('id, email, name, role, password_hash')
-      .eq('email', email.toLowerCase().trim())
+      .eq('email', email.trim())
       .single();
 
     if (error || !data) return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     if (!email || !name || !password) return res.status(400).json({ error: '필수 항목을 입력해주세요.' });
 
     const { error } = await supabase.from('app_users').insert({
-      email: email.toLowerCase().trim(),
+      email: email.trim(),
       name,
       role: role || 'user',
       password_hash: hashPassword(password)

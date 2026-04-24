@@ -712,8 +712,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <div class="brand-sub">EDI 관리 시스템</div>
     </div>
     <div class="login-field">
-      <label>이메일</label>
-      <input type="email" id="login-email" placeholder="이메일 입력" onkeydown="if(event.key==='Enter')doLogin()">
+      <label>아이디</label>
+      <input type="text" id="login-email" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
     </div>
     <div class="login-field">
       <label>비밀번호</label>
@@ -1118,7 +1118,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <div style="overflow-x:auto">
         <table class="master-tbl" id="users-tbl">
           <thead>
-            <tr><th>이름</th><th>이메일</th><th>권한</th><th>담당 거래처</th><th style="width:100px;text-align:right;">관리</th></tr>
+            <tr><th>이름</th><th>아이디</th><th>권한</th><th>담당 거래처</th><th style="width:100px;text-align:right;">관리</th></tr>
           </thead>
           <tbody id="users-body"></tbody>
         </table>
@@ -1128,7 +1128,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
         <div class="master-form-title">+ 유저 등록</div>
         <div class="master-form-row">
           <div class="field"><label>이름 <span class="required">*</span></label><input type="text" id="u-name" placeholder="이름"></div>
-          <div class="field"><label>이메일 <span class="required">*</span></label><input type="email" id="u-email" placeholder="이메일"></div>
+          <div class="field"><label>아이디 <span class="required">*</span></label><input type="text" id="u-email" placeholder="아이디 (영문/숫자)" autocomplete="off"></div>
           <div class="field"><label>비밀번호 <span class="required">*</span></label><input type="password" id="u-pw" placeholder="초기 비밀번호"></div>
           <div class="field"><label>권한</label>
             <select id="u-role">
