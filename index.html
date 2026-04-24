@@ -2632,12 +2632,12 @@ function renderClientMaster() {
   empty.style.display = 'none';
   tbody.innerHTML = masterClients.map(c => `
     <tr>
-      <td><strong>${esc(c.name)}</strong></td>
-      <td>${esc(c.bizno||'')}</td>
-      <td>${esc(c.region||'')}</td>
-      <td style="color:var(--gold);font-weight:600;">${esc(c.manager||'')}</td>
-      <td>
-        <div class="btns">
+      <td style="width:28%;word-break:break-all;"><strong>${esc(c.name)}</strong></td>
+      <td style="width:18%;word-break:break-all;">${esc(c.bizno||'')}</td>
+      <td style="width:10%;text-align:center;">${esc(c.region||'')}</td>
+      <td style="width:18%;color:var(--gold);font-weight:600;">${esc(c.manager||'')}</td>
+      <td style="width:auto;text-align:right;">
+        <div class="btns" style="justify-content:flex-end;">
           <button class="btn btn-sm" onclick="editClient('${c.id}')">수정</button>
           <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">삭제</button>
         </div>
