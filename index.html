@@ -1020,10 +1020,11 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 거래처(병의원) 마스터</div>
       <div style="overflow-x:auto">
         <table class="master-tbl" id="clients-tbl" style="table-layout:fixed;width:100%;">
+          <colgroup><col style="width:30%"><col style="width:20%"><col style="width:10%"><col style="width:20%"><col style="width:20%"></colgroup>
           <thead>
             <tr>
-              <th style="text-align:left;width:30%;">거래처명</th><th style="text-align:left;width:20%;">사업자번호</th><th style="text-align:left;width:12%;">지역</th><th style="text-align:left;width:18%;">업체</th>
-              <th style="width:80px;text-align:right;">관리</th>
+              <th style="text-align:left;">거래처명</th><th style="text-align:left;">사업자번호</th><th style="text-align:center;">지역</th><th style="text-align:left;">업체</th>
+              <th style="text-align:right;">관리</th>
             </tr>
           </thead>
           <tbody id="clients-body"></tbody>
@@ -2468,7 +2469,7 @@ function renderList() {
 
     return `
     <div class="list-group" style="margin-bottom:6px;">
-      <div class="list-group-title" onclick="toggleGroup(${JSON.stringify(key)})"
+      <div class="list-group-title" data-gkey="${esc(key)}" onclick="toggleGroup(this.dataset.gkey)"
         style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;">
         <span>${icon} ${esc(key)}</span>
         <span style="display:flex;align-items:center;gap:10px;">
@@ -3075,12 +3076,34 @@ async function searchDrugByName(rowIdx, keyword) {
     return;
   }
 
-  // 캐시 히트 → 즉시 드롭다운 표시
+  // 1. 정확한 캐시 히트 → 즉시
   if (_drugSearchCache[keyword]) {
     renderDrugDrop(rowIdx, keyword, _drugSearchCache[keyword]);
     return;
   }
 
+  // 2. prefix 캐시에서 즉시 필터링 (타이핑 중 앞글자 결과 재활용)
+  const prefixMatch = Object.keys(_drugSearchCache).find(k => keyword.startsWith(k) && _drugSearchCache[k].length > 0);
+  if (prefixMatch) {
+    const filtered = _drugSearchCache[prefixMatch].filter(d =>
+      (d.itmNm||'').includes(keyword)
+    );
+    if (filtered.length > 0) {
+      renderDrugDrop(rowIdx, keyword, filtered);
+      // 백그라운드에서 더 정확한 결과로 교체
+      fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20`)
+        .then(r => r.json()).then(({ data }) => {
+          if (data) {
+            _drugSearchCache[keyword] = data;
+            const cur = document.getElementById('name-input-' + rowIdx)?.value;
+            if (cur === keyword) renderDrugDrop(rowIdx, keyword, data);
+          }
+        }).catch(()=>{});
+      return;
+    }
+  }
+
+  // 3. 캐시 없음 → 디바운스 후 API 호출
   clearTimeout(_drugSearchTimer);
   _drugSearchTimer = setTimeout(async () => {
     try {
