@@ -2972,26 +2972,33 @@ async function autoFillByCode(rowIdx, code) {
 
 let _drugSearchTimer = null;
 let _drugSearchCache = {};
+let _lastSearchKeyword = {};
 
 async function searchDrugByName(rowIdx, keyword) {
   const dl = document.getElementById('drug-list-' + rowIdx);
-  if (!keyword || keyword.length < 1) {
-    if (dl) dl.innerHTML = '';
+  if (!keyword) { if (dl) dl.innerHTML = ''; return; }
+
+  // 캐시 히트 → 즉시 반영
+  if (_drugSearchCache[keyword]) {
+    renderDrugList(rowIdx, _drugSearchCache[keyword]);
     return;
   }
+
+  // 이전 타이머 취소
   clearTimeout(_drugSearchTimer);
   _drugSearchTimer = setTimeout(async () => {
-    if (_drugSearchCache[keyword]) {
-      renderDrugList(rowIdx, _drugSearchCache[keyword]);
-      return;
-    }
+    // 중복 요청 방지
+    if (_lastSearchKeyword[rowIdx] === keyword) return;
+    _lastSearchKeyword[rowIdx] = keyword;
     try {
-      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=15`);
+      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20`);
       const { data } = await res.json();
       _drugSearchCache[keyword] = data || [];
-      renderDrugList(rowIdx, _drugSearchCache[keyword]);
+      // 현재 입력값이 여전히 같을 때만 렌더
+      const cur = document.getElementById('name-input-' + rowIdx)?.value;
+      if (cur === keyword) renderDrugList(rowIdx, _drugSearchCache[keyword]);
     } catch(e) {}
-  }, 150);
+  }, 50);
 }
 
 function renderDrugList(rowIdx, data) {
