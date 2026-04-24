@@ -2304,9 +2304,19 @@ async function saveData() {
   }
 }
 
+function loadSessionById(id) {
+  const s = savedSessions.find(s => String(s.id) === String(id));
+  if (!s) return;
+  loadSessionObj(s);
+}
+
 function loadSession(idx) {
   const s = savedSessions[idx];
-  editingSessionId = s.id;  // 수정 모드
+  if (s) loadSessionObj(s);
+}
+
+function loadSessionObj(s) {
+  editingSessionId = s.id;
   document.getElementById('h-hospital').value = s.hospital || '';
   document.getElementById('h-pharma').value   = s.pharma   || '';
   document.getElementById('h-bizno').value    = s.bizno    || '';
@@ -2320,10 +2330,14 @@ function loadSession(idx) {
   }));
   renderTable();
   renderAttach();
-  // 저장 버튼 텍스트 변경
   const saveBtn = document.querySelector('.footer-btns .btn-primary');
   if (saveBtn) saveBtn.textContent = '수정 저장';
   showView('input');
+}
+
+async function deleteSessionById(id) {
+  const idx = savedSessions.findIndex(s => String(s.id) === String(id));
+  if (idx !== -1) await deleteSession(idx);
 }
 
 async function deleteSession(idx) {
@@ -2391,10 +2405,10 @@ function renderList() {
         return `
         <div class="list-row">
           <div class="list-row-top">
-            <label style="flex:1;font-weight:700;"><input type="checkbox" data-idx="${s.idx}"> ${esc(listTab==='pharma'?s.hospital:s.pharma)}</label>
+            <label style="flex:1;font-weight:700;"><input type="checkbox" data-id="${s.id}"> ${esc(listTab==='pharma'?s.hospital:s.pharma)}</label>
             <div class="list-btns">
-              <button class="btn btn-sm" onclick="loadSession(${s.idx})">수정</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.idx})">삭제</button>
+              <button class="btn btn-sm" onclick="loadSessionById('${s.id}')">수정</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSessionById('${s.id}')">삭제</button>
             </div>
           </div>
           <div class="list-row-meta">
@@ -2532,7 +2546,7 @@ function exportXlsx() {
   const checks = Array.from(document.querySelectorAll('#list-body input[type=checkbox]:checked'));
   if (!checks.length) { alert('내보낼 항목을 선택해주세요.'); return; }
   const allRows = [];
-  checks.map(c => parseInt(c.dataset.idx)).forEach(i => {
+  checks.map(c => savedSessions.findIndex(s => String(s.id) === String(c.dataset.id))).forEach(i => {
     const s = savedSessions[i];
     (s.rows || []).forEach((r, ri) => allRows.push([
       ri+1, s.presc, s.settle, s.hospital, s.bizno,
@@ -2865,7 +2879,7 @@ function openGallery() {
   if (!checks.length) { alert('항목을 선택해주세요.'); return; }
 
   const items = [];
-  checks.map(c => parseInt(c.dataset.idx)).forEach(i => {
+  checks.map(c => savedSessions.findIndex(s => String(s.id) === String(c.dataset.id))).forEach(i => {
     const s = savedSessions[i];
     (s.attachFiles || []).forEach(a => {
       const displayUrl = a.blobUrl || a.dataUrl || '';
