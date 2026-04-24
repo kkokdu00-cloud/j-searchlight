@@ -1637,18 +1637,19 @@ function updateDataLists() {
 // ══════════════════════════════════════════════
 // RESET (BUG-5)
 // ══════════════════════════════════════════════
-function resetAll() {
-  if (!confirm('현재 입력 내용을 초기화할까요?')) return;
+function resetAll(skipConfirm) {
+  if (!skipConfirm && !confirm('현재 입력 내용을 초기화할까요?')) return;
   rows = [];
   attachFiles = [];
   ['h-hospital','h-bizno','h-pharma','h-note'].forEach(id => {
     document.getElementById(id).value = '';
   });
   setDefaultMonths();
+  for (let i = 0; i < 5; i++) rows.push({ code:'', name:'', price:'', qin:'', qout:'', type:'처방', note:'' });
   renderTable();
   renderAttach();
   clearOCR();
-  document.getElementById('status-bar').innerHTML = '행 <span id="row-count">0</span>개 입력됨';
+  document.getElementById('status-bar').innerHTML = '행 <span id="row-count">5</span>개 입력됨';
 }
 
 function setDefaultMonths() {
@@ -1688,7 +1689,11 @@ function renderTable(newIdx) {
         placeholder="제품명"
         autocomplete="off">
       <datalist id="drug-list-${i}"></datalist></td>
-      <td><input value="${esc(r.price)}" onchange="rows[${i}].price=this.value" style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.price)}"
+        onchange="if(!rows[${i}].priceFixed){rows[${i}].price=this.value;}else{this.value=rows[${i}].price;}"
+        style="text-align:right;${r.priceFixed?'background:#f0f4ff;color:#555;':''}" 
+        placeholder="0"
+        title="${r.priceFixed?'급여 고정단가 (변경 불가)':''}"></td>
       <td><input value="${esc(r.qin)}"   onchange="rows[${i}].qin=this.value"   style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.qout)}"  onchange="rows[${i}].qout=this.value"  style="text-align:right" placeholder="0"></td>
       <td><select onchange="rows[${i}].type=this.value">
@@ -2252,7 +2257,8 @@ async function saveData() {
     rows:        JSON.parse(JSON.stringify(rows)),
     attachFiles: savedAttachFiles,
     savedAt:     new Date().toLocaleString('ko-KR'),
-    user_id:     currentUser ? currentUser.id : null
+    user_id:     currentUser ? currentUser.id : null,
+    user_name:   currentUser ? currentUser.name : '알 수 없음'
   };
 
   try {
@@ -2268,8 +2274,8 @@ async function saveData() {
     const sb = document.getElementById('status-bar');
     sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
     setTimeout(() => {
-      sb.innerHTML = `행 <span id="row-count">${rows.length}</span>개 입력됨`;
-    }, 2800);
+      resetAll(true);
+    }, 1500);
   } catch(e) {
     alert('저장 실패: ' + e.message);
   }
@@ -2291,7 +2297,7 @@ function loadSession(idx) {
   }));
   renderTable();
   renderAttach();
-  showView('dashboard');
+  showView('input');
 }
 
 async function deleteSession(idx) {
@@ -2371,6 +2377,7 @@ function renderList() {
             <span class="meta">${esc(s.presc)} 처방 / 정산 ${esc(s.settle)}</span>
             <span class="meta-dot">·</span>
             <span class="meta">${s.rows?s.rows.length:0}건</span>
+            ${s.user_name ? '<span class="meta-dot">·</span><span class="meta" style="color:var(--gold);font-weight:600;">👤 ' + esc(s.user_name) + '</span>' : ''}
             ${attachIcons ? '<span class="meta-dot">·</span>' + attachIcons : ''}
           </div>
           <div class="list-row-date">${esc(s.savedAt)}</div>
@@ -2471,52 +2478,8 @@ async function downloadZip() {
 
         if (!blob) { done++; idx++; continue; }
 
-        if (isPdf) {
-          // PDF: pdf-lib으로 모든 페이지에 꼬리말 추가
-          try {
-            const arrayBuf = await blob.arrayBuffer();
-            const pdfDoc = await PDFLib.PDFDocument.load(arrayBuf);
-            const pages = pdfDoc.getPages();
-            const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-            for (const page of pages) {
-              const { width } = page.getSize();
-              page.drawRectangle({ x:0, y:0, width, height:22, color: PDFLib.rgb(0.95,0.95,0.95) });
-              page.drawText(footerText, { x:10, y:6, size:8, font, color: PDFLib.rgb(0.2,0.2,0.2) });
-            }
-            const pdfBytes = await pdfDoc.save();
-            folder.file(fileName, pdfBytes);
-          } catch(e) {
-            // pdf-lib 실패 시 원본 그대로
-            folder.file(fileName, blob);
-          }
-        } else {
-          // 이미지: Canvas로 꼬리말 합성
-          try {
-            const imgUrl = URL.createObjectURL(blob);
-            const img = await new Promise((res, rej) => {
-              const i = new Image();
-              i.onload = () => res(i);
-              i.onerror = rej;
-              i.src = imgUrl;
-            });
-            const barH = 28;
-            const canvas = document.createElement('canvas');
-            canvas.width  = img.naturalWidth;
-            canvas.height = img.naturalHeight + barH;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            ctx.fillStyle = '#f5f5f5';
-            ctx.fillRect(0, img.naturalHeight, canvas.width, barH);
-            ctx.fillStyle = '#333';
-            ctx.font = `${Math.max(11, Math.round(canvas.width * 0.013))}px sans-serif`;
-            ctx.fillText(footerText, 10, img.naturalHeight + 19);
-            URL.revokeObjectURL(imgUrl);
-            const outBlob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
-            folder.file(fileName, outBlob);
-          } catch(e) {
-            folder.file(fileName, blob);
-          }
-        }
+        // 저장 시점에 이미 꼬리말 합성됨 → 원본 그대로 압축
+        folder.file(fileName, blob);
       } catch(e) {
         console.error('파일 처리 오류:', f.name, e);
       }
@@ -2948,7 +2911,10 @@ async function autoFillByCode(rowIdx, code) {
     const { map } = await res.json();
     if (map && map[code]) {
       rows[rowIdx].name  = map[code].product_name || '';
-      rows[rowIdx].price = map[code].mx_cprc != null ? String(map[code].mx_cprc) : '';
+      if (map[code].mx_cprc != null) {
+        rows[rowIdx].price = String(map[code].mx_cprc);
+        rows[rowIdx].priceFixed = true;
+      }
       renderTable();
     }
   } catch(e) { console.error('코드 자동완성 실패:', e); }
@@ -2993,8 +2959,8 @@ async function fillByDrugName(rowIdx, name) {
   const allCached = Object.values(_drugSearchCache).flat();
   const match = allCached.find(d => d.itmNm === name);
   if (match) {
-    rows[rowIdx].code  = match.itmCd   || rows[rowIdx].code;
-    rows[rowIdx].price = match.mx_cprc || rows[rowIdx].price;
+    rows[rowIdx].code  = match.itmCd || rows[rowIdx].code;
+    if (match.mx_cprc) { rows[rowIdx].price = match.mx_cprc; rows[rowIdx].priceFixed = true; }
     renderTable();
     return;
   }
@@ -3002,8 +2968,8 @@ async function fillByDrugName(rowIdx, name) {
     const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(name)}&limit=1`);
     const { data } = await res.json();
     if (data && data[0] && data[0].itmNm === name) {
-      rows[rowIdx].code  = data[0].itmCd   || rows[rowIdx].code;
-      rows[rowIdx].price = data[0].mx_cprc || rows[rowIdx].price;
+      rows[rowIdx].code  = data[0].itmCd || rows[rowIdx].code;
+      if (data[0].mx_cprc) { rows[rowIdx].price = data[0].mx_cprc; rows[rowIdx].priceFixed = true; }
       renderTable();
     }
   } catch(e) {}
