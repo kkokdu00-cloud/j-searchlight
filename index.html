@@ -318,9 +318,9 @@ a { color: var(--gold); text-decoration: none; }
 
 /* ══ TABLE ═══════════════════════════ */
 .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1.5px solid var(--gray-200); }
-table { width: 100%; border-collapse: collapse; font-size: 16px; min-width: 900px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 700px; }
 th { background: var(--gray-50); font-weight: 700; padding: 12px 10px; border-bottom: 2px solid var(--gray-200); text-align: center; white-space: nowrap; color: var(--gray-600); font-size: 15px; letter-spacing: .3px; }
-td { padding: 11px 10px; border-bottom: 1px solid var(--gray-100); text-align: center; vertical-align: middle; color: var(--gray-800); }
+td { padding: 9px 6px; border-bottom: 1px solid var(--gray-100); text-align: center; vertical-align: middle; color: var(--gray-800); }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--gold-bg); }
 td input { width: 100%; border: 1.5px solid transparent; border-radius: 6px; padding: 4px 8px; font-size: 15px; text-align: center; background: transparent; transition: all .15s; }
@@ -952,14 +952,14 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
         <thead>
           <tr>
             <th class="del-cell"></th>
-            <th style="width:38px;">순번</th>
-            <th style="width:145px;">보험코드</th>
-            <th style="min-width:150px;">제품명</th>
-            <th style="width:90px;">단가</th>
-            <th style="width:78px;">원내수량</th>
-            <th style="width:78px;">원외수량</th>
-            <th style="width:80px;">처방/조제</th>
-            <th style="min-width:120px;">비고</th>
+            <th style="width:32px;">순번</th>
+            <th style="width:110px;">보험코드</th>
+            <th style="min-width:120px;">제품명</th>
+            <th style="width:75px;">단가</th>
+            <th style="width:62px;">원내수량</th>
+            <th style="width:62px;">원외수량</th>
+            <th style="width:70px;">처방/조제</th>
+            <th style="min-width:80px;">비고</th>
           </tr>
         </thead>
         <tbody id="edi-body"></tbody>
@@ -1111,14 +1111,14 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
                 <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importCodesFromExcel(this)">
               </label>
             </label>
-            <textarea id="p-codes" placeholder="643301120&#10;643301340&#10;..." style="height:90px;"></textarea>
+            <textarea id="p-codes" placeholder="643301120&#10;643301340&#10;..." style="height:90px;resize:none;"></textarea>
           </div>
           <div class="field">
             <label style="display:flex;align-items:center;justify-content:space-between;">
               <span>비급여 제품 목록 <span style="font-size:12px;color:#888;">(제품명|단가)</span></span>
               <button type="button" class="btn btn-sm" onclick="addNhisRow()" style="font-size:12px;height:22px;padding:0 8px;">+ 추가</button>
             </label>
-            <div id="p-noninsured-list" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;min-height:90px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:8px;padding:8px;"></div>
+            <div id="p-noninsured-list" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;height:90px;overflow-y:auto;background:var(--white);border:1.5px solid var(--gray-200);border-radius:8px;padding:8px;"></div>
           </div>
         </div>
         <div class="master-form-btns">
