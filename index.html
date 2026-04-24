@@ -1559,7 +1559,7 @@ function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); 
 // ══════════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════════
-async function renderDashboard() {
+function renderDashboard() {
   // 카운트 카드
   document.getElementById('db-client-count').textContent = masterClients.length;
   document.getElementById('db-pharma-count').textContent = masterPharma.length;
@@ -1568,28 +1568,8 @@ async function renderDashboard() {
   // 이번달 EDI 수
   const now = new Date();
   const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const monthSessions = savedSessions.filter(s => (s.created_at||'').startsWith(ym));
+  const monthSessions = savedSessions.filter(s => (s.presc||'').startsWith(ym));
   document.getElementById('db-month-count').textContent = monthSessions.length;
-
-  // 최근 등록 내역 (최신 8건)
-  const sorted = [...savedSessions].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||'')).slice(0,8);
-  const recentEl = document.getElementById('db-recent-list');
-  if (sorted.length === 0) {
-    recentEl.innerHTML = '<div style="color:var(--gray-400);font-size:15px;text-align:center;padding:20px 0;">등록된 내역이 없습니다</div>';
-  } else {
-    recentEl.innerHTML = sorted.map(s => {
-      const date = (s.created_at||'').slice(0,10);
-      const hospital = esc(s.hospital_name||'-');
-      const pharma = esc(s.pharma_name||'-');
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200);">
-        <div>
-          <span style="font-size:15px;font-weight:700;color:var(--gray-800);">${hospital}</span>
-          <span style="font-size:13px;color:var(--gray-400);margin-left:6px;">${pharma}</span>
-        </div>
-        <span style="font-size:13px;color:var(--gray-400);">${date}</span>
-      </div>`;
-    }).join('');
-  }
 
   // 병의원별 EDI 건수 TOP 8
   const clientMap = {};
@@ -1637,7 +1617,6 @@ function showView(v) {
   });
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = VIEW_TITLES[v] || '';
-  if (v === 'dashboard')  renderDashboard();
   if (v === 'list')       renderList();
   if (v === 'master')     { renderClientMaster(); renderPharmaMaster(); }
   if (v === 'users')      renderUserMaster();
@@ -2285,6 +2264,7 @@ async function saveData() {
       dataUrl: a.dataUrl || ''
     }));
     savedSessions.unshift({ ...session, attachFiles: normalizedAttach, attach_files: savedAttachFiles });
+    renderDashboard();
     const sb = document.getElementById('status-bar');
     sb.innerHTML = `<span style="color:#2e7d32;">✓ 저장 완료 — ${hospital} / ${pharma} / ${rows.length}건</span>`;
     setTimeout(() => {
@@ -3093,6 +3073,7 @@ async function afterLogin() {
   }
 
   updateDataLists();
+  renderDashboard();
   showView('dashboard');
 }
 
