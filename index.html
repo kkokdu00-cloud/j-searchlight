@@ -1990,6 +1990,10 @@ async function runOCR() {
           if (r.code && map[r.code]) {
             r.name  = map[r.code].product_name || r.name;
             r.price = map[r.code].mx_cprc      || r.price;
+            if (map[r.code].commission_rate > 0) {
+              r.commission = String(map[r.code].commission_rate);
+              r.commissionFixed = true;
+            }
           }
         });
       }
@@ -3145,7 +3149,12 @@ async function autoFillByCode(rowIdx, code) {
         rows[rowIdx].price = String(map[code].mx_cprc);
         rows[rowIdx].priceFixed = true;
       }
+      if (map[code].commission_rate != null && map[code].commission_rate > 0) {
+        rows[rowIdx].commission = String(map[code].commission_rate);
+        rows[rowIdx].commissionFixed = true;
+      }
       renderTable();
+      updateTotals();
     }
   } catch(e) { console.error('코드 자동완성 실패:', e); }
 }
