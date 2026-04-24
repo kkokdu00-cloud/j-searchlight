@@ -1990,7 +1990,14 @@ async function runOCR() {
           if (r.code && map[r.code]) {
             r.name  = map[r.code].product_name || r.name;
             r.price = map[r.code].mx_cprc      || r.price;
-            if (map[r.code].commission_rate > 0) {
+            // 수수료: masterPharma codeRates 우선, DB fallback
+            const pharmaMatch = masterPharma.find(p =>
+              p.codeRates && p.codeRates.some(cr => cr.code === r.code)
+            );
+            if (pharmaMatch) {
+              const cr = pharmaMatch.codeRates.find(cr => cr.code === r.code);
+              if (cr && cr.rate > 0) { r.commission = String(cr.rate); r.commissionFixed = true; }
+            } else if (map[r.code].commission_rate > 0) {
               r.commission = String(map[r.code].commission_rate);
               r.commissionFixed = true;
             }
@@ -2864,8 +2871,17 @@ function savePharmaForm() {
   const name = document.getElementById('p-name').value.trim();
   if (!name) { alert('제약사명을 입력해주세요.'); return; }
 
-  const rawCodes = document.getElementById('p-codes').value;
-  const codes = rawCodes.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  const textarea = document.getElementById('p-codes');
+  // 엑셀에서 불러온 codeRates 우선, 없으면 textarea 파싱
+  let codeRates = textarea._codeRates || null;
+  if (!codeRates) {
+    codeRates = textarea.value.split(/[
+,]+/).map(s => {
+      const [code, rate] = s.trim().split(':');
+      return code ? { code: code.trim(), rate: parseFloat(rate) || 0 } : null;
+    }).filter(Boolean);
+  }
+  const codes = codeRates.map(r => r.code);
 
   // 비급여 제품 수집
   const nonInsured = [];
@@ -2880,6 +2896,7 @@ function savePharmaForm() {
     id:     pharmaEditId || genId(),
     name,
     codes,
+    codeRates,
     nonInsured,
     active: document.getElementById('p-active').value === 'true'
   };
@@ -2906,7 +2923,14 @@ function editPharmaItem(id) {
   if (!p) return;
   pharmaEditId = id;
   document.getElementById('p-name').value   = p.name   || '';
-  document.getElementById('p-codes').value  = (p.codes || []).join('\n');
+  const ta = document.getElementById('p-codes');
+  if (p.codeRates && p.codeRates.length) {
+    ta.value = p.codeRates.map(r => r.rate ? `${r.code}:${r.rate}` : r.code).join('\n');
+    ta._codeRates = p.codeRates;
+  } else {
+    ta.value = (p.codes || []).join('\n');
+    ta._codeRates = null;
+  }
   document.getElementById('p-active').value = p.active !== false ? 'true' : 'false';
   // 비급여 제품 로드
   const niList = document.getElementById('p-noninsured-list');
@@ -2938,7 +2962,9 @@ function cancelPharmaEdit() {
 
 function clearPharmaForm() {
   document.getElementById('p-name').value   = '';
-  document.getElementById('p-codes').value  = '';
+  const taClear = document.getElementById('p-codes');
+  taClear.value = '';
+  taClear._codeRates = null;
   document.getElementById('p-active').value = 'true';
   document.getElementById('p-noninsured-list').innerHTML = '';
   for (let i = 0; i < 3; i++) addNhisRow('', '', '');
@@ -3109,21 +3135,22 @@ function importCodesFromExcel(input) {
       const firstCell = String(rows[0][0] || '').trim();
       if (firstCell && isNaN(firstCell.replace(/\D/g, ''))) startIdx = 1;
 
-      const codes = [];
+      const codeRates = [];
       for (let i = startIdx; i < rows.length; i++) {
-        const val = String(rows[i][0] || '').trim().replace(/,/g, '');
-        if (val) codes.push(val);
+        const code = String(rows[i][0] || '').trim().replace(/,/g, '');
+        const rate = parseFloat(String(rows[i][1] || '').trim()) || 0;
+        if (code) codeRates.push({ code, rate });
       }
 
-      if (!codes.length) { showToast('읽어올 코드가 없습니다.'); return; }
+      if (!codeRates.length) { showToast('읽어올 코드가 없습니다.'); return; }
 
+      // textarea에 미리보기 표시 (코드:수수료율)
       const textarea = document.getElementById('p-codes');
-      const existing = textarea.value.trim();
-      textarea.value = existing
-        ? existing + '\n' + codes.join('\n')
-        : codes.join('\n');
+      textarea.value = codeRates.map(r => r.rate ? `${r.code}:${r.rate}` : r.code).join('\n');
+      // 임시 저장용
+      textarea._codeRates = codeRates;
 
-      showToast(`${codes.length}개 코드를 불러왔습니다.`);
+      showToast(`${codeRates.length}개 코드 (수수료율 포함) 불러왔습니다.`);
     } catch(err) {
       showToast('파일 파싱 실패: ' + err.message, 3500);
     }
@@ -3149,7 +3176,17 @@ async function autoFillByCode(rowIdx, code) {
         rows[rowIdx].price = String(map[code].mx_cprc);
         rows[rowIdx].priceFixed = true;
       }
-      if (map[code].commission_rate != null && map[code].commission_rate > 0) {
+      // 수수료: masterPharma codeRates 우선, DB fallback
+      const pharmaWithCode = masterPharma.find(p =>
+        p.codeRates && p.codeRates.some(r => r.code === code)
+      );
+      if (pharmaWithCode) {
+        const cr = pharmaWithCode.codeRates.find(r => r.code === code);
+        if (cr && cr.rate > 0) {
+          rows[rowIdx].commission = String(cr.rate);
+          rows[rowIdx].commissionFixed = true;
+        }
+      } else if (map[code].commission_rate > 0) {
         rows[rowIdx].commission = String(map[code].commission_rate);
         rows[rowIdx].commissionFixed = true;
       }
