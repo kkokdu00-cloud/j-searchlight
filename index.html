@@ -943,6 +943,10 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
         <label class="btn btn-sm" style="cursor:pointer;">
           파일 추가 <input type="file" multiple style="display:none;" onchange="addAttach(this)">
         </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:var(--gray-600);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="attach-footer-check" checked>
+          꼬리말 자동추가
+        </label>
       </div>
     </div>
     <div class="attach-list" id="attach-list"><span class="attach-empty">첨부파일 없음</span></div>
@@ -973,6 +977,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     <div id="list-body"><p class="empty-tip">저장된 데이터가 없습니다.</p></div>
     <div class="export-bar">
       <button class="btn btn-primary" onclick="exportXlsx()">✦ 선택 항목 내보내기 (.xlsx)</button>
+      <button class="btn btn-sm" onclick="openZipModal()" style="background:var(--brown);color:#fff;"><i data-lucide="archive" style="width:14px;height:14px;vertical-align:-2px;"></i> 첨부파일 ZIP</button>
       <button class="btn btn-sm" onclick="openGallery()"><i data-lucide="images" style="width:14px;height:14px;vertical-align:-2px;"></i> 첨부 이미지 보기</button>
       <button class="btn btn-sm" onclick="selectAll()">전체 선택</button>
       <button class="btn btn-sm" onclick="deselectAll()">선택 해제</button>
@@ -980,6 +985,27 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   </div>
 </div><!-- /view-list -->
 
+<!-- ZIP 다운로드 모달 -->
+<div id="zip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:420px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:17px;font-weight:700;color:var(--brown);margin-bottom:20px;"><i data-lucide="archive" style="width:18px;height:18px;vertical-align:-3px;"></i> 첨부파일 ZIP 다운로드</div>
+    <div class="field" style="margin-bottom:16px;">
+      <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:6px;">제약사 선택</label>
+      <select id="zip-pharma-select" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;">
+        <option value="">— 제약사를 선택하세요 —</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:20px;">
+      <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:6px;">처방월 (선택)</label>
+      <input type="month" id="zip-month" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;box-sizing:border-box;">
+    </div>
+    <div id="zip-status" style="font-size:13px;color:var(--gray-500);margin-bottom:12px;min-height:18px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-sm" onclick="closeZipModal()">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="downloadZip()" id="zip-download-btn">📦 ZIP 다운로드</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════════
      VIEW: 마스터 관리
@@ -1423,6 +1449,8 @@ async function addManualDrug() {
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
 // ══════════════════════════════════════════════
 // STATE
@@ -2149,6 +2177,9 @@ async function saveData() {
   if (!hospital || !pharma) { alert('병의원명과 제약사명은 필수입니다.'); return; }
   if (!rows.length) { alert('처방입력을 1건 이상 입력해주세요.'); return; }
 
+  const addFooter = document.getElementById('attach-footer-check')?.checked ?? true;
+  const footerText = `제약사: ${pharma}  |  거래처: ${hospital}  |  처방월: ${document.getElementById('h-presc').value || '-'}`;
+
   // attachFiles → Vercel Blob 업로드
   const savedAttachFiles = [];
   for (const a of attachFiles) {
@@ -2157,9 +2188,53 @@ async function saveData() {
       try {
         let base64, contentType;
         if ((a.fileType || '').startsWith('image/')) {
-          const dataUrl = await compressImageForStorage(a.file);
+          let sourceFile = a.file;
+          if (addFooter) {
+            // Canvas로 꼬리말 합성
+            try {
+              const imgUrl = URL.createObjectURL(sourceFile);
+              const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=imgUrl; });
+              const barH = 28;
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth; canvas.height = img.naturalHeight + barH;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              ctx.fillStyle = '#f5f5f5';
+              ctx.fillRect(0, img.naturalHeight, canvas.width, barH);
+              ctx.fillStyle = '#333';
+              ctx.font = `${Math.max(11, Math.round(canvas.width * 0.013))}px sans-serif`;
+              ctx.fillText(footerText, 10, img.naturalHeight + 19);
+              URL.revokeObjectURL(imgUrl);
+              const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+              sourceFile = new File([blob], a.name, { type: 'image/jpeg' });
+            } catch(e) { console.warn('꼬리말 합성 실패, 원본 사용', e); }
+          }
+          const dataUrl = await compressImageForStorage(sourceFile);
           base64 = dataUrl.split(',')[1];
           contentType = 'image/jpeg';
+        } else if ((a.fileType || '') === 'application/pdf') {
+          if (addFooter && window.PDFLib) {
+            // pdf-lib으로 꼬리말 추가
+            try {
+              const arrayBuf = await a.file.arrayBuffer();
+              const pdfDoc = await PDFLib.PDFDocument.load(arrayBuf);
+              const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+              for (const page of pdfDoc.getPages()) {
+                const { width } = page.getSize();
+                page.drawRectangle({ x:0, y:0, width, height:22, color: PDFLib.rgb(0.95,0.95,0.95) });
+                page.drawText(footerText, { x:10, y:6, size:8, font, color: PDFLib.rgb(0.2,0.2,0.2) });
+              }
+              const pdfBytes = await pdfDoc.save();
+              base64 = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+              contentType = 'application/pdf';
+            } catch(e) {
+              base64 = await fileToBase64(a.file);
+              contentType = 'application/pdf';
+            }
+          } else {
+            base64 = await fileToBase64(a.file);
+            contentType = a.fileType || 'application/octet-stream';
+          }
         } else {
           base64 = await fileToBase64(a.file);
           contentType = a.fileType || 'application/octet-stream';
@@ -2326,6 +2401,160 @@ function renderList() {
 
 function selectAll()   { document.querySelectorAll('#list-body input[type=checkbox]').forEach(c => c.checked = true); }
 function deselectAll() { document.querySelectorAll('#list-body input[type=checkbox]').forEach(c => c.checked = false); }
+
+// ══════════════════════════════════════════════
+// ZIP 다운로드 (미션1)
+// ══════════════════════════════════════════════
+
+function openZipModal() {
+  // 제약사 목록 채우기
+  const pharmas = [...new Set(savedSessions.map(s => s.pharma).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko'));
+  const sel = document.getElementById('zip-pharma-select');
+  sel.innerHTML = '<option value="">— 제약사를 선택하세요 —</option>' +
+    pharmas.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  document.getElementById('zip-status').textContent = '';
+  document.getElementById('zip-month').value = '';
+  const modal = document.getElementById('zip-modal');
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
+}
+
+function closeZipModal() {
+  document.getElementById('zip-modal').style.display = 'none';
+}
+
+async function downloadZip() {
+  const pharma = document.getElementById('zip-pharma-select').value;
+  const month  = document.getElementById('zip-month').value;
+  const statusEl = document.getElementById('zip-status');
+
+  if (!pharma) { alert('제약사를 선택해주세요.'); return; }
+
+  // 해당 제약사 세션 필터
+  let sessions = savedSessions.filter(s => s.pharma === pharma);
+  if (month) sessions = sessions.filter(s => s.presc === month);
+
+  // 첨부파일 있는 것만
+  const filesData = [];
+  for (const s of sessions) {
+    const files = (s.attachFiles || s.attach_files || []);
+    for (const f of files) {
+      if (f.blobUrl || f.dataUrl) {
+        filesData.push({ session: s, file: f });
+      }
+    }
+  }
+
+  if (!filesData.length) { alert('다운로드할 첨부파일이 없습니다.'); return; }
+
+  const btn = document.getElementById('zip-download-btn');
+  btn.disabled = true;
+  statusEl.textContent = '파일 준비 중...';
+
+  const zip = new JSZip();
+
+  // 거래처별 그룹화 + 가나다 정렬
+  const grouped = {};
+  for (const { session: s, file: f } of filesData) {
+    const hospital = s.hospital || '미분류';
+    if (!grouped[hospital]) grouped[hospital] = [];
+    grouped[hospital].push({ s, f });
+  }
+  const sortedHospitals = Object.keys(grouped).sort((a,b) => a.localeCompare(b,'ko'));
+
+  let total = filesData.length;
+  let done = 0;
+
+  for (const hospital of sortedHospitals) {
+    const folder = zip.folder(hospital);
+    let idx = 1;
+
+    for (const { s, f } of grouped[hospital]) {
+      statusEl.textContent = `처리 중... ${done+1}/${total}`;
+
+      try {
+        const ext = (f.name || 'file').split('.').pop().toLowerCase();
+        const isPdf = ext === 'pdf';
+        const baseName = String(idx).padStart(3,'0') + '_' + pharma + '_' + hospital;
+        const fileName = baseName + '.' + ext;
+        const footerText = `제약사: ${pharma}  |  거래처: ${hospital}  |  처방월: ${s.presc || '-'}`;
+
+        // 파일 fetch
+        let blob;
+        if (f.blobUrl) {
+          const res = await fetch(f.blobUrl);
+          blob = await res.blob();
+        } else if (f.dataUrl) {
+          const res = await fetch(f.dataUrl);
+          blob = await res.blob();
+        }
+
+        if (!blob) { done++; idx++; continue; }
+
+        if (isPdf) {
+          // PDF: pdf-lib으로 모든 페이지에 꼬리말 추가
+          try {
+            const arrayBuf = await blob.arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(arrayBuf);
+            const pages = pdfDoc.getPages();
+            const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+            for (const page of pages) {
+              const { width } = page.getSize();
+              page.drawRectangle({ x:0, y:0, width, height:22, color: PDFLib.rgb(0.95,0.95,0.95) });
+              page.drawText(footerText, { x:10, y:6, size:8, font, color: PDFLib.rgb(0.2,0.2,0.2) });
+            }
+            const pdfBytes = await pdfDoc.save();
+            folder.file(fileName, pdfBytes);
+          } catch(e) {
+            // pdf-lib 실패 시 원본 그대로
+            folder.file(fileName, blob);
+          }
+        } else {
+          // 이미지: Canvas로 꼬리말 합성
+          try {
+            const imgUrl = URL.createObjectURL(blob);
+            const img = await new Promise((res, rej) => {
+              const i = new Image();
+              i.onload = () => res(i);
+              i.onerror = rej;
+              i.src = imgUrl;
+            });
+            const barH = 28;
+            const canvas = document.createElement('canvas');
+            canvas.width  = img.naturalWidth;
+            canvas.height = img.naturalHeight + barH;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            ctx.fillStyle = '#f5f5f5';
+            ctx.fillRect(0, img.naturalHeight, canvas.width, barH);
+            ctx.fillStyle = '#333';
+            ctx.font = `${Math.max(11, Math.round(canvas.width * 0.013))}px sans-serif`;
+            ctx.fillText(footerText, 10, img.naturalHeight + 19);
+            URL.revokeObjectURL(imgUrl);
+            const outBlob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+            folder.file(fileName, outBlob);
+          } catch(e) {
+            folder.file(fileName, blob);
+          }
+        }
+      } catch(e) {
+        console.error('파일 처리 오류:', f.name, e);
+      }
+      done++; idx++;
+    }
+  }
+
+  statusEl.textContent = 'ZIP 압축 중...';
+  const monthStr = month ? '_' + month : '';
+  const zipBlob = await zip.generateAsync({ type:'blob', compression:'DEFLATE' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = pharma + monthStr + '_첨부파일.zip';
+  a.click();
+
+  statusEl.textContent = `완료! ${done}개 파일`;
+  btn.disabled = false;
+}
 
 // ══════════════════════════════════════════════
 // EXCEL EXPORT
