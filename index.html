@@ -1818,9 +1818,10 @@ function ediTableKeyHandler(e) {
   const tag = el.tagName;
   if (tag !== 'INPUT' && tag !== 'SELECT') return;
 
-  // 드롭다운 열려있으면 drugDropKeyNav가 처리
+  // tbody 안에 있는지 확인
   const row = el.closest('tr');
-  if (!row) return;
+  if (!row || !row.parentElement) return;
+  if (row.parentElement.id !== 'edi-body') return;
   const rowIdx = Array.from(row.parentElement.children).indexOf(row);
   const drop = document.getElementById('drug-drop-' + rowIdx);
   if (drop && drop.style.display !== 'none') return;
@@ -3362,14 +3363,18 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   }
   closeDrugDrop(rowIdx);
   renderTable();
-  // 포커스 다음 칸으로 (단가 건너뛰고 원내수량으로)
+  // 포커스 원내수량으로
   setTimeout(() => {
-    const tr = document.querySelector(`#edi-body tr:nth-child(${rowIdx+1})`);
-    if (!tr) return;
-    // td 6번째 = 원내수량
-    const qinInput = tr.querySelector('td:nth-child(6) input');
-    if (qinInput) { qinInput.focus(); qinInput.select(); }
-  }, 50);
+    const allInputs = Array.from(document.querySelectorAll('#edi-body input:not([readonly]):not([disabled])'));
+    // rowIdx 행의 원내수량 (name input 다음 두번째 입력가능 칸)
+    const rowInputs = allInputs.filter(el => {
+      const tr = el.closest('tr');
+      return tr && Array.from(tr.parentElement.children).indexOf(tr) === rowIdx;
+    });
+    // 제품명 input 제외하고 첫번째 = 원내수량
+    const qin = rowInputs.find(el => el !== document.getElementById('name-input-' + rowIdx));
+    if (qin) { qin.focus(); qin.select(); }
+  }, 80);
 }
 
 async function searchDrugByName(rowIdx, keyword) {
