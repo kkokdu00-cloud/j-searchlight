@@ -1704,7 +1704,7 @@ function renderDashboard() {
   // 병의원별 EDI 건수 TOP 8
   const clientMap = {};
   savedSessions.forEach(s => {
-    const k = s.hospital_name || '미입력';
+    const k = s.hospital_name || s.hospital || '미입력';
     clientMap[k] = (clientMap[k]||0) + 1;
   });
   const clientStats = Object.entries(clientMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -1727,7 +1727,7 @@ function renderDashboard() {
 
   // 월/제약사 필터 옵션 초기화
   const months  = [...new Set(savedSessions.map(s => s.presc).filter(Boolean))].sort().reverse();
-  const pharmas = [...new Set(savedSessions.map(s => s.pharma_name||s.pharmaName).filter(Boolean))].sort();
+  const pharmas = [...new Set(savedSessions.map(s => s.pharma_name||s.pharmaName||s.pharma).filter(Boolean))].sort();
   const mSel = document.getElementById("db-stat-month");
   const pSel = document.getElementById("db-stat-pharma");
   if (mSel) { mSel.innerHTML='<option value="">전체 월</option>'+months.map(m=>'<option value="'+m+'">'+m+'</option>').join(''); }
@@ -1747,7 +1747,7 @@ function renderStatTable() {
       const c = parseFloat(r.commission) || 0;
       if (p && q) { total += p * q; commission += Math.round(p * q * c / 100); }
     });
-    return { presc: s.presc || '', pharma: s.pharma_name || s.pharmaName || '', hospital: s.hospital_name || '', total, commission };
+    return { presc: s.presc || '', pharma: s.pharma_name || s.pharmaName || s.pharma || '', hospital: s.hospital_name || s.hospital || '', total, commission };
   });
   if (selMonth)  rows = rows.filter(r => r.presc === selMonth);
   if (selPharma) rows = rows.filter(r => r.pharma === selPharma);
