@@ -597,10 +597,10 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   .sidebar-nav::-webkit-scrollbar { display: none; }
   .nav-item {
     flex-direction: column;
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
-    max-width: 80px;
-    padding: 6px 2px 4px;
+    max-width: none;
+    padding: 6px 0 4px;
     gap: 2px;
     font-size: 9px;
     border-radius: 0;
@@ -610,6 +610,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     align-items: center;
     color: rgba(255,255,255,.5);
     text-align: center;
+    overflow: hidden;
   }
   .nav-item.active {
     background: rgba(196,149,106,.15);
