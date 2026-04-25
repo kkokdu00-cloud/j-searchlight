@@ -1508,7 +1508,7 @@ let ocrSepData  = null;       // OCR 후 매칭 결과
 // Supabase 기반 (API 호출)
 let savedSessions = [];
 let masterClients = [];
-let masterPharma  = JSON.parse(localStorage.getItem('master_pharma') || '[]'); // 임시 유지
+let masterPharma  = [];
 
 // 마스터 편집 상태
 let clientEditId = null;
@@ -1534,7 +1534,25 @@ function fmtBizno(el) {
   el.value = v;
 }
 
-function savePharmaLS() { localStorage.setItem('master_pharma', JSON.stringify(masterPharma)); }
+async function savePharmaLS() {
+  // 변경된 항목 모두 API로 저장 (upsert)
+}
+async function savePharmaItem(item) {
+  try {
+    await apiPost('/api/pharma', {
+      id:          item.id,
+      name:        item.name,
+      codes:       item.codes      || [],
+      codeRates:   item.codeRates  || [],
+      nonInsured:  item.nonInsured || [],
+      active:      item.active !== false
+    });
+  } catch(e) { console.error('제약사 저장 실패:', e); }
+}
+async function deletePharmaItem_api(id) {
+  try { await fetch('/api/pharma?id=' + id, { method: 'DELETE' }); }
+  catch(e) { console.error('제약사 삭제 실패:', e); }
+}
 
 async function saveSessions() {
   // 더 이상 사용 안 함 — saveData()에서 직접 API 호출
@@ -1587,6 +1605,30 @@ async function loadSessions() {
 }
 
 // ── 클라이언트 로드 ──
+async function loadPharma() {
+  try {
+    const { data } = await apiGet('/api/pharma');
+    masterPharma = (data || []).map(p => ({
+      ...p,
+      codeRates:  p.code_rates  || [],
+      nonInsured: p.non_insured || [],
+      codes:      p.codes       || []
+    }));
+    // localStorage 데이터 병합 (마이그레이션)
+    const ls = JSON.parse(localStorage.getItem('master_pharma') || '[]');
+    if (ls.length > 0) {
+      for (const item of ls) {
+        if (!masterPharma.find(p => p.name === item.name)) {
+          await savePharmaItem(item);
+          masterPharma.push(item);
+        }
+      }
+      localStorage.removeItem('master_pharma');
+    }
+    updateDataLists();
+  } catch(e) { console.error('제약사 로드 실패:', e); }
+}
+
 async function loadClients() {
   try {
     const { data } = await apiGet('/api/clients');
@@ -2870,7 +2912,7 @@ function renderPharmaMaster() {
   }).join('');
 }
 
-function savePharmaForm() {
+async function savePharmaForm() {
   const name = document.getElementById('p-name').value.trim();
   if (!name) { alert('제약사명을 입력해주세요.'); return; }
 
@@ -2914,10 +2956,11 @@ function savePharmaForm() {
     masterPharma.push(item);
   }
 
-  savePharmaLS();
+  await savePharmaItem(item);
   updateDataLists();
   clearPharmaForm();
   renderPharmaMaster();
+  showToast('저장되었습니다.');
 }
 
 function editPharmaItem(id) {
@@ -2945,10 +2988,10 @@ function editPharmaItem(id) {
   document.getElementById('pharma-form-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function deletePharmaItem(id) {
+async function deletePharmaItem(id) {
   if (!confirm('이 제약사를 삭제할까요?')) return;
+  await deletePharmaItem_api(id);
   masterPharma = masterPharma.filter(p => p.id !== id);
-  savePharmaLS();
   updateDataLists();
   renderPharmaMaster();
   showToast('삭제되었습니다.');
@@ -3222,9 +3265,12 @@ function drugDropKeyNav(e, rowIdx) {
     items.forEach(el => el.classList.remove('active'));
     items[idx].classList.add('active');
     items[idx].scrollIntoView({ block: 'nearest' });
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    if (active) active.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    const target = active || items[0];
+    if (target) {
+      e.preventDefault();
+      target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    }
   } else if (e.key === 'Escape') {
     closeDrugDrop(rowIdx);
   }
@@ -3423,9 +3469,9 @@ async function afterLogin() {
 
   // 4. 백그라운드에서 데이터 로드 후 갱신
   if (isAdmin) {
-    await Promise.all([loadClients(), loadSessions()]);
+    await Promise.all([loadPharma(), loadClients(), loadSessions()]);
   } else {
-    await Promise.all([loadUserClients(), loadSessionsForUser()]);
+    await Promise.all([loadPharma(), loadUserClients(), loadSessionsForUser()]);
   }
   updateDataLists();
   renderDashboard();
