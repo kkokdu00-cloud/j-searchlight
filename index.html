@@ -966,17 +966,17 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     <div class="tbl-wrap">
       <table style="table-layout:fixed;width:100%;">
         <colgroup>
-          <col style="width:50px">  <!-- 삭제 -->
-          <col style="width:36px">  <!-- 순번 -->
-          <col style="width:100px"> <!-- 보험코드 -->
-          <col style="width:170px"> <!-- 제품명 -->
-          <col style="width:60px">  <!-- 단가 -->
-          <col style="width:65px">  <!-- 원내수량 -->
-          <col style="width:65px">  <!-- 원외수량 -->
-          <col style="width:58px">  <!-- 수수료% -->
-          <col style="width:72px">  <!-- 처방/조제 -->
-          <col style="width:88px">  <!-- 처방금액 -->
-          <col style="width:82px">  <!-- 정산금액 -->
+          <col style="width:48px">
+          <col style="width:34px">
+          <col style="width:95px">
+          <col><!-- 제품명: 나머지 공간 -->
+          <col style="width:58px">
+          <col style="width:62px">
+          <col style="width:62px">
+          <col style="width:56px">
+          <col style="width:68px">
+          <col style="width:84px">
+          <col style="width:80px">
         </colgroup>
         <thead>
           <tr>
@@ -1785,8 +1785,8 @@ function renderTable(newIdx) {
       <td><input value="${esc(r.code)}"
         oninput="rows[${i}].code=this.value; if(this.value.length>=9) autoFillByCode(${i}, this.value)"
         placeholder="643301120"></td>
-      <td style="position:relative;">
-        <input value="${esc(r.name)}"
+      <td style="position:relative;overflow:hidden;">
+        <input value="${esc(r.name)}" style="overflow:hidden;text-overflow:ellipsis;"
           id="name-input-${i}"
           oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
           onblur="setTimeout(()=>closeDrugDrop(${i}),200)"
@@ -2100,11 +2100,11 @@ async function runOCR() {
               const cr = pharmaMatch.codeRates.find(cr => cr.code === r.code);
               if (cr && cr.rate > 0) {
                 const rv = cr.rate <= 1 ? cr.rate * 100 : cr.rate;
-                r.commission = String(rv); r.commissionFixed = true;
+                r.commission = String(Math.round(rv * 10) / 10); r.commissionFixed = true;
               }
             } else if (map[r.code].commission_rate > 0) {
               const rv = map[r.code].commission_rate <= 1 ? map[r.code].commission_rate * 100 : map[r.code].commission_rate;
-              r.commission = String(rv); r.commissionFixed = true;
+              r.commission = String(Math.round(rv * 10) / 10); r.commissionFixed = true;
             }
           }
         });
@@ -3370,7 +3370,7 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
       const cr = pharmaMatch.codeRates.find(r => r.code === code);
       if (cr && cr.rate > 0) {
         const rateVal = cr.rate <= 1 ? cr.rate * 100 : cr.rate;
-        rows[rowIdx].commission = String(rateVal);
+        rows[rowIdx].commission = String(Math.round(rateVal * 10) / 10);
         rows[rowIdx].commissionFixed = true;
       }
     }
