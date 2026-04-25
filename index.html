@@ -1728,7 +1728,7 @@ function renderTable(newIdx) {
       <td class="del-cell"><button class="btn btn-danger btn-sm" onclick="delRow(${i})">삭제</button></td>
       <td class="num-cell">${i+1}</td>
       <td><input value="${esc(r.code)}"
-        onchange="rows[${i}].code=this.value; autoFillByCode(${i}, this.value)"
+        onchange="rows[${i}].code=this.value; autoFillByCode(${i}, this.value)" onkeydown="if(event.key==='Enter'||event.key==='Tab'){rows[${i}].code=this.value; autoFillByCode(${i}, this.value)}"
         placeholder="643301120"></td>
       <td style="position:relative;">
         <input value="${esc(r.name)}"
