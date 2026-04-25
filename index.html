@@ -3362,10 +3362,13 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   }
   closeDrugDrop(rowIdx);
   renderTable();
-  // 포커스 다음 칸으로
+  // 포커스 다음 칸으로 (단가 건너뛰고 원내수량으로)
   setTimeout(() => {
-    const priceInput = document.querySelector(`#edi-body tr:nth-child(${rowIdx+1}) td:nth-child(5) input`);
-    if (priceInput && !rows[rowIdx].priceFixed) priceInput.focus();
+    const tr = document.querySelector(`#edi-body tr:nth-child(${rowIdx+1})`);
+    if (!tr) return;
+    // td 6번째 = 원내수량
+    const qinInput = tr.querySelector('td:nth-child(6) input');
+    if (qinInput) { qinInput.focus(); qinInput.select(); }
   }, 50);
 }
 
