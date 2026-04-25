@@ -1771,7 +1771,6 @@ function renderTable(newIdx) {
       <td class="num-cell">${i+1}</td>
       <td><input value="${esc(r.code)}"
         oninput="rows[${i}].code=this.value; if(this.value.length>=9) autoFillByCode(${i}, this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}"
         placeholder="643301120"></td>
       <td style="position:relative;">
         <input value="${esc(r.name)}"
@@ -1788,11 +1787,10 @@ function renderTable(newIdx) {
         style="text-align:right;${r.priceFixed?'background:#eef2ff;color:#444;cursor:not-allowed;':''}"
         placeholder="0"
         title="${r.priceFixed?'급여 고정단가 (변경불가)':''}"></td>
-      <td><input value="${esc(r.qin)}"   oninput="rows[${i}].qin=this.value; updateTotals()" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}" style="text-align:right" placeholder="0"></td>
-      <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}" style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qin)}"   oninput="rows[${i}].qin=this.value; updateTotals()" style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()" style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.commission||'')}" oninput="rows[${i}].commission=this.value; updateTotals()" type="number" min="0" max="100" step="0.1"
         style="text-align:right;${r.commissionFixed?'background:#eef2ff;color:#444;':''}" placeholder="0"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}"
         ${r.commissionFixed?'readonly':''}></td>
       <td><select onchange="rows[${i}].type=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}">
         <option ${r.type==='처방'?'selected':''}>처방</option>
@@ -1803,6 +1801,48 @@ function renderTable(newIdx) {
   });
   document.getElementById('row-count').textContent = rows.length;
   updateTotals();
+  setupEdiTableKeyNav();
+}
+
+function setupEdiTableKeyNav() {
+  const tbody = document.getElementById('edi-body');
+  // 기존 리스너 제거 후 재등록
+  tbody.removeEventListener('keydown', ediTableKeyHandler);
+  tbody.addEventListener('keydown', ediTableKeyHandler);
+}
+
+function ediTableKeyHandler(e) {
+  if (e.key !== 'Enter') return;
+
+  const el = e.target;
+  const tag = el.tagName;
+  if (tag !== 'INPUT' && tag !== 'SELECT') return;
+
+  // 드롭다운 열려있으면 drugDropKeyNav가 처리
+  const row = el.closest('tr');
+  if (!row) return;
+  const rowIdx = Array.from(row.parentElement.children).indexOf(row);
+  const drop = document.getElementById('drug-drop-' + rowIdx);
+  if (drop && drop.style.display !== 'none') return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  // 전체 입력 가능한 요소 목록 (readonly/disabled 제외)
+  const allEls = Array.from(document.querySelectorAll('#edi-body input:not([readonly]):not([disabled]), #edi-body select'));
+  const idx = allEls.indexOf(el);
+
+  if (idx !== -1 && idx < allEls.length - 1) {
+    allEls[idx + 1].focus();
+    allEls[idx + 1].select && allEls[idx + 1].select();
+  } else {
+    // 마지막 칸 → 새 행 추가 후 첫 칸으로
+    addRow();
+    setTimeout(() => {
+      const newInputs = document.querySelectorAll('#edi-body input:not([readonly]):not([disabled])');
+      if (newInputs.length) newInputs[newInputs.length - 1].focus();
+    }, 60);
+  }
 }
 
 function showCustomDrop(inputId, dropId, items) {
