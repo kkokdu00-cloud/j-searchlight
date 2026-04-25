@@ -657,8 +657,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   th.del-cell { display: none !important; }
   #edi-body tr td:first-child { display: none; }
   /* 처방입력 테이블 가로 스크롤 */
-  #view-input .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  #view-input table { min-width: 560px; font-size: 11px; }
+  #view-input .tbl-wrap { overflow-x: scroll !important; -webkit-overflow-scrolling: touch; display: block; }
   #view-input th { padding: 6px 3px; font-size: 10px; white-space: nowrap; }
   #view-input td { padding: 5px 2px; font-size: 11px; }
   #view-input td input { font-size: 11px; padding: 2px 3px; width: 100%; min-width: 0; }
@@ -1002,7 +1001,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <button class="btn btn-sm" onclick="addRow({},true)">+ 행 추가</button>
     </div>
     <div class="tbl-wrap">
-      <table style="table-layout:auto;width:100%;">
+      <table style="table-layout:auto;width:100%;min-width:560px;">
         <colgroup>
           <col style="width:44px"><!-- 삭제 -->
           <col style="width:32px"><!-- 순번 -->
