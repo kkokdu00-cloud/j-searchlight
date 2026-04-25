@@ -3240,7 +3240,17 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   rows[rowIdx].code  = code || rows[rowIdx].code;
   if (price) rows[rowIdx].price = price;
   rows[rowIdx].priceFixed = !nonInsured && !!price;
-  if (commission) { rows[rowIdx].commission = commission; rows[rowIdx].commissionFixed = true; }
+  // 수수료: 전달된 값 우선, 없으면 masterPharma codeRates에서 자동 찾기
+  if (commission) {
+    rows[rowIdx].commission = commission;
+    rows[rowIdx].commissionFixed = true;
+  } else if (code) {
+    const pharmaMatch = masterPharma.find(p => p.codeRates && p.codeRates.some(r => r.code === code));
+    if (pharmaMatch) {
+      const cr = pharmaMatch.codeRates.find(r => r.code === code);
+      if (cr && cr.rate > 0) { rows[rowIdx].commission = String(cr.rate); rows[rowIdx].commissionFixed = true; }
+    }
+  }
   closeDrugDrop(rowIdx);
   renderTable();
   // 포커스 다음 칸으로
