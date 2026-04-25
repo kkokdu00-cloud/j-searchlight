@@ -1792,12 +1792,13 @@ function renderTable(newIdx) {
       <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}" style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.commission||'')}" oninput="rows[${i}].commission=this.value; updateTotals()" type="number" min="0" max="100" step="0.1"
         style="text-align:right;${r.commissionFixed?'background:#eef2ff;color:#444;':''}" placeholder="0"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}"
         ${r.commissionFixed?'readonly':''}></td>
-      <td><select onchange="rows[${i}].type=this.value">
+      <td><select onchange="rows[${i}].type=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}">
         <option ${r.type==='처방'?'selected':''}>처방</option>
         <option ${r.type==='조제'?'selected':''}>조제</option>
       </select></td>
-      <td><input value="${esc(r.note)}" onchange="rows[${i}].note=this.value"></td>`;
+      <td><input value="${esc(r.note)}" onchange="rows[${i}].note=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();const next=document.querySelector('#edi-body tr:nth-child(${i+2}) td:nth-child(3) input');if(next)next.focus();else{addRow();setTimeout(()=>{const n=document.querySelector('#edi-body tr:last-child td:nth-child(3) input');if(n)n.focus();},50);}}"></td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('row-count').textContent = rows.length;
@@ -3249,12 +3250,15 @@ let _drugSearchTimer = null;
 let _drugSearchCache = {};
 
 function focusNextInput(currentEl) {
-  // 현재 행에서 다음 input/select 찾기
-  const allInputs = Array.from(document.querySelectorAll('#edi-body input, #edi-body select'));
+  const allInputs = Array.from(document.querySelectorAll('#edi-body input:not([type=button]), #edi-body select'));
   const idx = allInputs.indexOf(currentEl);
-  if (idx !== -1 && idx < allInputs.length - 1) {
-    allInputs[idx + 1].focus();
-    allInputs[idx + 1].select && allInputs[idx + 1].select();
+  for (let i = idx + 1; i < allInputs.length; i++) {
+    const el = allInputs[i];
+    if (!el.readOnly && !el.disabled) {
+      el.focus();
+      el.select && el.select();
+      return;
+    }
   }
 }
 
