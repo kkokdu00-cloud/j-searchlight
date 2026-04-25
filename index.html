@@ -1730,8 +1730,8 @@ function renderDashboard() {
   const pharmas = [...new Set(savedSessions.map(s => s.pharma_name||s.pharmaName).filter(Boolean))].sort();
   const mSel = document.getElementById("db-stat-month");
   const pSel = document.getElementById("db-stat-pharma");
-  if (mSel) { mSel.innerHTML="<option value="">전체 월</option>"+months.map(m=>"<option value=""+m+"">"+m+"</option>").join(""); }
-  if (pSel) { pSel.innerHTML="<option value="">전체 제약사</option>"+pharmas.map(p=>"<option value=""+p+"">"+p+"</option>").join(""); }
+  if (mSel) { mSel.innerHTML='<option value="">전체 월</option>'+months.map(m=>'<option value="'+m+'">'+m+'</option>').join(''); }
+  if (pSel) { pSel.innerHTML='<option value="">전체 제약사</option>'+pharmas.map(p=>'<option value="'+p+'">'+p+'</option>').join(''); }
   renderStatTable();
 }
 
