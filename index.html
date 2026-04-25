@@ -1771,6 +1771,7 @@ function renderTable(newIdx) {
       <td class="num-cell">${i+1}</td>
       <td><input value="${esc(r.code)}"
         oninput="rows[${i}].code=this.value; if(this.value.length>=9) autoFillByCode(${i}, this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}"
         placeholder="643301120"></td>
       <td style="position:relative;">
         <input value="${esc(r.name)}"
@@ -1787,8 +1788,8 @@ function renderTable(newIdx) {
         style="text-align:right;${r.priceFixed?'background:#eef2ff;color:#444;cursor:not-allowed;':''}"
         placeholder="0"
         title="${r.priceFixed?'급여 고정단가 (변경불가)':''}"></td>
-      <td><input value="${esc(r.qin)}"   oninput="rows[${i}].qin=this.value; updateTotals()"   style="text-align:right" placeholder="0"></td>
-      <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()"  style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qin)}"   oninput="rows[${i}].qin=this.value; updateTotals()" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}" style="text-align:right" placeholder="0"></td>
+      <td><input value="${esc(r.qout)}"  oninput="rows[${i}].qout=this.value; updateTotals()" onkeydown="if(event.key==='Enter'){event.preventDefault();focusNextInput(this)}" style="text-align:right" placeholder="0"></td>
       <td><input value="${esc(r.commission||'')}" oninput="rows[${i}].commission=this.value; updateTotals()" type="number" min="0" max="100" step="0.1"
         style="text-align:right;${r.commissionFixed?'background:#eef2ff;color:#444;':''}" placeholder="0"
         ${r.commissionFixed?'readonly':''}></td>
@@ -2041,10 +2042,13 @@ async function runOCR() {
             );
             if (pharmaMatch) {
               const cr = pharmaMatch.codeRates.find(cr => cr.code === r.code);
-              if (cr && cr.rate > 0) { r.commission = String(cr.rate); r.commissionFixed = true; }
+              if (cr && cr.rate > 0) {
+                const rv = cr.rate <= 1 ? cr.rate * 100 : cr.rate;
+                r.commission = String(rv); r.commissionFixed = true;
+              }
             } else if (map[r.code].commission_rate > 0) {
-              r.commission = String(map[r.code].commission_rate);
-              r.commissionFixed = true;
+              const rv = map[r.code].commission_rate <= 1 ? map[r.code].commission_rate * 100 : map[r.code].commission_rate;
+              r.commission = String(rv); r.commissionFixed = true;
             }
           }
         });
@@ -3244,32 +3248,43 @@ async function autoFillByCode(rowIdx, code) {
 let _drugSearchTimer = null;
 let _drugSearchCache = {};
 
+function focusNextInput(currentEl) {
+  // 현재 행에서 다음 input/select 찾기
+  const allInputs = Array.from(document.querySelectorAll('#edi-body input, #edi-body select'));
+  const idx = allInputs.indexOf(currentEl);
+  if (idx !== -1 && idx < allInputs.length - 1) {
+    allInputs[idx + 1].focus();
+    allInputs[idx + 1].select && allInputs[idx + 1].select();
+  }
+}
+
 function drugDropKeyNav(e, rowIdx) {
   const drop = document.getElementById('drug-drop-' + rowIdx);
-  if (!drop || drop.style.display === 'none') return;
-  const items = drop.querySelectorAll('.drug-drop-item');
-  if (!items.length) return;
-
-  const active = drop.querySelector('.drug-drop-item.active');
+  const isOpen = drop && drop.style.display !== 'none';
+  const items = isOpen ? drop.querySelectorAll('.drug-drop-item') : [];
+  const active = isOpen ? drop.querySelector('.drug-drop-item.active') : null;
   let idx = Array.from(items).indexOf(active);
 
-  if (e.key === 'ArrowDown') {
+  if (e.key === 'ArrowDown' && isOpen) {
     e.preventDefault();
     idx = (idx + 1) % items.length;
     items.forEach(el => el.classList.remove('active'));
     items[idx].classList.add('active');
     items[idx].scrollIntoView({ block: 'nearest' });
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.key === 'ArrowUp' && isOpen) {
     e.preventDefault();
     idx = idx <= 0 ? items.length - 1 : idx - 1;
     items.forEach(el => el.classList.remove('active'));
     items[idx].classList.add('active');
     items[idx].scrollIntoView({ block: 'nearest' });
-  } else if (e.key === 'Enter' || e.key === 'Tab') {
-    const target = active || items[0];
-    if (target) {
-      e.preventDefault();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (isOpen && items.length) {
+      const target = active || items[0];
       target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    } else {
+      // 드롭다운 없으면 다음 칸으로
+      focusNextInput(e.target);
     }
   } else if (e.key === 'Escape') {
     closeDrugDrop(rowIdx);
@@ -3294,7 +3309,11 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
     const pharmaMatch = masterPharma.find(p => p.codeRates && p.codeRates.some(r => r.code === code));
     if (pharmaMatch) {
       const cr = pharmaMatch.codeRates.find(r => r.code === code);
-      if (cr && cr.rate > 0) { rows[rowIdx].commission = String(cr.rate); rows[rowIdx].commissionFixed = true; }
+      if (cr && cr.rate > 0) {
+        const rateVal = cr.rate <= 1 ? cr.rate * 100 : cr.rate;
+        rows[rowIdx].commission = String(rateVal);
+        rows[rowIdx].commissionFixed = true;
+      }
     }
   }
   closeDrugDrop(rowIdx);
