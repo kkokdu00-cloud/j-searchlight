@@ -598,15 +598,18 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   .nav-item {
     flex-direction: column;
     flex: 1;
-    min-width: 60px;
-    padding: 6px 4px 4px;
-    gap: 3px;
-    font-size: 10px;
+    min-width: 0;
+    max-width: 80px;
+    padding: 6px 2px 4px;
+    gap: 2px;
+    font-size: 9px;
     border-radius: 0;
     margin-bottom: 0;
     height: 60px;
     justify-content: center;
+    align-items: center;
     color: rgba(255,255,255,.5);
+    text-align: center;
   }
   .nav-item.active {
     background: rgba(196,149,106,.15);
@@ -651,9 +654,15 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   td select { font-size: 11px; padding: 2px 2px; }
   /* 처방입력 테이블 모바일 최적화 */
   .del-cell { display: none !important; }
-  .num-cell { width: 20px !important; padding: 4px 2px !important; }
-  #edi-body tr td:first-child { display: none; }
   th.del-cell { display: none !important; }
+  #edi-body tr td:first-child { display: none; }
+  /* 처방입력 테이블 가로 스크롤 */
+  #view-input .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #view-input table { min-width: 560px; font-size: 11px; }
+  #view-input th { padding: 6px 3px; font-size: 10px; white-space: nowrap; }
+  #view-input td { padding: 5px 2px; font-size: 11px; }
+  #view-input td input { font-size: 11px; padding: 2px 3px; width: 100%; min-width: 0; }
+  #view-input td select { font-size: 10px; padding: 1px 1px; }
 
   /* ── OCR 영역 ── */
   .ocr-drop { padding: 18px 12px; }
