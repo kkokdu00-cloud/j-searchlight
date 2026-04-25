@@ -1736,35 +1736,47 @@ function renderDashboard() {
 }
 
 function renderStatTable() {
-  const selMonth  = (document.getElementById("db-stat-month")||{}).value  || "";
-  const selPharma = (document.getElementById("db-stat-pharma")||{}).value || "";
+  const selMonth  = (document.getElementById('db-stat-month') || {}).value  || '';
+  const selPharma = (document.getElementById('db-stat-pharma') || {}).value || '';
   let rows = savedSessions.map(s => {
     const items = s.rows || [];
     let total = 0, commission = 0;
     items.forEach(r => {
-      const p = parseFloat(String(r.price||"").replace(/,/g,""))||0;
-      const q = (parseInt(r.qin)||0)+(parseInt(r.qout)||0);
-      const c = parseFloat(r.commission)||0;
-      if (p && q) { total += p*q; commission += Math.round(p*q*c/100); }
+      const p = parseFloat(String(r.price || '').replace(/,/g, '')) || 0;
+      const q = (parseInt(r.qin) || 0) + (parseInt(r.qout) || 0);
+      const c = parseFloat(r.commission) || 0;
+      if (p && q) { total += p * q; commission += Math.round(p * q * c / 100); }
     });
-    return { presc: s.presc||"", pharma: s.pharma_name||s.pharmaName||"", hospital: s.hospital_name||"", total, commission };
+    return { presc: s.presc || '', pharma: s.pharma_name || s.pharmaName || '', hospital: s.hospital_name || '', total, commission };
   });
   if (selMonth)  rows = rows.filter(r => r.presc === selMonth);
   if (selPharma) rows = rows.filter(r => r.pharma === selPharma);
-  rows.sort((a,b) => b.presc.localeCompare(a.presc) || a.pharma.localeCompare(b.pharma));
-  const tbody = document.getElementById("db-stat-body");
-  const tfoot = document.getElementById("db-stat-foot");
+  rows.sort((a, b) => b.presc.localeCompare(a.presc) || a.pharma.localeCompare(b.pharma));
+  const tbody = document.getElementById('db-stat-body');
+  const tfoot = document.getElementById('db-stat-foot');
   if (!tbody) return;
-  if (!rows.length) { tbody.innerHTML = "<tr><td colspan=5 style="text-align:center;padding:24px;color:var(--gray-400);">데이터가 없습니다</td></tr>"; tfoot.style.display="none"; return; }
-  let sumT=0, sumC=0;
-  tbody.innerHTML = rows.map((r,i) => { sumT+=r.total; sumC+=r.commission;
-    return "<tr style=""+(i%2?"background:var(--gray-50);":"")+"border-bottom:1px solid var(--gray-100);"><td style="padding:8px 10px;color:var(--gray-700);">"+(r.presc||"-")+"</td><td style="padding:8px 10px;color:var(--gray-700);">"+(r.pharma||"-")+"</td><td style="padding:8px 10px;color:var(--gray-700);">"+(r.hospital||"-")+"</td><td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--gold);">"+(r.total?r.total.toLocaleString()+"원":"-")+"</td><td style="padding:8px 10px;text-align:right;font-weight:600;color:#2d6a4f;">"+(r.commission?r.commission.toLocaleString()+"원":"-")+"</td></tr>";
-  }).join("");
-  document.getElementById("db-stat-total").textContent = sumT ? sumT.toLocaleString()+"원" : "-";
-  document.getElementById("db-stat-commission").textContent = sumC ? sumC.toLocaleString()+"원" : "-";
-  tfoot.style.display="";
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400);">데이터가 없습니다</td></tr>';
+    tfoot.style.display = 'none';
+    return;
+  }
+  let sumT = 0, sumC = 0;
+  tbody.innerHTML = rows.map((r, i) => {
+    sumT += r.total; sumC += r.commission;
+    const bg = i % 2 ? 'background:var(--gray-50);' : '';
+    return '<tr style="' + bg + 'border-bottom:1px solid var(--gray-100);">'
+      + '<td style="padding:8px 10px;color:var(--gray-700);">' + (r.presc || '-') + '</td>'
+      + '<td style="padding:8px 10px;color:var(--gray-700);">' + (r.pharma || '-') + '</td>'
+      + '<td style="padding:8px 10px;color:var(--gray-700);">' + (r.hospital || '-') + '</td>'
+      + '<td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--gold);">' + (r.total ? r.total.toLocaleString() + '원' : '-') + '</td>'
+      + '<td style="padding:8px 10px;text-align:right;font-weight:600;color:#2d6a4f;">' + (r.commission ? r.commission.toLocaleString() + '원' : '-') + '</td>'
+      + '</tr>';
+  }).join('');
+  document.getElementById('db-stat-total').textContent      = sumT ? sumT.toLocaleString() + '원' : '-';
+  document.getElementById('db-stat-commission').textContent = sumC ? sumC.toLocaleString() + '원' : '-';
+  tfoot.style.display = '';
 }
-// VIEW MANAGEMENT
+// VIEW MANAGEMENT// VIEW MANAGEMENT
 // ══════════════════════════════════════════════
 const VIEW_TITLES = {
   dashboard: '대시보드',
