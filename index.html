@@ -3656,8 +3656,14 @@ async function loadUserClients() {
 // 일반유저 본인 세션만 로드
 async function loadSessionsForUser() {
   try {
-    const { data } = await apiGet('/api/sessions?user_id=' + currentUser.id);
-    savedSessions = data || [];
+    const { data } = await apiGet('/api/sessions');
+    const allSessions = data || [];
+    // user_id 일치 or NULL(기존 데이터)이면서 담당 거래처 병원인 것만
+    const myHospitals = new Set(masterClients.map(c => c.name));
+    savedSessions = allSessions.filter(s =>
+      s.user_id === currentUser.id ||
+      (!s.user_id && myHospitals.has(s.hospital))
+    );
   } catch(e) { savedSessions = []; }
 }
 
