@@ -385,6 +385,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .list-row .list-btns { display: flex; gap: 6px; flex-shrink: 0; margin-left: auto; }
 .export-bar { display: flex; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex-wrap: wrap; }
 
+/* ══ DRUG DROP ═════════════════════════ */
+.drug-drop-item.active { background: #f5f0e8 !important; }
 /* ══ TOAST ════════════════════════════ */
 #toast {
   position: fixed;
@@ -1733,6 +1735,7 @@ function renderTable(newIdx) {
           id="name-input-${i}"
           oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
           onblur="setTimeout(()=>closeDrugDrop(${i}),200)"
+          onkeydown="drugDropKeyNav(event,${i})"
           placeholder="제품명"
           autocomplete="off">
         <div id="drug-drop-${i}" style="display:none;position:absolute;top:100%;left:0;z-index:999;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:220px;overflow-y:auto;min-width:280px;"></div>
@@ -3198,6 +3201,35 @@ async function autoFillByCode(rowIdx, code) {
 let _drugSearchTimer = null;
 let _drugSearchCache = {};
 
+function drugDropKeyNav(e, rowIdx) {
+  const drop = document.getElementById('drug-drop-' + rowIdx);
+  if (!drop || drop.style.display === 'none') return;
+  const items = drop.querySelectorAll('.drug-drop-item');
+  if (!items.length) return;
+
+  const active = drop.querySelector('.drug-drop-item.active');
+  let idx = Array.from(items).indexOf(active);
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    idx = (idx + 1) % items.length;
+    items.forEach(el => el.classList.remove('active'));
+    items[idx].classList.add('active');
+    items[idx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    idx = idx <= 0 ? items.length - 1 : idx - 1;
+    items.forEach(el => el.classList.remove('active'));
+    items[idx].classList.add('active');
+    items[idx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (active) active.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  } else if (e.key === 'Escape') {
+    closeDrugDrop(rowIdx);
+  }
+}
+
 function closeDrugDrop(rowIdx) {
   const drop = document.getElementById('drug-drop-' + rowIdx);
   if (drop) drop.style.display = 'none';
@@ -3294,7 +3326,7 @@ function renderDrugDrop(rowIdx, keyword, data) {
   if (!items.length) { drop.style.display = 'none'; return; }
 
   drop.innerHTML = items.map(it => `
-    <div onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')"
+    <div class="drug-drop-item" onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')"
       style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;"
       onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background=''">
       <span>${it.nonInsured ? '<span style=\"color:#e67e22;font-size:11px;margin-right:4px;\">[비급여]</span>' : ''}${esc(it.name)}</span>
