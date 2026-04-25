@@ -964,26 +964,39 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <button class="btn btn-sm" onclick="addRow({},true)">+ 행 추가</button>
     </div>
     <div class="tbl-wrap">
-      <table>
+      <table style="table-layout:fixed;width:100%;">
+        <colgroup>
+          <col style="width:50px">  <!-- 삭제 -->
+          <col style="width:36px">  <!-- 순번 -->
+          <col style="width:100px"> <!-- 보험코드 -->
+          <col style="width:170px"> <!-- 제품명 -->
+          <col style="width:60px">  <!-- 단가 -->
+          <col style="width:65px">  <!-- 원내수량 -->
+          <col style="width:65px">  <!-- 원외수량 -->
+          <col style="width:58px">  <!-- 수수료% -->
+          <col style="width:72px">  <!-- 처방/조제 -->
+          <col style="width:88px">  <!-- 처방금액 -->
+          <col style="width:82px">  <!-- 정산금액 -->
+        </colgroup>
         <thead>
           <tr>
             <th class="del-cell"></th>
-            <th style="width:30px;">순번</th>
-            <th style="width:100px;">보험코드</th>
-            <th style="width:160px;max-width:160px;">제품명</th>
-            <th style="width:60px;">단가</th>
-            <th style="width:58px;">원내수량</th>
-            <th style="width:58px;">원외수량</th>
-            <th style="width:55px;">수수료%</th>
-            <th style="width:65px;">처방/조제</th>
-            <th style="width:85px;">처방금액</th>
-            <th style="width:80px;">정산금액</th>
+            <th>순번</th>
+            <th>보험코드</th>
+            <th>제품명</th>
+            <th>단가</th>
+            <th>원내수량</th>
+            <th>원외수량</th>
+            <th>수수료%</th>
+            <th>처방/조제</th>
+            <th>처방금액</th>
+            <th>정산금액</th>
           </tr>
         </thead>
         <tbody id="edi-body"></tbody>
         <tfoot id="edi-foot" style="border-top:2px solid var(--gold-lt);">
           <tr style="background:var(--gray-50);">
-            <td colspan="3" style="text-align:right;padding:8px 10px;font-size:13px;color:var(--gray-500);">합계</td>
+            <td colspan="4" style="text-align:right;padding:8px 10px;font-size:13px;color:var(--gray-500);">합계</td>
             <td id="foot-in" style="text-align:right;padding:8px 6px;font-size:13px;font-weight:700;color:var(--brown);"></td>
             <td id="foot-out" style="text-align:right;padding:8px 6px;font-size:13px;font-weight:700;color:var(--brown);"></td>
             <td style="padding:4px;"></td>
