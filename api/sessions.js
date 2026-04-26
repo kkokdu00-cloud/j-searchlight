@@ -29,7 +29,6 @@ export default async function handler(req, res) {
       .upsert({
         id:           session.id,
         user_id:      session.user_id || null,
-        user_name:    session.user_name || '',
         hospital:     session.hospital,
         pharma:       session.pharma,
         bizno:        session.bizno || '',
