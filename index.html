@@ -654,17 +654,13 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   td input { font-size: 12px; padding: 3px 4px; }
   td select { font-size: 11px; padding: 2px 2px; }
   /* 처방입력 테이블 모바일 최적화 */
-  .del-cell { display: none !important; }
-  th.del-cell { display: none !important; }
-  #edi-body tr td:first-child { display: none; }
-  /* 처방입력 테이블 가로 스크롤 */
-  #view-input .tbl-wrap { overflow-x: scroll !important; -webkit-overflow-scrolling: touch; display: block; }
-  #edi-foot td { font-size: 11px !important; padding: 6px 3px !important; white-space: nowrap; }
-  #foot-total, #foot-commission { font-size: 11px !important; }
+  #view-input .tbl-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  #view-input .tbl-wrap table { min-width: 700px !important; table-layout: fixed !important; }
   #view-input th { padding: 6px 3px; font-size: 10px; white-space: nowrap; }
-  #view-input td { padding: 5px 2px; font-size: 11px; }
-  #view-input td input { font-size: 11px; padding: 2px 3px; width: 100%; min-width: 0; }
-  #view-input td select { font-size: 10px; padding: 1px 1px; }
+  #view-input td { padding: 5px 3px; font-size: 11px; white-space: nowrap; }
+  #view-input td input { font-size: 11px; padding: 2px 2px; box-sizing: border-box; }
+  #view-input td select { font-size: 10px; }
+  #edi-foot td { font-size: 11px !important; padding: 6px 3px !important; white-space: nowrap; }
 
   /* ── OCR 영역 ── */
   .ocr-drop { padding: 18px 12px; }
