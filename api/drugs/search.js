@@ -60,34 +60,52 @@ module.exports = async (req, res) => {
 
     const kw = keyword.trim();
     const bioFilter = bioequivalence === 'true';
+    const limitCount = req.query.limit ? parseInt(req.query.limit) : 1000;
+    const isAutocomplete = req.query.autocomplete === '1';
 
-    let query = supabase
+    // --- drug_master 쿼리 ---
+    let q1 = supabase
       .from('drug_master')
       .select('product_code, product_name, company_name, gnl_nm_cd, mx_cprc, pay_tp_nm, is_bioequivalence, price_eval_result')
       .in('pay_tp_nm', ['급여', '비급여', '삭제'])
       .gt('mx_cprc', 0);
 
-    if (bioFilter) query = query.eq('is_bioequivalence', true);
+    if (bioFilter) q1 = q1.eq('is_bioequivalence', true);
 
     if (searchType === 'company') {
-      query = query.ilike('company_name', `%${kw}%`);
+      q1 = q1.ilike('company_name', `%${kw}%`);
     } else if (searchType === 'code') {
-      query = query.eq('product_code', kw);
+      q1 = q1.eq('product_code', kw);
     } else {
-      query = query.ilike('product_name', `%${kw}%`);
-      if (company && company.trim()) {
-        query = query.ilike('company_name', `%${company.trim()}%`);
-      }
+      q1 = q1.ilike('product_name', `%${kw}%`);
+      if (company && company.trim()) q1 = q1.ilike('company_name', `%${company.trim()}%`);
     }
 
-    const limitCount = req.query.limit ? parseInt(req.query.limit) : 1000;
-    const { data: rows, error } = await query.limit(Math.min(limitCount, 1000));
-    if (error) throw new Error(error.message);
+    // --- drug_master_otc 쿼리 ---
+    let q2 = supabase
+      .from('drug_master_otc')
+      .select('product_code, product_name, company_name, gnl_nm_cd, mx_cprc');
 
-    const isAutocomplete = req.query.autocomplete === '1';
+    if (searchType === 'company') {
+      q2 = q2.ilike('company_name', `%${kw}%`);
+    } else if (searchType === 'code') {
+      q2 = q2.eq('product_code', kw);
+    } else {
+      q2 = q2.ilike('product_name', `%${kw}%`);
+      if (company && company.trim()) q2 = q2.ilike('company_name', `%${company.trim()}%`);
+    }
+
+    const [{ data: rows1, error: e1 }, { data: rows2, error: e2 }] = await Promise.all([
+      q1.limit(Math.min(limitCount, 1000)),
+      q2.limit(Math.min(limitCount, 1000))
+    ]);
+
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+
     const commissionMap = isAutocomplete ? {} : await fetchCommissionMap();
 
-    const data = (rows || []).map(row => {
+    const mapRow = (row, isOtc = false) => {
       const mdsCd = String(row.product_code || '');
       const mxCprc = parseFloat(row.mx_cprc) || 0;
       const commissionRate = isAutocomplete ? 0 : (commissionMap[mdsCd] || 0);
@@ -100,13 +118,18 @@ module.exports = async (req, res) => {
         clsgAmt: mxCprc,
         ingdCd: row.gnl_nm_cd || '',
         ingdNm: extractKoreanIngredientName(row.product_name || ''),
-        payTpNm: row.pay_tp_nm || '',
+        payTpNm: isOtc ? '비급여' : (row.pay_tp_nm || ''),
         isBioequivalence: row.is_bioequivalence || false,
         priceEvalResult: row.price_eval_result || null,
         commissionRate,
         commissionAmt
       };
-    });
+    };
+
+    const data = [
+      ...(rows1 || []).map(r => mapRow(r, false)),
+      ...(rows2 || []).map(r => mapRow(r, true))
+    ];
 
     res.json({ data, allDrugs: data, total: data.length });
   } catch (err) {
