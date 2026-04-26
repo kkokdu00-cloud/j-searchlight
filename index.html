@@ -1887,7 +1887,7 @@ function renderTable(newIdx) {
           onkeydown="drugDropKeyNav(event,${i})"
           placeholder="제품명"
           autocomplete="off">
-        <div id="drug-drop-${i}" style="display:none;position:absolute;top:100%;left:0;z-index:999;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:220px;overflow-y:auto;min-width:280px;"></div>
+        <div id="drug-drop-${i}" style="display:none;position:fixed;z-index:9999;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:220px;overflow-y:auto;min-width:280px;"></div>
       </td>
       <td><input value="${esc(r.price)}"
         ${r.priceFixed ? 'readonly' : `onchange="rows[${i}].price=this.value"`}
@@ -3567,6 +3567,14 @@ function renderDrugDrop(rowIdx, keyword, data) {
       <span>${it.nonInsured ? '<span style=\"color:#e67e22;font-size:11px;margin-right:4px;\">[비급여]</span>' : ''}${esc(it.name)}</span>
       <span style="color:${it.nonInsured?'#e67e22':'var(--gold)'};font-size:12px;font-weight:600;margin-left:8px;">${it.price ? Number(it.price).toLocaleString()+'원' : ''}</span>
     </div>`).join('');
+  // fixed position 좌표 계산
+  const nameInput = document.getElementById('name-input-' + rowIdx);
+  if (nameInput) {
+    const rect = nameInput.getBoundingClientRect();
+    drop.style.top  = (rect.bottom + window.scrollY) + 'px';
+    drop.style.left = rect.left + 'px';
+    drop.style.width = Math.max(rect.width, 280) + 'px';
+  }
   drop.style.display = 'block';
 }
 
