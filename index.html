@@ -3658,7 +3658,8 @@ async function afterLogin() {
   if (isAdmin) {
     await Promise.all([loadPharma(), loadClients(), loadSessions()]);
   } else {
-    await Promise.all([loadPharma(), loadUserClients(), loadSessionsForUser()]);
+    await Promise.all([loadPharma(), loadUserClients()]);
+    await loadSessionsForUser();
   }
   updateDataLists();
   renderDashboard();
