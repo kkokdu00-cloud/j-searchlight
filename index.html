@@ -866,10 +866,18 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 병의원별 EDI 현황</div>
-    <div id="db-client-stats" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-      <div style="color:var(--gray-400); font-size:15px; text-align:center; padding:20px 0;">불러오는 중...</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="card">
+      <div class="section-title"><i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:-3px;color:#2d6a4f;"></i> 병의원별 입력현황</div>
+      <div id="db-client-done" style="display:flex;flex-direction:column;gap:4px;margin-top:8px;">
+        <div style="color:var(--gray-400);font-size:14px;text-align:center;padding:16px 0;">불러오는 중...</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title"><i data-lucide="x-circle" style="width:16px;height:16px;vertical-align:-3px;color:#e74c3c;"></i> 병의원별 미입력현황</div>
+      <div id="db-client-miss" style="display:flex;flex-direction:column;gap:4px;margin-top:8px;">
+        <div style="color:var(--gray-400);font-size:14px;text-align:center;padding:16px 0;">불러오는 중...</div>
+      </div>
     </div>
   </div>
 
@@ -1712,29 +1720,25 @@ function renderDashboard() {
   const monthSessions = savedSessions.filter(s => (s.presc||'').startsWith(ym));
   document.getElementById('db-month-count').textContent = monthSessions.length;
 
-  // 병의원별 EDI 건수 TOP 8
-  const clientMap = {};
-  savedSessions.forEach(s => {
-    const k = s.hospital_name || s.hospital || '미입력';
-    clientMap[k] = (clientMap[k]||0) + 1;
-  });
-  const clientStats = Object.entries(clientMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const statsEl = document.getElementById('db-client-stats');
-  const maxVal = clientStats[0]?.[1] || 1;
-  if (clientStats.length === 0) {
-    statsEl.innerHTML = '<div style="color:var(--gray-400);font-size:15px;text-align:center;padding:20px 0;">데이터가 없습니다</div>';
-  } else {
-    statsEl.innerHTML = clientStats.map(([name, cnt]) => {
-      const pct = Math.round(cnt/maxVal*100);
-      return `<div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:100px;font-size:14px;color:var(--gray-700);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(name)}">${esc(name)}</div>
-        <div style="flex:1;background:var(--gray-100);border-radius:4px;height:18px;overflow:hidden;">
-          <div style="height:100%;width:${pct}%;background:var(--gold);border-radius:4px;transition:width .4s;"></div>
-        </div>
-        <div style="width:28px;text-align:right;font-size:14px;font-weight:700;color:var(--gold);">${cnt}</div>
-      </div>`;
-    }).join('');
-  }
+  // 병의원별 입력/미입력 현황
+  const inputtedHospitals = new Set(savedSessions.map(s => s.hospital_name || s.hospital).filter(Boolean));
+  const allHospitals = (window._allClients || masterClients).map(c => c.name);
+  const doneEl = document.getElementById('db-client-done');
+  const missEl = document.getElementById('db-client-miss');
+  const doneList = allHospitals.filter(h => inputtedHospitals.has(h));
+  const missList = allHospitals.filter(h => !inputtedHospitals.has(h));
+  doneEl.innerHTML = doneList.length
+    ? doneList.map(h => `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#f0faf4;">
+        <span style="color:#2d6a4f;font-weight:800;font-size:16px;">O</span>
+        <span style="font-size:13px;color:var(--gray-700);font-weight:600;">${esc(h)}</span>
+      </div>`).join('')
+    : '<div style="color:var(--gray-400);font-size:13px;text-align:center;padding:16px 0;">입력된 병의원 없음</div>';
+  missEl.innerHTML = missList.length
+    ? missList.map(h => `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#fff5f5;">
+        <span style="color:#e74c3c;font-weight:800;font-size:16px;">X</span>
+        <span style="font-size:13px;color:var(--gray-700);font-weight:600;">${esc(h)}</span>
+      </div>`).join('')
+    : '<div style="color:var(--gray-400);font-size:13px;text-align:center;padding:16px 0;">미입력 병의원 없음</div>';
 
   // 월/제약사 필터 옵션 초기화
   const months  = [...new Set(savedSessions.map(s => s.presc).filter(Boolean))].sort().reverse();
