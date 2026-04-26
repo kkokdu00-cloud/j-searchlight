@@ -1685,6 +1685,7 @@ async function loadClients() {
   try {
     const { data } = await apiGet('/api/clients');
     masterClients = data || [];
+    window._allClients = masterClients; // 관리자용 전체 거래처 캐시
     updateDataLists();
   } catch(e) {
     console.error('거래처 로드 실패:', e);
@@ -1761,7 +1762,14 @@ function renderStatTable() {
       const c = parseFloat(r.commission) || 0;
       if (p && q) { total += p * q; commission += Math.round(p * q * c / 100); }
     });
-    return { presc: s.presc || '', pharma: s.pharma_name || s.pharmaName || s.pharma || '', hospital: s.hospital_name || s.hospital || '', user: s.user_name || '', total, commission };
+    // user_name 없으면 master_clients에서 hospital 기준으로 역추적
+    let userName = s.user_name || '';
+    if (!userName) {
+      const c = masterClients.find ? null : null; // admin은 전체 clients 있음
+      const found = (window._allClients || masterClients).find(c => c.name === (s.hospital_name || s.hospital));
+      if (found) userName = found.manager || '';
+    }
+    return { presc: s.presc || '', pharma: s.pharma_name || s.pharmaName || s.pharma || '', hospital: s.hospital_name || s.hospital || '', user: userName, total, commission };
   });
   if (selMonth)    rows = rows.filter(r => r.presc    === selMonth);
   if (selPharma)   rows = rows.filter(r => r.pharma   === selPharma);
