@@ -3671,7 +3671,7 @@ async function loadUserClients() {
     const allRes = await apiGet('/api/clients');
     const all = allRes.data || [];
     // 거래처 company 필드가 현재 유저 이름과 일치하는 것만
-    const byCompany = all.filter(c => c.company === currentUser.name);
+    const byCompany = all.filter(c => c.manager === currentUser.name);
     if (byCompany.length > 0) {
       masterClients = byCompany;
     } else {
