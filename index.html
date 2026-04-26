@@ -891,11 +891,18 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       </div>
     </div>
     <div style="overflow-x:auto;">
-      <table id="db-stat-table" style="width:100%;border-collapse:collapse;font-size:13px;">
+      <table id="db-stat-table" style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
+        <colgroup>
+          <col style="width:100px">
+          <col style="width:100px">
+          <col>
+          <col style="width:130px">
+          <col style="width:110px">
+        </colgroup>
         <thead><tr style="background:var(--gray-50);border-bottom:2px solid var(--gold-lt);">
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--gray-700);">처방월</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--gray-700);">제약사</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--gray-700);">거래처</th>
+          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--gray-700);">처방월</th>
+          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--gray-700);">제약사</th>
+          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--gray-700);">거래처</th>
           <th style="padding:8px 10px;text-align:right;font-weight:700;color:var(--gray-700);">처방금액</th>
           <th style="padding:8px 10px;text-align:right;font-weight:700;color:var(--gray-700);">정산금액</th>
         </tr></thead>
