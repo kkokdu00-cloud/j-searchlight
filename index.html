@@ -879,6 +879,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <div style="display:flex;gap:8px;align-items:center;">
         <select id="db-stat-month" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size:13px;padding:0 8px;background:#fff;" onchange="renderStatTable()"><option value="">전체 월</option></select>
         <select id="db-stat-pharma" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size:13px;padding:0 8px;background:#fff;" onchange="renderStatTable()"><option value="">전체 제약사</option></select>
+        <select id="db-stat-hospital" style="height:30px;border:1px solid #d0d0d0;border-radius:6px;font-size:13px;padding:0 8px;background:#fff;" onchange="renderStatTable()"><option value="">전체 업체</option></select>
       </div>
     </div>
     <div style="overflow-x:auto;">
@@ -1739,14 +1740,18 @@ function renderDashboard() {
   const pharmas = [...new Set(savedSessions.map(s => s.pharma_name||s.pharmaName||s.pharma).filter(Boolean))].sort();
   const mSel = document.getElementById("db-stat-month");
   const pSel = document.getElementById("db-stat-pharma");
+  const hospitals = [...new Set(savedSessions.map(s => s.hospital_name||s.hospital).filter(Boolean))].sort();
+  const hSel = document.getElementById('db-stat-hospital');
   if (mSel) { mSel.innerHTML='<option value="">전체 월</option>'+months.map(m=>'<option value="'+m+'">'+m+'</option>').join(''); }
   if (pSel) { pSel.innerHTML='<option value="">전체 제약사</option>'+pharmas.map(p=>'<option value="'+p+'">'+p+'</option>').join(''); }
+  if (hSel) { hSel.innerHTML='<option value="">전체 업체</option>'+hospitals.map(h=>'<option value="'+h+'">'+h+'</option>').join(''); }
   renderStatTable();
 }
 
 function renderStatTable() {
-  const selMonth  = (document.getElementById('db-stat-month') || {}).value  || '';
-  const selPharma = (document.getElementById('db-stat-pharma') || {}).value || '';
+  const selMonth    = (document.getElementById('db-stat-month')    || {}).value || '';
+  const selPharma   = (document.getElementById('db-stat-pharma')   || {}).value || '';
+  const selHospital = (document.getElementById('db-stat-hospital') || {}).value || '';
   let rows = savedSessions.map(s => {
     const items = s.rows || [];
     let total = 0, commission = 0;
@@ -1758,8 +1763,9 @@ function renderStatTable() {
     });
     return { presc: s.presc || '', pharma: s.pharma_name || s.pharmaName || s.pharma || '', hospital: s.hospital_name || s.hospital || '', total, commission };
   });
-  if (selMonth)  rows = rows.filter(r => r.presc === selMonth);
-  if (selPharma) rows = rows.filter(r => r.pharma === selPharma);
+  if (selMonth)    rows = rows.filter(r => r.presc    === selMonth);
+  if (selPharma)   rows = rows.filter(r => r.pharma   === selPharma);
+  if (selHospital) rows = rows.filter(r => r.hospital === selHospital);
   rows.sort((a, b) => b.presc.localeCompare(a.presc) || a.pharma.localeCompare(b.pharma));
   const tbody = document.getElementById('db-stat-body');
   const tfoot = document.getElementById('db-stat-foot');
