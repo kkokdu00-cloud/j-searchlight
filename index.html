@@ -3668,11 +3668,18 @@ async function afterLogin() {
 // 일반유저 담당 거래처 로드
 async function loadUserClients() {
   try {
-    const res = await fetch('/api/auth?action=user_clients&user_id=' + currentUser.id);
-    const { data } = await res.json();
-    // 전체 거래처 중 본인 담당만 필터
     const allRes = await apiGet('/api/clients');
-    masterClients = (allRes.data || []).filter(c => data.includes(c.id));
+    const all = allRes.data || [];
+    // 거래처 company 필드가 현재 유저 이름과 일치하는 것만
+    const byCompany = all.filter(c => c.company === currentUser.name);
+    if (byCompany.length > 0) {
+      masterClients = byCompany;
+    } else {
+      // fallback: user_clients 테이블 방식
+      const res = await fetch('/api/auth?action=user_clients&user_id=' + currentUser.id);
+      const { data } = await res.json();
+      masterClients = all.filter(c => data.includes(c.id));
+    }
     updateDataLists();
   } catch(e) { masterClients = []; }
 }
