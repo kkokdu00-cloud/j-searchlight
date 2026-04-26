@@ -1792,9 +1792,9 @@ function renderStatTable() {
     sumT += r.total; sumC += r.commission;
     const bg = i % 2 ? 'background:var(--gray-50);' : '';
     return '<tr style="' + bg + 'border-bottom:1px solid var(--gray-100);">'
-      + '<td style="padding:8px 10px;color:var(--gray-700);">' + (r.presc || '-') + '</td>'
-      + '<td style="padding:8px 10px;color:var(--gray-700);">' + (r.pharma || '-') + '</td>'
-      + '<td style="padding:8px 10px;color:var(--gray-700);">' + (r.hospital || '-') + '</td>'
+      + '<td style="padding:8px 10px;text-align:center;color:var(--gray-700);">' + (r.presc || '-') + '</td>'
+      + '<td style="padding:8px 10px;text-align:center;color:var(--gray-700);">' + (r.pharma || '-') + '</td>'
+      + '<td style="padding:8px 10px;text-align:center;color:var(--gray-700);">' + (r.hospital || '-') + '</td>'
       + '<td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--gold);">' + (r.total ? r.total.toLocaleString() + '원' : '-') + '</td>'
       + '<td style="padding:8px 10px;text-align:right;font-weight:600;color:#2d6a4f;">' + (r.commission ? r.commission.toLocaleString() + '원' : '-') + '</td>'
       + '</tr>';
