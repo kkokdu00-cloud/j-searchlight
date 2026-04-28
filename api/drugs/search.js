@@ -59,6 +59,26 @@ module.exports = async (req, res) => {
     }
 
     const kw = keyword.trim();
+
+    if (searchType === 'ingredient-otc') {
+      const { data: rows, error } = await supabase
+        .from('drug_master_otc')
+        .select('item_seq, item_name, entp_name, item_ingr_name, edi_code')
+        .ilike('item_ingr_name', `%${kw}%`)
+        .limit(1000);
+      if (error) throw new Error(error.message);
+      const data = (rows || []).map(row => ({
+        itmNm: row.item_name || '',
+        cpnyNm: row.entp_name || '',
+        itmCd: row.edi_code || row.item_seq || '',
+        mnfSeq: row.item_seq || '',
+        clsgAmt: 0,
+        ingdNm: row.item_ingr_name || '',
+        payTpNm: '비급여'
+      }));
+      return res.json({ data, allDrugs: data, total: data.length });
+    }
+
     const bioFilter = bioequivalence === 'true';
 
     let query = supabase
