@@ -81,8 +81,25 @@ module.exports = async (req, res) => {
     }
 
     const limitCount = req.query.limit ? parseInt(req.query.limit) : 1000;
-    const { data: rows, error } = await query.limit(Math.min(limitCount, 1000));
+
+    let otcQuery = supabase
+      .from('drug_master_otc')
+      .select('item_seq, item_name, entp_name, item_ingr_name, edi_code');
+
+    if (searchType === 'company') {
+      otcQuery = otcQuery.ilike('entp_name', `%${kw}%`);
+    } else if (searchType === 'code') {
+      otcQuery = otcQuery.eq('edi_code', kw);
+    } else {
+      otcQuery = otcQuery.ilike('item_name', `%${kw}%`);
+    }
+
+    const [{ data: rows, error }, { data: otcRows, error: otcError }] = await Promise.all([
+      query.limit(Math.min(limitCount, 1000)),
+      otcQuery.limit(Math.min(limitCount, 1000))
+    ]);
     if (error) throw new Error(error.message);
+    if (otcError) throw new Error(otcError.message);
 
     const isAutocomplete = req.query.autocomplete === '1';
     const commissionMap = isAutocomplete ? {} : await fetchCommissionMap();
@@ -108,7 +125,24 @@ module.exports = async (req, res) => {
       };
     });
 
-    res.json({ data, allDrugs: data, total: data.length });
+    const otcData = (otcRows || []).map(row => ({
+      itmNm: row.item_name || '',
+      cpnyNm: row.entp_name || '',
+      itmCd: row.edi_code || row.item_seq || '',
+      mnfSeq: row.item_seq || '',
+      clsgAmt: 0,
+      ingdCd: '',
+      ingdNm: row.item_ingr_name || '',
+      payTpNm: '비급여',
+      isBioequivalence: false,
+      priceEvalResult: null,
+      commissionRate: 0,
+      commissionAmt: 0
+    }));
+
+    const combined = [...data, ...otcData];
+
+    res.json({ data: combined, allDrugs: combined, total: combined.length });
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ error: '검색 중 오류가 발생했습니다.' });
