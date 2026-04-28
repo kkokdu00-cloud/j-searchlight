@@ -2158,10 +2158,24 @@ async function runOCR() {
         ({ base64, mediaType } = await resizeImageToBase64(file));
       }
 
+      // 제약사명 + 코드 목록 준비
+      const _pharmaNameOcr = document.getElementById('h-pharma')?.value?.trim() || '';
+      const _pharmaObjOcr = masterPharma.find(p => p.name === _pharmaNameOcr);
+      const _productListOcr = _pharmaObjOcr && _pharmaObjOcr.codeRates && _pharmaObjOcr.codeRates.length > 0
+        ? _pharmaObjOcr.codeRates.map(r => ({ code: r.code, name: '' }))
+        : (_pharmaObjOcr && _pharmaObjOcr.codes
+            ? _pharmaObjOcr.codes.map(c => ({ code: c, name: '' }))
+            : []);
+
       const res = await fetch('/api/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mediaType })
+        body: JSON.stringify({
+          imageBase64: base64,
+          mediaType,
+          pharmaName: _pharmaNameOcr || undefined,
+          productList: _productListOcr.length > 0 ? _productListOcr : undefined
+        })
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
