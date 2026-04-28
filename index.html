@@ -2217,7 +2217,26 @@ async function runOCR() {
         rows.forEach(r => {
           if (r.code && map[r.code]) {
             r.name  = map[r.code].product_name || r.name;
-            r.price = map[r.code].mx_cprc      || r.price;
+            const dbPrice = map[r.code].mx_cprc;
+            r.price = dbPrice || r.price;
+
+            // ── 총금액 역산 검증 ──────────────────────────
+            // OCR이 읽은 total(총금액)과 DB단가로 qout을 역산해서 검증
+            if (dbPrice && r.total) {
+              const ocrTotal = parseFloat(String(r.total).replace(/,/g, '')) || 0;
+              const price    = parseFloat(String(dbPrice).replace(/,/g, '')) || 0;
+              if (ocrTotal > 0 && price > 0) {
+                const calcQout = Math.round(ocrTotal / price);
+                const ocrQout  = parseInt(r.qout) || 0;
+                // 역산값과 OCR값이 10% 이상 차이나면 역산값으로 덮어씌우기
+                if (ocrQout === 0 || Math.abs(calcQout - ocrQout) / Math.max(calcQout, ocrQout) > 0.1) {
+                  r.qout = String(calcQout);
+                  r._qoutFixed = true; // 역산 보정 표시
+                }
+              }
+            }
+            // ─────────────────────────────────────────────
+
             // 수수료: masterPharma codeRates 우선, DB fallback
             const pharmaMatch = masterPharma.find(p =>
               p.codeRates && p.codeRates.some(cr => cr.code === r.code)
