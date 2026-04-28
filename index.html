@@ -1898,7 +1898,8 @@ function renderTable(newIdx) {
         oninput="rows[${i}].code=this.value; if(this.value.length>=9) autoFillByCode(${i}, this.value)"
         placeholder="643301120"></td>
       <td style="position:relative;overflow:hidden;">
-        <input value="${esc(r.name)}" style="overflow:hidden;text-overflow:ellipsis;"
+        <input value="${esc(r.name)}" style="overflow:hidden;text-overflow:ellipsis;${r._nameWarning ? 'background:#fff3cd;border-color:#ffc107;' : ''}"
+          title="${r._nameWarning ? '⚠️ OCR 코드 오인식 가능성 — 보험코드와 제품명을 확인하세요' : ''}"
           id="name-input-${i}"
           oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
           onblur="setTimeout(()=>closeDrugDrop(${i}),200)"
@@ -2185,7 +2186,7 @@ async function runOCR() {
 
       if (Array.isArray(parsed) && parsed.length > 0) {
         parsed.forEach(item => {
-          const row = { ...item, type: item.type || '처방' };
+          const row = { ...item, type: item.type || '처방', _ocrName: item.name || '' };
           rows.push(row);
           allExtracted.push(row);
         });
@@ -2253,6 +2254,32 @@ async function runOCR() {
             }
           }
         });
+
+      // ── OCR 제품명 vs DB 제품명 유사도 검증 ──────────────────
+      rows.forEach(r => {
+        if (!r.code || !map[r.code]) return;
+        const dbName  = (map[r.code].product_name || '').replace(/\s/g, '').toLowerCase();
+        const ocrName = (r._ocrName || r.name || '').replace(/\s/g, '').toLowerCase();
+        if (!ocrName || !dbName) return;
+
+        // 앞 4글자 비교 (제품명 앞부분이 가장 식별력 높음)
+        const dbHead  = dbName.slice(0, 4);
+        const ocrHead = ocrName.slice(0, 4);
+
+        // 공통 글자 수 계산
+        let commonCount = 0;
+        for (const ch of ocrHead) {
+          if (dbHead.includes(ch)) commonCount++;
+        }
+        const similarity = commonCount / Math.max(dbHead.length, ocrHead.length);
+
+        // 유사도 50% 미만이면 경고 플래그
+        if (similarity < 0.5) {
+          r._nameWarning = true;
+        }
+      });
+      // ─────────────────────────────────────────────────────────
+
       }
     } catch(e) { console.error('DB 보정 실패:', e); }
   }
