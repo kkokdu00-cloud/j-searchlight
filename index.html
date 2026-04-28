@@ -4039,8 +4039,10 @@ function renderDrugTable(data) {
     tr.addEventListener('dblclick', () => {
       if (row.ingdCd && row.ingdCd !== '0') {
         openIngredientPopup(row);
+      } else if (row.ingdNm && row.ingdNm.trim()) {
+        openIngredientPopupByName(row);
       } else {
-        showAlert('searchAlert', '이 제품은 성분코드(ingdCd) 정보가 없습니다.', 'info');
+        showAlert('searchAlert', '이 제품은 성분 정보가 없습니다.', 'info');
       }
     });
 
@@ -4157,6 +4159,49 @@ async function openIngredientPopup(row) {
     if (modalData.length === 0) {
       showModalAlert('동일성분 의약품이 없습니다.', 'info');
     }
+  } catch (err) {
+    showModalAlert('오류: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ===================== OPEN INGREDIENT POPUP BY NAME (OTC) =====================
+
+async function openIngredientPopupByName(row) {
+  const ingdNm = row.ingdNm.trim();
+
+  const modal = document.getElementById('ingredientModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalAlert = document.getElementById('modalAlert');
+
+  modalData = [];
+  modalBody.innerHTML = '';
+  modalAlert.style.display = 'none';
+
+  modal.classList.add('show');
+  showLoading();
+
+  try {
+    const response = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(ingdNm)}&searchType=name`);
+    const result = await response.json();
+
+    if (!response.ok) throw new Error(result.error || '성분 조회 중 오류가 발생했습니다.');
+
+    currentIngdNm = ingdNm;
+    modalTitle.textContent = `동일성분 의약품 목록 - ${ingdNm} (비급여 OTC)`;
+
+    const diseaseSection = document.getElementById('diseaseCodesSection');
+    if (diseaseSection) diseaseSection.style.display = 'none';
+
+    modalData = result.data || [];
+
+    const commissionChecked = document.getElementById('commissionFilter')?.checked || false;
+    const displayData = commissionChecked ? modalData.filter(d => d.commissionRate > 0) : modalData;
+    renderModalTable(displayData);
+
+    if (modalData.length === 0) showModalAlert('동일 성분명의 의약품이 없습니다.', 'info');
   } catch (err) {
     showModalAlert('오류: ' + err.message, 'error');
   } finally {
