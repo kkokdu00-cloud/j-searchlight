@@ -7,6 +7,12 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 <style>
 :root {
   --sidebar-w:  220px;
@@ -2151,9 +2157,79 @@ async function runOCR() {
     try {
       let base64, mediaType;
       if (file.type === 'application/pdf') {
-        // BUG-2: PDF는 원본 그대로
-        base64    = await fileToBase64(file);
-        mediaType = 'application/pdf';
+        // PDF → 페이지별 이미지로 변환 후 순차 OCR
+        try {
+          const arrayBuf = await file.arrayBuffer();
+          const pdfDoc   = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
+          const totalPages = pdfDoc.numPages;
+
+          log.push(`📄 [${i+1}] ${file.name} → ${totalPages}페이지 PDF 감지, 페이지별 처리 시작`);
+
+          for (let p = 1; p <= totalPages; p++) {
+            progressText.textContent = `(${i+1}/${ocrFiles.length}) ${file.name} - ${p}/${totalPages}페이지 처리 중...`;
+            progressBar.style.width = Math.round(((i + p/totalPages) / ocrFiles.length) * 100) + '%';
+
+            try {
+              const page     = await pdfDoc.getPage(p);
+              const viewport = page.getViewport({ scale: 2.0 });
+              const canvas   = document.createElement('canvas');
+              canvas.width   = viewport.width;
+              canvas.height  = viewport.height;
+              await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+              // 캔버스 → base64 (4MB 이하로 압축)
+              let quality = 0.88;
+              let pageBase64;
+              do {
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                pageBase64 = dataUrl.split(',')[1];
+                if (pageBase64.length * 0.75 <= 4 * 1024 * 1024) break;
+                quality -= 0.08;
+              } while (quality > 0.2);
+
+              const _pharmaNameOcr = document.getElementById('h-pharma')?.value?.trim() || '';
+              const _pharmaObjOcr  = masterPharma.find(p => p.name === _pharmaNameOcr);
+              const _productListOcr = _pharmaObjOcr && _pharmaObjOcr.codeRates && _pharmaObjOcr.codeRates.length > 0
+                ? _pharmaObjOcr.codeRates.map(r => ({ code: r.code, name: '' }))
+                : (_pharmaObjOcr && _pharmaObjOcr.codes ? _pharmaObjOcr.codes.map(c => ({ code: c, name: '' })) : []);
+
+              const pageRes = await fetch('/api/ocr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageBase64: pageBase64,
+                  mediaType: 'image/jpeg',
+                  pharmaName: _pharmaNameOcr || undefined,
+                  productList: _productListOcr.length > 0 ? _productListOcr : undefined
+                })
+              });
+              const pageData = await pageRes.json();
+              if (pageData.error) throw new Error(pageData.error);
+
+              const clean  = pageData.text.replace(/```json|```/g, '').trim();
+              const parsed = JSON.parse(clean);
+
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                parsed.forEach(item => {
+                  const row = { ...item, type: item.type || '처방', _ocrName: item.name || '' };
+                  rows.push(row);
+                  allExtracted.push(row);
+                });
+                totalExtracted += parsed.length;
+                log.push(`  ✅ ${p}페이지 → ${parsed.length}건 추출`);
+              } else {
+                log.push(`  ⚠️ ${p}페이지 → 추출 항목 없음`);
+              }
+            } catch(pageErr) {
+              log.push(`  ❌ ${p}페이지 실패: ${pageErr.message}`);
+            }
+          }
+          // PDF 처리 완료 → 다음 파일로
+          continue;
+        } catch(pdfErr) {
+          log.push(`❌ [${i+1}] ${file.name} → PDF 변환 실패: ${pdfErr.message}`);
+          continue;
+        }
       } else {
         // BUG-1: 이미지는 리사이즈+압축
         ({ base64, mediaType } = await resizeImageToBase64(file));
