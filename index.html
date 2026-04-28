@@ -4184,7 +4184,7 @@ async function openIngredientPopupByName(row) {
   showLoading();
 
   try {
-    const response = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(ingdNm)}&searchType=name`);
+    const response = await fetch(`/api/drugs/search-otc-by-ingredient?keyword=${encodeURIComponent(ingdNm)}`);
     const result = await response.json();
 
     if (!response.ok) throw new Error(result.error || '성분 조회 중 오류가 발생했습니다.');
