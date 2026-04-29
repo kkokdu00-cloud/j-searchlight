@@ -1,11 +1,15 @@
 {
-  "name": "edi-ocr",
+  "name": "j-searchlight",
   "version": "1.0.0",
+  "description": "J써치라이트 - EDI OCR + CSO 정산검수 통합 플랫폼",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
     "@supabase/supabase-js": "^2.39.0",
     "@vercel/blob": "^0.23.0",
+    "bcryptjs": "^3.0.3",
     "formidable": "^3.5.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^1.4.5-lts.1",
     "xlsx": "^0.18.5"
   }
 }
