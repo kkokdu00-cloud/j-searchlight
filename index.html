@@ -3793,6 +3793,19 @@ async function doLogin() {
 
     currentUser = data.user;
     sessionStorage.setItem('jsearch_user', JSON.stringify(currentUser));
+
+    // CSO 토큰 발급 (체크메이트 통합 로그인)
+    try {
+      const csoRes = await fetch('/api/cso/core?resource=auth&action=login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username: email, password: pw })
+      });
+      const csoData = await csoRes.json();
+      if (csoData.ok && csoData.data?.token) {
+        localStorage.setItem('jsearchlight_token', csoData.data.token);
+      }
+    } catch(e) { /* CSO 로그인 실패해도 써치라이트는 정상 사용 가능 */ }
+
     await afterLogin();
   } catch(e) {
     errEl.textContent = '서버 오류가 발생했습니다.';
@@ -3801,6 +3814,7 @@ async function doLogin() {
 
 function doLogout() {
   sessionStorage.removeItem('jsearch_user');
+  localStorage.removeItem('jsearchlight_token');
   currentUser = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
