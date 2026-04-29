@@ -5093,11 +5093,21 @@ const CSOAPI = {
     }
     const res = await fetch(url, opts);
     if (res.status === 401) {
-      alert('체크메이트 세션이 만료되었습니다. 다시 로그인해주세요.');
-      return;
+      // CSO 토큰 없어도 써치라이트 기능은 정상 동작 — 조용히 무시
+      throw new Error('로그인이 필요합니다.');
     }
     const data = await res.json().catch(() => ({ ok: false, error: 'JSON 파싱 오류' }));
-    if (!data.ok) throw new Error(data.error || '서버 오류');
+    if (!data.ok) {
+      // DB 내부 오류 메시지는 사용자에게 노출하지 않음
+      const rawErr = data.error || '서버 오류';
+      const friendlyErr = rawErr.includes('invalid input syntax') ? '잘못된 입력값입니다. 제약사를 먼저 선택해주세요.'
+        : rawErr.includes('null value') ? '필수 값이 누락되었습니다.'
+        : rawErr.includes('duplicate') ? '이미 존재하는 데이터입니다.'
+        : rawErr.includes('JWT') || rawErr.includes('token') ? '로그인이 필요합니다.'
+        : rawErr.length > 80 ? '서버 오류가 발생했습니다.' // DB 내부 오류 숨김
+        : rawErr;
+      throw new Error(friendlyErr);
+    }
     return data.data;
   },
   get: (url) => CSOAPI.request('GET', url),
@@ -5945,6 +5955,7 @@ const CSOInspectionTab = {
   // ── 상세 검수 로직 ────────────────────────────────────────────────────────
 
   async loadUploads() {
+    if (!CSOApp.pharmaId) return;
     try {
       const uploads = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
       const prescr = uploads.filter(u => u.file_type === 'prescription');
