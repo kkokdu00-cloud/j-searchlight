@@ -918,17 +918,19 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <button class="nav-item admin-only" id="nav-commission" onclick="showView('commission')">
       <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
     </button>
-    <div class="nav-divider"></div>
-    <div class="nav-group-label">체크메이트</div>
-    <button class="nav-item" id="nav-cso-upload" onclick="showView('cso-upload')">
-      <span class="nav-icon"><i data-lucide="upload" style="width:18px;height:18px;"></i></span> 데이터 업로드
-    </button>
-    <button class="nav-item" id="nav-cso-separation" onclick="showView('cso-separation')">
-      <span class="nav-icon"><i data-lucide="git-branch" style="width:18px;height:18px;"></i></span> 정산 분리
-    </button>
-    <button class="nav-item" id="nav-cso-inspection" onclick="showView('cso-inspection')">
-      <span class="nav-icon"><i data-lucide="search-check" style="width:18px;height:18px;"></i></span> 비교 검수
-    </button>
+    <div id="nav-cso-wrap">
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">체크메이트</div>
+      <button class="nav-item" id="nav-cso-upload" onclick="showView('cso-upload')">
+        <span class="nav-icon"><i data-lucide="upload" style="width:18px;height:18px;"></i></span> 데이터 업로드
+      </button>
+      <button class="nav-item" id="nav-cso-separation" onclick="showView('cso-separation')">
+        <span class="nav-icon"><i data-lucide="git-branch" style="width:18px;height:18px;"></i></span> 정산 분리
+      </button>
+      <button class="nav-item" id="nav-cso-inspection" onclick="showView('cso-inspection')">
+        <span class="nav-icon"><i data-lucide="search-check" style="width:18px;height:18px;"></i></span> 비교 검수
+      </button>
+    </div>
   </nav>
   <div id="nav-users-wrap" style="display:none;">
     <div class="nav-divider"></div>
@@ -3942,6 +3944,7 @@ async function afterLogin() {
   const isAdmin = currentUser.role === 'admin';
   document.getElementById('nav-users-wrap').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-master').style.display = isAdmin ? '' : 'none';
+  document.getElementById('nav-cso-wrap').style.display = isAdmin ? '' : 'none';
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
