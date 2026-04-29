@@ -1,7 +1,7 @@
-const supabase = require('./db');
+const supabase = require('./_db');
 
 export default async function handler(req, res) {
-  // pharma ë¼ìš°íŠ¸
+  // pharma ?¼ìš°??
   if (req.url && req.url.startsWith('/api/pharma')) return handlePharma(req, res);
 
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // GET â€” ëª©ë¡ ì¡°íšŒ
+  // GET ??ëª©ë¡ ì¡°íšŒ
   if (req.method === 'GET') {
     const { data, error } = await supabase
       .from('master_clients')
@@ -20,11 +20,11 @@ export default async function handler(req, res) {
     return res.json({ data });
   }
 
-  // POST â€” ë“±ë¡/ìˆ˜ì •
+  // POST ???±ë¡/?˜ì •
   if (req.method === 'POST') {
     const client = req.body;
     if (!client.name) {
-      return res.status(400).json({ error: 'ê±°ë˜ì²˜ëª…ì€ í•„ìˆ˜ì…ë‹ˆë‹¤.' });
+      return res.status(400).json({ error: 'ê±°ë˜ì²˜ëª…?€ ?„ìˆ˜?…ë‹ˆ??' });
     }
 
     const { error } = await supabase
@@ -43,10 +43,10 @@ export default async function handler(req, res) {
     return res.json({ success: true });
   }
 
-  // DELETE â€” ì‚­ì œ
+  // DELETE ???? œ
   if (req.method === 'DELETE') {
     const { id } = req.query;
-    if (!id) return res.status(400).json({ error: 'id í•„ìš”' });
+    if (!id) return res.status(400).json({ error: 'id ?„ìš”' });
 
     const { error } = await supabase
       .from('master_clients')
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-// â”€â”€ PHARMA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€ PHARMA ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 async function handlePharma(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -76,7 +76,7 @@ async function handlePharma(req, res) {
 
   if (req.method === 'POST') {
     const item = req.body;
-    if (!item.name) return res.status(400).json({ error: 'ì œì•½ì‚¬ëª… í•„ìˆ˜' });
+    if (!item.name) return res.status(400).json({ error: '?œì•½?¬ëª… ?„ìˆ˜' });
     const { error } = await supabase.from('master_pharma').upsert({
       id:          item.id,
       name:        item.name,
@@ -92,7 +92,7 @@ async function handlePharma(req, res) {
 
   if (req.method === 'DELETE') {
     const { id } = req.query;
-    if (!id) return res.status(400).json({ error: 'id í•„ìš”' });
+    if (!id) return res.status(400).json({ error: 'id ?„ìš”' });
     const { error } = await supabase.from('master_pharma').delete().eq('id', id);
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ success: true });

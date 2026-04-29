@@ -1,4 +1,4 @@
-const supabase = require('./db');
+const supabase = require('./_db');
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,10 +9,10 @@ export default async function handler(req, res) {
 
   const { codes } = req.body;
   if (!codes || !codes.length) {
-    return res.status(400).json({ error: 'codes 배열 필요' });
+    return res.status(400).json({ error: 'codes 배열 ?�요' });
   }
 
-  // drug_master에서 보험코드 → 제품정보 일괄 조회
+  // drug_master?�서 보험코드 ???�품?�보 ?�괄 조회
   const { data, error } = await supabase
     .from('drug_master')
     .select('product_code, product_name, company_name, mx_cprc')
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  // drug_commission에서 수수료율 조회
+  // drug_commission?�서 ?�수료율 조회
   const { data: commData } = await supabase
     .from('drug_commission')
     .select('standard_code, commission_rate')
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   const commMap = {};
   (commData || []).forEach(row => { commMap[row.standard_code] = row.commission_rate; });
 
-  // { 보험코드: 제품정보+수수료 } 맵으로 변환
+  // { 보험코드: ?�품?�보+?�수�?} 맵으�?변??
   const map = {};
   (data || []).forEach(row => {
     if (!map[row.product_code]) {
