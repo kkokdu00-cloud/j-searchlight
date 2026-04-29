@@ -626,6 +626,15 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   }
   .nav-item .nav-icon { font-size: 20px; width: auto; }
 
+  /* ── 모바일 탭바: 넘치는 메뉴 숨김 (수수료/마스터/체크메이트/유저관리) ── */
+  #nav-commission,
+  #nav-master,
+  #nav-cso-wrap,
+  #nav-users-wrap { display: none !important; }
+
+  /* ── 더보기 버튼 모바일에서만 표시 ── */
+  #btn-more-menu { display: inline-flex !important; }
+
   /* ── 메인 영역 ── */
   .main-area {
     margin-left: 0 !important;
@@ -957,7 +966,41 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
   <div class="topbar-slogan">CSO의 방향을 제시합니다</div>
   <div class="topbar-actions">
     <button class="btn reset-btn btn-sm" onclick="resetAll()"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> 초기화</button>
+    <button id="btn-more-menu" class="btn btn-sm" onclick="toggleMoreMenu()"
+      style="display:none;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.8);">
+      <i data-lucide="menu" style="width:16px;height:16px;"></i>
+    </button>
   </div>
+</div>
+
+<!-- 모바일 더보기 메뉴 -->
+<div id="more-menu-overlay" onclick="toggleMoreMenu()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.4);"></div>
+<div id="more-menu" style="display:none;position:fixed;bottom:70px;right:12px;z-index:500;background:var(--brown);border-radius:14px;padding:8px;min-width:160px;box-shadow:0 4px 24px rgba(0,0,0,.3);">
+  <div id="more-menu-admin" style="display:none;">
+    <button class="nav-item" onclick="showView('master');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
+      <span class="nav-icon"><i data-lucide="settings-2" style="width:16px;height:16px;"></i></span> 마스터 관리
+    </button>
+    <button class="nav-item admin-only" onclick="showView('commission');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
+      <span class="nav-icon"><i data-lucide="percent" style="width:16px;height:16px;"></i></span> 수수료 관리
+    </button>
+    <div style="height:1px;background:rgba(255,255,255,.1);margin:4px 8px;"></div>
+    <button class="nav-item" onclick="showView('cso-upload');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
+      <span class="nav-icon"><i data-lucide="upload" style="width:16px;height:16px;"></i></span> 데이터 업로드
+    </button>
+    <button class="nav-item" onclick="showView('cso-separation');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
+      <span class="nav-icon"><i data-lucide="git-branch" style="width:16px;height:16px;"></i></span> 정산 분리
+    </button>
+    <button class="nav-item" onclick="showView('cso-inspection');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
+      <span class="nav-icon"><i data-lucide="search-check" style="width:16px;height:16px;"></i></span> 비교 검수
+    </button>
+    <div style="height:1px;background:rgba(255,255,255,.1);margin:4px 8px;"></div>
+    <button class="nav-item" onclick="showView('users');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
+      <span class="nav-icon"><i data-lucide="users" style="width:16px;height:16px;"></i></span> 유저 관리
+    </button>
+  </div>
+  <button class="nav-item" onclick="doLogout()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;color:rgba(255,100,100,.8);">
+    <span class="nav-icon"><i data-lucide="log-out" style="width:16px;height:16px;"></i></span> 로그아웃
+  </button>
 </div>
 
 <div class="wrap">
@@ -1980,6 +2023,18 @@ function updateDataLists() {
   const pList = document.getElementById('pharma-list');
   hList.innerHTML = masterClients.map(c => `<option value="${esc(c.name)}">`).join('');
   pList.innerHTML  = masterPharma.map(p  => `<option value="${esc(p.name)}">`).join('');
+}
+
+// ══════════════════════════════════════════════
+// 모바일 더보기 메뉴
+// ══════════════════════════════════════════════
+function toggleMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  const overlay = document.getElementById('more-menu-overlay');
+  const isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  overlay.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
 }
 
 // ══════════════════════════════════════════════
@@ -3945,6 +4000,7 @@ async function afterLogin() {
   document.getElementById('nav-users-wrap').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-master').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-cso-wrap').style.display = isAdmin ? '' : 'none';
+  document.getElementById('more-menu-admin').style.display = isAdmin ? '' : 'none';
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
