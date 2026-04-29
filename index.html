@@ -573,64 +573,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 /* ══ MOBILE RESPONSIVE ════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* ── 사이드바: 하단 탭바로 전환 ── */
-  .sidebar {
-    width: 100% !important;
-    min-height: unset;
-    height: 60px;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    flex-direction: row;
-    z-index: 300;
-    box-shadow: 0 -2px 16px rgba(0,0,0,.18);
-  }
-  .sidebar-logo { display: none; }
-  .sidebar-footer { display: none; }
-  .nav-divider { display: none; }
-  .nav-group-label { display: none; }
-  .sidebar-nav {
-    display: flex;
-    flex-direction: row;
-    padding: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    width: 100%;
-    align-items: stretch;
-    scrollbar-width: none;
-  }
-  .sidebar-nav::-webkit-scrollbar { display: none; }
-  .nav-item {
-    flex-direction: column;
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: none;
-    padding: 6px 0 4px;
-    gap: 2px;
-    font-size: 9px;
-    border-radius: 0;
-    margin-bottom: 0;
-    height: 60px;
-    justify-content: center;
-    align-items: center;
-    color: rgba(255,255,255,.5);
-    text-align: center;
-    overflow: hidden;
-  }
-  .nav-item.active {
-    background: rgba(196,149,106,.15);
-    color: var(--gold-lt);
-    box-shadow: none;
-    border-top: 2px solid var(--gold-lt);
-  }
-  .nav-item .nav-icon { font-size: 20px; width: auto; }
-
-  /* ── 모바일 탭바: 넘치는 메뉴 숨김 (수수료/마스터/체크메이트/유저관리) ── */
-  #nav-commission,
-  #nav-master,
-  #nav-cso-wrap,
-  #nav-users-wrap { display: none !important; }
+  /* ── 기존 사이드바 완전 숨김 (모바일에선 슬라이드 패널로 대체) ── */
+  .sidebar { display: none !important; }
 
   /* ── 더보기 버튼 모바일에서만 표시 ── */
   #btn-more-menu { display: inline-flex !important; }
@@ -638,7 +582,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   /* ── 메인 영역 ── */
   .main-area {
     margin-left: 0 !important;
-    padding-bottom: 60px; /* 탭바 높이 */
+    padding-bottom: 64px;
   }
   .topbar {
     padding: 0 14px;
@@ -767,6 +711,37 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 }
 .login-btn:hover { background: var(--brown2); }
 .login-error { color: #e53e3e; font-size: 13px; text-align: center; margin-top: 10px; min-height: 20px; }
+
+/* ══ 모바일 네비게이션 CSS ══════════════════════════════════════ */
+.mnav-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 12px 14px; border: none; border-radius: 10px;
+  background: transparent; color: rgba(255,255,255,.65);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  text-align: left; transition: all .15s;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+.mnav-item:hover, .mnav-item:active { background: rgba(255,255,255,.1); color: #fff; }
+.mnav-item.active { background: var(--gold); color: #fff; }
+#mobile-nav nav::-webkit-scrollbar { display: none; }
+
+.mtab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; border: none; background: transparent;
+  color: rgba(255,255,255,.45); font-size: 10px; font-weight: 600;
+  cursor: pointer; transition: all .15s; padding: 6px 0 4px;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+.mtab-item:active { background: rgba(255,255,255,.08); }
+.mtab-item.active { color: var(--gold-lt); }
+.mtab-item.active i { color: var(--gold-lt); }
+.mtab-item span { font-size: 10px; }
+
+/* 모바일에서만 탭바 표시 */
+@media (max-width: 768px) {
+  #mobile-tabbar { display: flex !important; }
+}
+/* ══ 모바일 네비게이션 CSS 끝 ════════════════════════════════════ */
 
 /* ══ 체크메이트 통합 CSS ══════════════════════════════════════════ */
 :root {
@@ -966,40 +941,74 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
   <div class="topbar-slogan">CSO의 방향을 제시합니다</div>
   <div class="topbar-actions">
     <button class="btn reset-btn btn-sm" onclick="resetAll()"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> 초기화</button>
-    <button id="btn-more-menu" class="btn btn-sm" onclick="toggleMoreMenu()"
-      style="display:none;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.8);">
-      <i data-lucide="menu" style="width:16px;height:16px;"></i>
+    <button id="btn-more-menu" class="btn btn-sm" onclick="openMobileNav()"
+      style="display:none;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.8);width:36px;padding:0;">
+      <i data-lucide="menu" style="width:18px;height:18px;"></i>
     </button>
   </div>
 </div>
 
-<!-- 모바일 더보기 메뉴 -->
-<div id="more-menu-overlay" onclick="toggleMoreMenu()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.4);"></div>
-<div id="more-menu" style="display:none;position:fixed;bottom:70px;right:12px;z-index:500;background:var(--brown);border-radius:14px;padding:8px;min-width:160px;box-shadow:0 4px 24px rgba(0,0,0,.3);">
-  <div id="more-menu-admin" style="display:none;">
-    <button class="nav-item" onclick="showView('master');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
-      <span class="nav-icon"><i data-lucide="settings-2" style="width:16px;height:16px;"></i></span> 마스터 관리
-    </button>
-    <button class="nav-item admin-only" onclick="showView('commission');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
-      <span class="nav-icon"><i data-lucide="percent" style="width:16px;height:16px;"></i></span> 수수료 관리
-    </button>
-    <div style="height:1px;background:rgba(255,255,255,.1);margin:4px 8px;"></div>
-    <button class="nav-item" onclick="showView('cso-upload');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
-      <span class="nav-icon"><i data-lucide="upload" style="width:16px;height:16px;"></i></span> 데이터 업로드
-    </button>
-    <button class="nav-item" onclick="showView('cso-separation');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
-      <span class="nav-icon"><i data-lucide="git-branch" style="width:16px;height:16px;"></i></span> 정산 분리
-    </button>
-    <button class="nav-item" onclick="showView('cso-inspection');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
-      <span class="nav-icon"><i data-lucide="search-check" style="width:16px;height:16px;"></i></span> 비교 검수
-    </button>
-    <div style="height:1px;background:rgba(255,255,255,.1);margin:4px 8px;"></div>
-    <button class="nav-item" onclick="showView('users');toggleMoreMenu()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;">
-      <span class="nav-icon"><i data-lucide="users" style="width:16px;height:16px;"></i></span> 유저 관리
-    </button>
+<!-- ── 모바일 슬라이드 사이드바 ── -->
+<div id="mobile-nav-overlay" onclick="closeMobileNav()" style="display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);transition:opacity .25s;"></div>
+<div id="mobile-nav" style="position:fixed;top:0;left:-300px;width:280px;height:100vh;z-index:1300;background:var(--brown);display:flex;flex-direction:column;transition:left .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.3);">
+  <!-- 헤더 -->
+  <div style="padding:32px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:20px;font-weight:800;color:#fff;font-family:'Pretendard',sans-serif;"><span style="color:var(--gold);">J</span>써치라이트</div>
+      <div id="mobile-nav-username" style="font-size:13px;color:var(--gold);margin-top:4px;font-weight:600;"></div>
+    </div>
+    <button onclick="closeMobileNav()" style="background:rgba(255,255,255,.1);border:none;border-radius:8px;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">✕</button>
   </div>
-  <button class="nav-item" onclick="doLogout()" style="width:100%;border-radius:8px;padding:10px 14px;font-size:14px;color:rgba(255,100,100,.8);">
-    <span class="nav-icon"><i data-lucide="log-out" style="width:16px;height:16px;"></i></span> 로그아웃
+  <!-- 메뉴 (스크롤) -->
+  <nav style="flex:1;overflow-y:auto;padding:12px 8px;scrollbar-width:none;">
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">메인</div>
+    <button class="mnav-item" onclick="showView('dashboard');closeMobileNav()"><i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> 대시보드</button>
+    <button class="mnav-item" onclick="showView('input');closeMobileNav()"><i data-lucide="file-plus" style="width:18px;height:18px;"></i> 신규 입력</button>
+    <button class="mnav-item" onclick="showView('list');closeMobileNav()"><i data-lucide="folder-open" style="width:18px;height:18px;"></i> 저장 목록</button>
+    <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">의약품</div>
+    <button class="mnav-item" onclick="showView('drug');closeMobileNav()"><i data-lucide="pill" style="width:18px;height:18px;"></i> 제품 검색</button>
+    <div id="mnav-admin-section" style="display:none;">
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">관리</div>
+      <button class="mnav-item" onclick="showView('master');closeMobileNav()"><i data-lucide="settings-2" style="width:18px;height:18px;"></i> 마스터 관리</button>
+      <button class="mnav-item" onclick="showView('commission');closeMobileNav()"><i data-lucide="percent" style="width:18px;height:18px;"></i> 수수료 관리</button>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">체크메이트</div>
+      <button class="mnav-item" onclick="showView('cso-upload');closeMobileNav()"><i data-lucide="upload" style="width:18px;height:18px;"></i> 데이터 업로드</button>
+      <button class="mnav-item" onclick="showView('cso-separation');closeMobileNav()"><i data-lucide="git-branch" style="width:18px;height:18px;"></i> 정산 분리</button>
+      <button class="mnav-item" onclick="showView('cso-inspection');closeMobileNav()"><i data-lucide="search-check" style="width:18px;height:18px;"></i> 비교 검수</button>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+      <button class="mnav-item" onclick="showView('users');closeMobileNav()"><i data-lucide="users" style="width:18px;height:18px;"></i> 유저 관리</button>
+    </div>
+  </nav>
+  <!-- 하단 로그아웃 -->
+  <div style="padding:12px 8px 28px;border-top:1px solid rgba(255,255,255,.08);">
+    <button class="mnav-item" onclick="doLogout()" style="color:rgba(255,120,120,.9);"><i data-lucide="log-out" style="width:18px;height:18px;"></i> 로그아웃</button>
+  </div>
+</div>
+
+<!-- ── 모바일 하단 탭바 ── -->
+<div id="mobile-tabbar" style="display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--brown);z-index:500;box-shadow:0 -2px 16px rgba(0,0,0,.2);display:flex;align-items:stretch;">
+  <button class="mtab-item" id="mtab-dashboard" onclick="showView('dashboard')">
+    <i data-lucide="layout-dashboard" style="width:22px;height:22px;"></i>
+    <span>대시보드</span>
+  </button>
+  <button class="mtab-item" id="mtab-input" onclick="showView('input')">
+    <i data-lucide="file-plus" style="width:22px;height:22px;"></i>
+    <span>신규 입력</span>
+  </button>
+  <button class="mtab-item" id="mtab-list" onclick="showView('list')">
+    <i data-lucide="folder-open" style="width:22px;height:22px;"></i>
+    <span>저장 목록</span>
+  </button>
+  <button class="mtab-item" id="mtab-drug" onclick="showView('drug')">
+    <i data-lucide="pill" style="width:22px;height:22px;"></i>
+    <span>의약품</span>
+  </button>
+  <button class="mtab-item" id="mtab-menu" onclick="openMobileNav()">
+    <i data-lucide="menu" style="width:22px;height:22px;"></i>
+    <span>메뉴</span>
   </button>
 </div>
 
@@ -2003,6 +2012,21 @@ function showView(v) {
     if (viewEl) viewEl.style.display = (name === v) ? 'block' : 'none';
     if (navEl)  navEl.classList.toggle('active', name === v);
   });
+  // 하단 탭바 활성화
+  const tabMap = { dashboard:'mtab-dashboard', input:'mtab-input', list:'mtab-list', drug:'mtab-drug' };
+  ['mtab-dashboard','mtab-input','mtab-list','mtab-drug','mtab-menu'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  if (tabMap[v]) {
+    const el = document.getElementById(tabMap[v]);
+    if (el) el.classList.add('active');
+  }
+  // 슬라이드 사이드바 mnav 활성화
+  document.querySelectorAll('.mnav-item').forEach(el => el.classList.remove('active'));
+  const activeNav = document.querySelector(`.mnav-item[onclick*="'${v}'"]`);
+  if (activeNav) activeNav.classList.add('active');
+
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = VIEW_TITLES[v] || '';
   if (v === 'list')           renderList();
@@ -2028,14 +2052,23 @@ function updateDataLists() {
 // ══════════════════════════════════════════════
 // 모바일 더보기 메뉴
 // ══════════════════════════════════════════════
-function toggleMoreMenu() {
-  const menu = document.getElementById('more-menu');
-  const overlay = document.getElementById('more-menu-overlay');
-  const isOpen = menu.style.display !== 'none';
-  menu.style.display = isOpen ? 'none' : 'block';
-  overlay.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
+function openMobileNav() {
+  const nav = document.getElementById('mobile-nav');
+  const overlay = document.getElementById('mobile-nav-overlay');
+  if (!nav || !overlay) return;
+  overlay.style.display = 'block';
+  setTimeout(() => { nav.style.left = '0'; overlay.style.opacity = '1'; }, 10);
+  requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
 }
+function closeMobileNav() {
+  const nav = document.getElementById('mobile-nav');
+  const overlay = document.getElementById('mobile-nav-overlay');
+  if (!nav || !overlay) return;
+  nav.style.left = '-300px';
+  overlay.style.opacity = '0';
+  setTimeout(() => { overlay.style.display = 'none'; }, 280);
+}
+function toggleMoreMenu() { openMobileNav(); }
 
 // ══════════════════════════════════════════════
 // RESET (BUG-5)
@@ -4000,7 +4033,10 @@ async function afterLogin() {
   document.getElementById('nav-users-wrap').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-master').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-cso-wrap').style.display = isAdmin ? '' : 'none';
-  document.getElementById('more-menu-admin').style.display = isAdmin ? '' : 'none';
+  document.getElementById('mnav-admin-section').style.display = isAdmin ? '' : 'none';
+  // 모바일 사이드바 유저명
+  const mnu = document.getElementById('mobile-nav-username');
+  if (mnu) mnu.textContent = currentUser.name + ' 님';
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
