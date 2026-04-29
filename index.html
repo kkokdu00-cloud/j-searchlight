@@ -814,6 +814,17 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
       <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
     </button>
   </nav>
+  <div class="nav-divider"></div>
+  <div class="nav-group-label">체크메이트</div>
+  <button class="nav-item" id="nav-cso-upload" onclick="showView('cso-upload')">
+    <span class="nav-icon"><i data-lucide="upload" style="width:18px;height:18px;"></i></span> 데이터 업로드
+  </button>
+  <button class="nav-item" id="nav-cso-separation" onclick="showView('cso-separation')">
+    <span class="nav-icon"><i data-lucide="git-branch" style="width:18px;height:18px;"></i></span> 정산 분리
+  </button>
+  <button class="nav-item" id="nav-cso-inspection" onclick="showView('cso-inspection')">
+    <span class="nav-icon"><i data-lucide="search-check" style="width:18px;height:18px;"></i></span> 비교 검수
+  </button>
   <div id="nav-users-wrap" style="display:none;">
     <div class="nav-divider"></div>
     <div class="nav-group-label">관리자</div>
@@ -1824,11 +1835,14 @@ const VIEW_TITLES = {
   master: '마스터 관리',
   users: '유저 관리',
   drug: '제품 검색',
-  commission: '수수료 관리'
+  commission: '수수료 관리',
+  'cso-upload': '데이터 업로드',
+  'cso-separation': '정산 분리',
+  'cso-inspection': '비교 검수'
 };
 
 function showView(v) {
-  ['dashboard','input','list','master','users','drug','commission'].forEach(name => {
+  ['dashboard','input','list','master','users','drug','commission','cso-upload','cso-separation','cso-inspection'].forEach(name => {
     const viewEl = document.getElementById('view-' + name);
     const navEl  = document.getElementById('nav-'  + name);
     if (viewEl) viewEl.style.display = (name === v) ? 'block' : 'none';
@@ -1836,10 +1850,13 @@ function showView(v) {
   });
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = VIEW_TITLES[v] || '';
-  if (v === 'list')       renderList();
-  if (v === 'master')     { renderClientMaster(); renderPharmaMaster(); }
-  if (v === 'users')      renderUserMaster();
-  if (v === 'commission') loadCommissionList();
+  if (v === 'list')           renderList();
+  if (v === 'master')         { renderClientMaster(); renderPharmaMaster(); }
+  if (v === 'users')          renderUserMaster();
+  if (v === 'commission')     loadCommissionList();
+  if (v === 'cso-upload')     { initCSOView().then(() => CSOUploadTab.render()); }
+  if (v === 'cso-separation') { initCSOView().then(() => CSOSeparationTab.render()); }
+  if (v === 'cso-inspection') { initCSOView().then(() => CSOInspectionTab.render()); }
   requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
 }
 
@@ -4750,6 +4767,1305 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+</script>
+
+<!-- ═══ 체크메이트 View Divs ═══ -->
+<div id="view-cso-upload" style="display:none;padding:24px"></div>
+<div id="view-cso-separation" style="display:none;padding:24px"></div>
+<div id="view-cso-inspection" style="display:none;padding:24px"></div>
+
+<script>
+
+/* ═══════════════════════════════════════════════════════════════════
+   J써치라이트 × 체크메이트 통합 모듈
+   ═══════════════════════════════════════════════════════════════════ */
+
+// CSO 전용 API 헬퍼 (써치라이트 기존 API와 동일 구조)
+const CSOAPI = {
+  async request(method, url, body) {
+    const token = localStorage.getItem('jsearchlight_token');
+    const opts = { method, headers: {} };
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    if (body && !(body instanceof FormData)) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    } else if (body instanceof FormData) {
+      opts.body = body;
+    }
+    const res = await fetch(url, opts);
+    if (res.status === 401) {
+      alert('체크메이트 세션이 만료되었습니다. 다시 로그인해주세요.');
+      return;
+    }
+    const data = await res.json().catch(() => ({ ok: false, error: 'JSON 파싱 오류' }));
+    if (!data.ok) throw new Error(data.error || '서버 오류');
+    return data.data;
+  },
+  get: (url) => CSOAPI.request('GET', url),
+  post: (url, body) => CSOAPI.request('POST', url, body),
+  put: (url, body) => CSOAPI.request('PUT', url, body),
+  del: (url) => CSOAPI.request('DELETE', url),
+};
+
+// CSO 앱 상태
+const CSOApp = {
+  pharmaId: null,
+  pharmas: [],
+
+  async loadPharmas() {
+    try {
+      const data = await CSOAPI.get('/api/cso/core?resource=pharmas');
+      this.pharmas = data || [];
+      if (this.pharmas.length && !this.pharmaId) {
+        this.pharmaId = this.pharmas[0].id;
+      }
+    } catch(e) {
+      this.pharmas = [];
+    }
+  }
+};
+
+// 체크메이트 뷰 진입 시 CSO 초기화
+async function initCSOView() {
+  if (!CSOApp.pharmas.length) {
+    await CSOApp.loadPharmas();
+  }
+}
+
+// renderTable, Fmt, Modal, Toast는 써치라이트 기존 것 재사용
+// App.pharmas 대신 CSOApp.pharmas / App.pharmaId 대신 CSOApp.pharmaId 사용
+
+
+/* ─── CSOUploadTab: tabContent → view-cso-upload ─── */
+function decodeFileName(name) {
+  try {
+    let s = name || '';
+    for (let i = 0; i < 3; i++) {
+      const next = decodeURIComponent(s);
+      if (next === s) break;
+      s = next;
+    }
+    return s;
+  } catch { return name || ''; }
+}
+
+/* ─── TAB 1: 파일 업로드 ────────────────────────────────────────────────── */
+const CSOUploadTab = {
+  detectedInfo: null,
+  fileType: 'prescription',
+  pendingFile: null,
+
+  render() {
+    const c = document.getElementById('view-cso-upload');
+    const pharmaOptions = (CSOApp.pharmas || []).map(p =>
+      `<option value="${p.id}" ${String(p.id) === String(CSOApp.pharmaId) ? 'selected' : ''}>${p.name}</option>`
+    ).join('') || '<option value="">제약사 없음</option>';
+
+    c.innerHTML = `
+      <!-- 필터 바 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="inline-label">제약사</span>
+        <select class="form-control form-control-sm" id="pharmaSelectUpload" style="min-width:160px">${pharmaOptions}</select>
+        <button class="btn btn-sm btn-outline" id="btnAddPharmaUpload">+ 제약사 추가</button>
+        <div style="flex:1"></div>
+        <span class="inline-label">파일 유형</span>
+        <select class="form-control form-control-sm" id="fileTypeSelect" style="min-width:150px">
+          <option value="prescription">처방 데이터</option>
+          <option value="settlement">정산 데이터</option>
+        </select>
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+        <!-- 업로드 영역 -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📂 파일 업로드</span>
+            </div>
+            <div class="upload-zone" id="uploadZone">
+              <div class="upload-zone-icon">📄</div>
+              <div class="upload-zone-text">파일을 드래그하거나 클릭해서 선택</div>
+              <div class="upload-zone-hint">XLSX, XLS, CSV 지원 · 최대 50MB</div>
+              <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+            </div>
+            <div id="detectResult" style="margin-top:12px"></div>
+          </div>
+
+          <!-- 컬럼 매핑 -->
+          <div class="card" id="columnCard" style="display:none">
+            <div class="card-header">
+              <span class="card-title">🗂 컬럼 자동 인식 결과</span>
+              <button class="btn btn-sm btn-ghost" id="btnRefreshDetect">🔄 재탐지</button>
+            </div>
+            <div id="columnMapContent"></div>
+            <div style="margin-top:14px">
+              <div class="form-group">
+                <label class="form-label">기준월 (YYYY-MM)</label>
+                <input class="form-control" id="refMonthInput" placeholder="예) 2024-01">
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" id="btnSaveUpload">💾 변환 저장</button>
+                <button class="btn btn-outline" id="btnPreviewDownload" style="display:none">⬇ 변환 미리보기 다운로드</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 업로드 이력 -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📋 업로드 이력</span>
+              <button class="btn btn-sm btn-ghost" id="btnRefreshHistory">🔄</button>
+            </div>
+            <div id="historyList"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.bindEvents();
+    this.loadHistory();
+  },
+
+  bindEvents() {
+    document.getElementById('pharmaSelectUpload').addEventListener('change', e => {
+      CSOApp.pharmaId = e.target.value;
+      currentPharma = CSOApp.pharmas.find(p => String(p.id) === String(CSOApp.pharmaId)) || null;
+      this.loadHistory();
+    });
+
+    document.getElementById('btnAddPharmaUpload').addEventListener('click', () => {
+      Modal.show('제약사 추가', `
+        <div class="form-group"><label class="form-label">제약사명 *</label><input class="form-control" id="mPharmaName" placeholder="예) 한국제약(주)"></div>
+        <div class="form-group"><label class="form-label">색상</label><input type="color" class="form-control" id="mPharmaColor" value="#c9956c" style="height:38px"></div>
+        <div class="form-group"><label class="form-label">메모</label><input class="form-control" id="mPharmaMemo"></div>
+      `, async () => {
+        const name = document.getElementById('mPharmaName').value.trim();
+        const color = document.getElementById('mPharmaColor').value;
+        const memo = document.getElementById('mPharmaMemo').value.trim();
+        if (!name) return Toast.error('제약사명을 입력하세요');
+        await CSOAPI.post('/api/cso/core?resource=pharmas', { name, color, memo });
+        await App.loadPharmas();
+        const newPharma = CSOApp.pharmas.find(p => p.name === name);
+        if (newPharma) CSOApp.pharmaId = newPharma.id;
+        const sel = document.getElementById('pharmaSelectUpload');
+        if (sel) {
+          sel.innerHTML = CSOApp.pharmas.map(p =>
+            `<option value="${p.id}" ${String(p.id) === String(CSOApp.pharmaId) ? 'selected' : ''}>${p.name}</option>`
+          ).join('');
+        }
+        Toast.success('제약사가 추가되었습니다');
+        Modal.hide();
+        this.loadHistory();
+      });
+    });
+
+    document.getElementById('fileTypeSelect').addEventListener('change', e => {
+      this.fileType = e.target.value;
+      currentPharmaType = e.target.value;
+    });
+
+    const zone = document.getElementById('uploadZone');
+    const input = document.getElementById('fileInput');
+
+    zone.addEventListener('click', () => input.click());
+    input.addEventListener('change', e => { if (e.target.files[0]) this.handleFile(e.target.files[0]); });
+
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) this.handleFile(e.dataTransfer.files[0]);
+    });
+
+    document.getElementById('btnRefreshHistory').addEventListener('click', () => this.loadHistory());
+    document.getElementById('btnRefreshDetect').addEventListener('click', () => {
+      if (this.pendingFile) this.handleFile(this.pendingFile);
+    });
+  },
+
+  async handleFile(file) {
+    this.fileType = document.getElementById('fileTypeSelect').value;
+    this.pendingFile = file;
+    const result = document.getElementById('detectResult');
+    result.innerHTML = `<p style="color:var(--muted);font-size:13px">⏳ 분석 중...</p>`;
+
+    try {
+      const fd = new FormData();
+      fd.append('file', file, encodeURIComponent(file.name));
+      fd.append('file_type', this.fileType);
+      const data = await CSOAPI.post('/api/cso/data?resource=upload&action=detect', fd);
+      this.detectedInfo = data;
+      result.innerHTML = `
+        <div style="background:var(--ok-bg);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px">
+          ✅ <strong>${file.name}</strong> 분석 완료
+          — 헤더 ${data.headerRow+1}행 탐지 (점수 ${data.score}/${data.totalFields})
+          — 총 ${data.totalRows}행
+        </div>`;
+      this.renderColumnMap(data);
+    } catch(e) {
+      result.innerHTML = `<div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:10px 14px;color:var(--red);font-size:13px">❌ ${e.message}</div>`;
+    }
+  },
+
+  renderColumnMap(data) {
+    const card = document.getElementById('columnCard');
+    card.style.display = '';
+
+    const requiredFields = this.fileType === 'prescription'
+      ? ['prescription_month','hospital_name','biz_no','ins_code','product_name','quantity','amount']
+      : ['settle_month','hospital_name','biz_no','ins_code','product_name','quantity','amount','settle_org'];
+
+    const fieldLabels = {
+      prescription_month: '처방월', settle_month: '정산월', hospital_name: '기관명',
+      biz_no: '사업자번호', ins_code: '보험코드', product_name: '제품명',
+      quantity: '수량', amount: '금액', settle_org: '정산처'
+    };
+
+    const allHeaders = data.allHeaders.map(h => `<option value="${h.index}" data-label="${h.value}">${h.index+1}. ${h.value}</option>`).join('');
+
+    const rows = requiredFields.map(field => {
+      const conf = data.confidence[field] || 'low';
+      const mapped = data.columnMap[field];
+      const confIcon = conf === 'high' ? '🟢' : conf === 'medium' ? '🟡' : '🔴';
+      return `
+        <tr>
+          <td style="font-weight:600;white-space:nowrap">${fieldLabels[field]}</td>
+          <td>${confIcon} <span class="conf-${conf}" style="font-size:11px">${conf === 'high' ? '자동' : conf === 'medium' ? '유사' : '미탐지'}</span></td>
+          <td>
+            <select class="form-control form-control-sm col-map-select" data-field="${field}">
+              <option value="">— 미사용 —</option>
+              ${allHeaders}
+            </select>
+          </td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('columnMapContent').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>필드</th><th>신뢰도</th><th>매핑 컬럼</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px">
+        <p style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">데이터 미리보기 (최대 5행)</p>
+        ${this.renderPreview(data.preview)}
+      </div>`;
+
+    document.querySelectorAll('.col-map-select').forEach(sel => {
+      const field = sel.dataset.field;
+      const idx = data.columnMap[field];
+      if (idx !== undefined) sel.value = idx;
+    });
+
+    document.getElementById('btnSaveUpload').onclick = () => this.saveUpload();
+  },
+
+  renderPreview(rows) {
+    if (!rows || !rows.length) return '<p style="color:var(--muted);font-size:12px">미리보기 없음</p>';
+    const fields = Object.keys(rows[0]);
+    return `
+      <div class="table-wrap" style="max-height:160px;overflow-y:auto">
+        <table>
+          <thead><tr>${fields.map(f => `<th>${f}</th>`).join('')}</tr></thead>
+          <tbody>${rows.map(r => `<tr>${fields.map(f => `<td class="mono">${r[f] ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+  },
+
+  async saveUpload() {
+    if (!this.pendingFile) return Toast.error('파일을 먼저 선택하세요');
+
+    const columnMap = {};
+    document.querySelectorAll('.col-map-select').forEach(sel => {
+      if (sel.value !== '') columnMap[sel.dataset.field] = parseInt(sel.value);
+    });
+
+    const refMonth = document.getElementById('refMonthInput').value.trim();
+    const headerRow = this.detectedInfo?.headerRow || 0;
+
+    try {
+      const fd = new FormData();
+      fd.append('file', this.pendingFile, encodeURIComponent(this.pendingFile.name));
+      fd.append('pharma_id', CSOApp.pharmaId);
+      fd.append('file_type', document.getElementById('fileTypeSelect')?.value || this.fileType);
+      fd.append('column_map_json', JSON.stringify(columnMap));
+      fd.append('header_row', headerRow);
+      fd.append('ref_month', refMonth);
+
+      const result = await CSOAPI.post('/api/cso/data?resource=upload&action=save', fd);
+      Toast.success(`✅ ${result.row_count}행 저장 완료 (업로드 #${result.upload_id})`);
+      await this.loadHistory();
+
+      document.getElementById('columnCard').style.display = 'none';
+      document.getElementById('detectResult').innerHTML = '';
+      this.pendingFile = null;
+      this.detectedInfo = null;
+      document.getElementById('fileInput').value = '';
+    } catch(e) {
+      Toast.error(e.message);
+    }
+  },
+
+  async loadHistory() {
+    try {
+      const list = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
+      const container = document.getElementById('historyList');
+      if (!container) return;
+      if (!list.length) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📂</div><div class="empty-state-text">업로드 이력 없음</div><div class="empty-state-hint">파일을 업로드하면 이력이 나타납니다</div></div>`;
+        return;
+      }
+      const typeBadge = t => t === 'prescription' ? `<span class="badge badge-blue">처방</span>` : `<span class="badge badge-green">정산</span>`;
+      container.innerHTML = renderTable([
+        { label: '#', render: r => r.id },
+        { label: '유형', render: r => typeBadge(r.file_type) },
+        { label: '파일명', render: r => { const n = decodeFileName(r.file_name); return `<span title="${n}">${Fmt.short(n,20)}</span>`; } },
+        { label: '기준월', render: r => r.ref_month || '-' },
+        { label: '행수', render: r => Fmt.num(r.row_count) },
+        { label: '업로드일', render: r => r.created_at?.slice(0,16) || '-' },
+        { label: '', render: r => `
+          <button class="btn btn-xs btn-ghost" onclick="CSOUploadTab.downloadUpload(${r.id})">⬇</button>
+          <button class="btn btn-xs btn-danger" onclick="CSOUploadTab.deleteUpload(${r.id})" style="margin-left:4px">🗑</button>
+        `}
+      ], list);
+    } catch(e) {
+      Toast.error(e.message);
+    }
+  },
+
+  downloadUpload(id) {
+    const a = document.createElement('a');
+    a.href = `/api/cso/data?resource=upload&action=download&id=${id}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  },
+
+  async deleteUpload(id) {
+    if (!window.confirm('이 업로드 데이터를 삭제하시겠습니까?')) return;
+    try {
+      await CSOAPI.del(`/api/cso/data?resource=upload&action=delete&id=${id}`);
+      Toast.success('삭제 완료');
+      this.loadHistory();
+    } catch(e) {
+      Toast.error(e.message);
+    }
+  }
+};
+
+
+/* ─── CSOSeparationTab ─── */
+/* ─── TAB 2: 자동 분리 ──────────────────────────────────────────────────── */
+const CSOSeparationTab = {
+  _lastUploadId: null,
+  _lastConfigName: null,
+  _unclassified: [],
+  _summaryOrgs: [],
+
+  render() {
+    const c = document.getElementById('view-cso-separation');
+    c.innerHTML = `<div id="sepInnerContent"></div>`;
+    this.renderRun();
+  },
+
+  async renderRun() {
+    let uploads = [];
+    let mappings = [];
+    let mappingCount = 0;
+    let pharmaConfigs = [];
+
+    try {
+      uploads = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
+      uploads = uploads.filter(u => u.file_type === 'settlement');
+      mappings = await CSOAPI.get(`/api/cso/data?resource=separation&action=mapping&pharma_id=${CSOApp.pharmaId}`);
+      mappingCount = mappings.length;
+      pharmaConfigs = await CSOAPI.get('/api/cso/data?resource=separation&action=pharma_configs');
+    } catch(e) {}
+
+    const currentPharmaName = (CSOApp.pharmas || []).find(p => String(p.id) === String(CSOApp.pharmaId))?.name || '';
+
+    // ── 매핑 현황 배지 ──
+    const mappingBadge = mappingCount === 0
+      ? `<div style="background:var(--yellow-bg);border-radius:var(--radius-sm);padding:9px 14px;color:var(--yellow);font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+           <span>⚠ 거래처 매핑 데이터가 없습니다. 아래에서 매핑 파일을 업로드하세요.</span>
+         </div>`
+      : `<div style="background:var(--ok-bg);border-radius:var(--radius-sm);padding:9px 14px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+           <span>✅ 거래처 매핑 데이터 <strong>${Fmt.num(mappingCount)}</strong>건 준비됨</span>
+           <div style="display:flex;gap:6px">
+             <button class="btn btn-outline btn-sm" onclick="CSOSeparationTab.showMappingList()">📋 목록 보기</button>
+             <button class="btn btn-sm" style="color:var(--red);border-color:var(--red)" onclick="CSOSeparationTab.resetMapping()">🗑 매핑 초기화</button>
+           </div>
+         </div>`;
+
+    const configSelect = pharmaConfigs.length
+      ? `<div class="form-group">
+           <label class="form-label">제약사 양식 *</label>
+           <select class="form-control" id="sepConfigSelect">
+             <option value="">— 기본(양식 미지정) —</option>
+             ${pharmaConfigs.map(c => `<option value="${c.name}" ${c.name === currentPharmaName ? 'selected' : ''}>${c.name}</option>`).join('')}
+           </select>
+           <div style="font-size:11px;color:var(--muted);margin-top:3px">소계행 필터·엑셀 컬럼·정산금액 계산이 제약사 양식에 맞게 적용됩니다.</div>
+         </div>`
+      : '';
+
+    const c = document.getElementById('view-cso-separation');
+    c.innerHTML = `
+      <!-- ① 매핑 파일 업로드 카드 -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title">📂 거래처 매핑 파일</span>
+          <span style="font-size:11px;color:var(--muted)">엑셀 열: 병원명 / 사업자번호 / 정산처 (헤더 자동 인식)</span>
+        </div>
+        <div style="padding:0 4px 4px">
+          ${mappingBadge}
+          <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              ⬆ 매핑 파일 업로드 (.xlsx)
+              <input type="file" id="mappingFileInput" accept=".xlsx,.xls" style="display:none" onchange="CSOSeparationTab.uploadMapping(this)">
+            </label>
+            <span id="mappingUploadStatus" style="font-size:12px;color:var(--muted)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 분리 실행 카드 -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">⚡ 자동 분리 실행</span></div>
+        <div style="padding:0 4px 4px">
+          ${configSelect}
+          <div class="form-group">
+            <label class="form-label">정산 데이터 선택 *</label>
+            <select class="form-control" id="sepUploadSelect">
+              <option value="">— 선택하세요 —</option>
+              ${uploads.map(u => `<option value="${u.id}">${decodeURIComponent(u.file_name || '')} (${u.ref_month || '기준월없음'}, ${Fmt.num(u.row_count)}행)</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-actions" style="justify-content:flex-start;gap:8px">
+            <button class="btn btn-primary" id="btnRunSep" ${mappingCount === 0 ? 'disabled' : ''}>⚡ 분리 실행</button>
+            <button class="btn btn-ghost btn-sm" onclick="CSOSeparationTab.resetForm()">↺ 초기화</button>
+            <button class="btn btn-outline" id="btnDownloadSep" style="display:none">⬇ 엑셀 다운로드</button>
+          </div>
+        </div>
+      </div>
+      <div id="sepRunResult"></div>
+    `;
+
+    document.getElementById('btnRunSep').addEventListener('click', () => this.runSeparation());
+    document.getElementById('btnDownloadSep').addEventListener('click', async () => {
+  const uid = document.getElementById('sepUploadSelect').value;
+  if (!uid) return;
+  const configName = document.getElementById('sepConfigSelect')?.value || this._lastConfigName || '';
+  try {
+    const token = localStorage.getItem('jsearchlight_token');
+    const url = `/api/cso/data?resource=separation&action=download&pharma_id=${CSOApp.pharmaId}&upload_id=${uid}${configName ? `&config_name=${encodeURIComponent(configName)}` : ''}`;
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('다운로드 실패');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'separation.xlsx';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    Toast.error(e.message);
+  }
+});
+
+    if (this._lastUploadId) {
+      const sel = document.getElementById('sepUploadSelect');
+      if (sel) sel.value = this._lastUploadId;
+    }
+  },
+
+  // ── 매핑 파일 업로드 ────────────────────────────────────────────────────────
+  async uploadMapping(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const status = document.getElementById('mappingUploadStatus');
+    status.textContent = '업로드 중...';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('pharma_id', CSOApp.pharmaId);
+      const token = localStorage.getItem('jsearchlight_token');
+      const res = await fetch('/api/cso/data?resource=separation&action=mapping_upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '업로드 실패');
+      Toast.success(`매핑 ${Fmt.num(data.count || 0)}건 등록 완료`);
+      this.renderRun();
+    } catch(e) {
+      status.textContent = '실패: ' + e.message;
+      Toast.error(e.message);
+    }
+  },
+
+  // ── 매핑 목록 보기 ──────────────────────────────────────────────────────────
+  async showMappingList() {
+    let mappings = [];
+    try { mappings = await CSOAPI.get(`/api/cso/data?resource=separation&action=mapping&pharma_id=${CSOApp.pharmaId}`); } catch(e) {}
+    const rows = mappings.slice(0, 300);
+    Modal.show(`거래처 매핑 목록 (${Fmt.num(mappings.length)}건)`,
+      `<div style="max-height:400px;overflow-y:auto">
+        ${renderTable([
+          { label: '병원명',     render: (r) => r.hospital_name || '-' },
+          { label: '사업자번호', render: (r) => `<span class="mono">${r.biz_no || '-'}</span>` },
+          { label: '정산처',     render: (r) => r.settle_org || '-' },
+        ], rows)}
+        ${mappings.length > 300 ? `<p style="padding:8px 12px;font-size:11px;color:var(--muted)">외 ${Fmt.num(mappings.length - 300)}건</p>` : ''}
+      </div>`,
+      null
+    );
+  },
+
+  // ── 매핑 초기화 ─────────────────────────────────────────────────────────────
+  async resetMapping() {
+    if (!confirm('매핑 데이터를 모두 삭제할까요?')) return;
+    try {
+      await CSOAPI.del(`/api/cso/data?resource=separation&action=mapping&pharma_id=${CSOApp.pharmaId}`);
+      Toast.success('매핑 데이터 초기화 완료');
+      this.renderRun();
+    } catch(e) { Toast.error(e.message); }
+  },
+
+  // ── 분리 실행 폼 초기화 ──────────────────────────────────────────────────────
+  resetForm() {
+    const sel = document.getElementById('sepUploadSelect');
+    const cfg = document.getElementById('sepConfigSelect');
+    if (sel) sel.value = '';
+    if (cfg) cfg.value = '';
+    this._lastUploadId = null;
+    this._lastConfigName = null;
+    document.getElementById('btnDownloadSep').style.display = 'none';
+    document.getElementById('sepRunResult').innerHTML = '';
+    Toast.success('초기화되었습니다');
+  },
+
+  async runSeparation() {
+    const upload_id = document.getElementById('sepUploadSelect').value;
+    if (!upload_id) return Toast.error('정산 데이터를 선택하세요');
+
+    const config_name = document.getElementById('sepConfigSelect')?.value || this._lastConfigName || '';
+    this._lastConfigName = config_name;
+
+    try {
+      const result = await CSOAPI.post('/api/cso/data?resource=separation&action=run', { pharma_id: CSOApp.pharmaId, upload_id, config_name: config_name || undefined });
+      this._lastUploadId = upload_id;
+
+      const unclassified = result.grouped['미분류'] || [];
+      this._unclassified = unclassified;
+      this._summaryOrgs = result.summary.map(s => s.settle_org).filter(o => o !== '미분류');
+
+      document.getElementById('btnDownloadSep').style.display = '';
+
+      const cardsHtml = result.summary.map(s => {
+        const isMiss = s.settle_org === '미분류';
+        const color = isMiss ? '#6b7280' : 'var(--warm)';
+        return `
+          <div class="sep-org-card" style="border-left:4px solid ${color}">
+            <div class="sep-org-name" style="color:${color}">${s.settle_org}</div>
+            <div class="sep-org-stats">${Fmt.num(s.count)}건</div>
+            <div class="sep-org-amount">${Fmt.money(s.amount)}</div>
+            <div style="margin-top:8px">
+              <div class="progress-bar"><div class="progress-fill" style="width:${s.pct}%;background:${color}"></div></div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">${s.pct}%</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      const seen = new Set();
+      const uniqueUnclassified = [];
+      for (let i = 0; i < unclassified.length; i++) {
+        const key = (unclassified[i].biz_no || '') + '|' + (unclassified[i].hospital_name || '');
+        if (!seen.has(key)) { seen.add(key); uniqueUnclassified.push(i); }
+      }
+
+      const unHtml = unclassified.length ? `
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" style="color:var(--red)">⚠ 미매핑 항목 (${Fmt.num(unclassified.length)}건 / 병원 ${Fmt.num(uniqueUnclassified.length)}곳)</span>
+            <span style="font-size:12px;color:var(--muted)">➕ 버튼으로 매핑 추가 후 재분리</span>
+          </div>
+          ${renderTable([
+            { label: '병원명',     render: (r, i) => unclassified[i]?.hospital_name || '-' },
+            { label: '사업자번호', render: (r, i) => `<span class="mono">${unclassified[i]?.biz_no || '-'}</span>` },
+            { label: '제품명',     render: (r, i) => unclassified[i]?.product_name || '-' },
+            { label: '금액',       render: (r, i) => Fmt.money(unclassified[i]?.amount) },
+            { label: '',           render: (r, i) => `<button class="btn btn-xs btn-primary" onclick="CSOSeparationTab.addMapping(${i})">➕ 매핑</button>` }
+          ], unclassified.slice(0, 200))}
+          ${unclassified.length > 200 ? `<p style="padding:8px 12px;font-size:12px;color:var(--muted)">외 ${Fmt.num(unclassified.length - 200)}건</p>` : ''}
+        </div>` : '';
+
+      document.getElementById('sepRunResult').innerHTML = `
+        <div class="section-header">
+          <span class="section-title">분리 결과 — 총 ${Fmt.num(result.total)}건 / 미매핑 ${Fmt.num(result.unclassified)}건</span>
+        </div>
+        <div class="sep-org-grid">${cardsHtml}</div>
+        ${unHtml}
+      `;
+      Toast.success(`분리 완료: ${Fmt.num(result.total)}건 (미매핑 ${Fmt.num(result.unclassified)}건)`);
+    } catch(e) {
+      Toast.error(e.message);
+    }
+  },
+
+  async addMapping(idx) {
+    const item = this._unclassified[idx];
+    if (!item) return;
+
+    const hospitalName = item.hospital_name || '';
+    const bizNo = item.biz_no || '';
+    const orgs = this._summaryOrgs;
+
+    Modal.show('매핑 추가', `
+      <div class="form-group">
+        <label class="form-label">병원명</label>
+        <input class="form-control" value="${hospitalName.replace(/"/g,'&quot;')}" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">사업자번호</label>
+        <input class="form-control" id="mAddBizNo" value="${bizNo}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">정산처 *</label>
+        ${orgs.length ? `<select class="form-control" id="mAddSettleSel" style="margin-bottom:6px">
+          ${orgs.map(o => `<option value="${o.replace(/"/g,'&quot;')}">${o}</option>`).join('')}
+          <option value="">── 직접 입력 ──</option>
+        </select>` : ''}
+        <input class="form-control" id="mAddSettleInput" placeholder="정산처명 직접 입력" ${orgs.length ? 'style="display:none"' : ''}>
+      </div>
+    `, async () => {
+      const sel = document.getElementById('mAddSettleSel');
+      const inp = document.getElementById('mAddSettleInput');
+      const settle = (sel?.value || inp?.value || '').trim();
+      if (!settle) return Toast.error('정산처를 입력하세요');
+      try {
+        const bizNoFinal = document.getElementById('mAddBizNo')?.value.trim() || bizNo;
+        await CSOAPI.post('/api/cso/data?resource=separation&action=mapping_add', {
+          pharma_id: CSOApp.pharmaId,
+          hospital_name: hospitalName,
+          biz_no: bizNoFinal,
+          settle_org: settle
+        });
+        Toast.success(`"${hospitalName || bizNo}" → "${settle}" 매핑 추가 완료`);
+        Modal.hide();
+        if (this._lastUploadId) {
+          document.getElementById('sepUploadSelect').value = this._lastUploadId;
+          await this.runSeparation();
+        }
+      } catch(e) { Toast.error(e.message); }
+    });
+
+    if (orgs.length) {
+      setTimeout(() => {
+        const sel = document.getElementById('mAddSettleSel');
+        const inp = document.getElementById('mAddSettleInput');
+        if (sel && inp) sel.addEventListener('change', () => {
+          inp.style.display = sel.value === '' ? '' : 'none';
+        });
+      }, 50);
+    }
+  }
+};
+
+
+/* ─── CSOInspectionTab ─── */
+/* ─── TAB 3: 비교 검수 ──────────────────────────────────────────────────── */
+const CSOInspectionTab = {
+  innerTab: 'detail',
+  currentResult: null,
+  filterStatus: 'all',
+  charts: {},
+  _hospSummaryResult: null,
+
+  render() {
+    const c = document.getElementById('view-cso-inspection');
+    c.innerHTML = `
+      <div class="inner-tabs">
+        <button class="inner-tab-btn active" data-itab="detail">🔍 상세 검수</button>
+        <button class="inner-tab-btn" data-itab="simple">🏥 간편 검수</button>
+      </div>
+      <div id="inspInnerContent"></div>
+    `;
+    c.querySelectorAll('.inner-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        c.querySelectorAll('.inner-tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+        this.innerTab = btn.dataset.itab;
+        this.renderInner();
+      });
+    });
+    this.renderInner();
+  },
+
+  renderInner() {
+    for (const ch of Object.values(this.charts)) { try { ch.destroy(); } catch(e) {} }
+    this.charts = {};
+    if (this.innerTab === 'detail') this.renderDetail();
+    else this.renderSimple();
+  },
+
+  // ── 상세 검수 탭 ──────────────────────────────────────────────────────────
+
+  renderDetail() {
+    document.getElementById('inspInnerContent').innerHTML = `
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🔍 검수 실행</span></div>
+          <div id="inspUploadSelectors"></div>
+          <div class="form-group">
+            <label class="form-label">기준월</label>
+            <input class="form-control" id="inspRefMonth" placeholder="예) 2024-01">
+          </div>
+          <div class="form-actions" style="justify-content:flex-start">
+            <button class="btn btn-primary" id="btnRunInsp">🔍 검수 실행</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚙ 허용오차 설정</span></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">금액 절대값 (원)</label>
+              <input class="form-control" id="tolAmtAbs" type="number" value="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">금액 비율 (%)</label>
+              <input class="form-control" id="tolAmtPct" type="number" step="0.1" value="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">수량 (개)</label>
+              <input class="form-control" id="tolQty" type="number" value="0">
+            </div>
+          </div>
+          <div class="form-actions" style="justify-content:flex-start">
+            <button class="btn btn-outline btn-sm" id="btnSaveTol">저장</button>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-grid" id="kpiGrid"></div>
+      <div class="chart-grid" id="inspCharts"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 검수 결과 목록</span>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-ghost" id="btnRefreshResults">🔄</button>
+            <button class="btn btn-sm btn-outline" id="btnDownloadInsp" style="display:none">⬇ 엑셀</button>
+          </div>
+        </div>
+        <div id="resultSelector"></div>
+      </div>
+      <div id="inspResultTable"></div>
+    `;
+    document.getElementById('btnRunInsp').addEventListener('click', () => this.runInspection());
+    document.getElementById('btnSaveTol').addEventListener('click', () => this.saveTolerance());
+    document.getElementById('btnRefreshResults').addEventListener('click', () => this.loadResultList());
+    document.getElementById('btnDownloadInsp').addEventListener('click', () => {
+      if (this.currentResult) window.open(`/api/inspection/download/${this.currentResult.id}`);
+    });
+    this.loadUploads();
+    this.loadTolerance();
+    this.loadResultList();
+  },
+
+  // ── 간편 검수 탭 ──────────────────────────────────────────────────────────
+
+  renderSimple() {
+    document.getElementById('inspInnerContent').innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏥 거래처별 합계 대조</span>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-ghost" id="btnAddHospRow">+ 행 추가</button>
+            <button class="btn btn-sm btn-primary" id="btnRunHospSummary">대조 실행</button>
+            <button class="btn btn-sm btn-outline" id="btnDownloadHospSummary" style="display:none">⬇ 다운로드</button>
+          </div>
+        </div>
+        <div style="padding:12px 16px">
+          <div class="form-group">
+            <label class="form-label">처방 데이터 *</label>
+            <select class="form-control" id="simplePrescrSel">
+              <option value="">— 로딩 중 —</option>
+            </select>
+          </div>
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:12px">
+            💡 처방 데이터를 선택하고, 아래 합계표를 입력 후 [대조 실행]을 클릭하세요.
+          </div>
+          <table class="tbl" id="hospInputTable">
+            <thead>
+              <tr>
+                <th style="width:40px">NO</th>
+                <th>거래처명</th>
+                <th style="width:160px">금액</th>
+                <th style="width:100px">비고</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="hospInputBody"></tbody>
+          </table>
+        </div>
+        <div id="hospSummaryResult" style="padding:0 16px 16px"></div>
+      </div>
+    `;
+    this.loadSimpleUploads();
+    for (let i = 0; i < 3; i++) this.addHospRow();
+    document.getElementById('btnAddHospRow').addEventListener('click', () => this.addHospRow());
+    document.getElementById('btnRunHospSummary').addEventListener('click', () => this.runHospSummary());
+    document.getElementById('btnDownloadHospSummary').addEventListener('click', () => this.downloadHospSummary());
+  },
+
+  async loadSimpleUploads() {
+    try {
+      const uploads = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
+      const prescr = uploads.filter(u => u.file_type === 'prescription');
+      const opts = prescr.map(u => {
+        const name = decodeFileName(u.file_name);
+        return `<option value="${u.id}">${name} (${u.ref_month||'-'}, ${Fmt.num(u.row_count)}행)</option>`;
+      }).join('');
+      const sel = document.getElementById('simplePrescrSel');
+      if (sel) sel.innerHTML = `<option value="">— 선택 —</option>${opts}`;
+    } catch(e) {}
+  },
+
+  // ── 상세 검수 로직 ────────────────────────────────────────────────────────
+
+  async loadUploads() {
+    try {
+      const uploads = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
+      const prescr = uploads.filter(u => u.file_type === 'prescription');
+      const settle = uploads.filter(u => u.file_type === 'settlement');
+      const opts = (list) => list.map(u => {
+        const name = decodeFileName(u.file_name);
+        return `<option value="${u.id}">${name} (${u.ref_month||'-'}, ${Fmt.num(u.row_count)}행)</option>`;
+      }).join('');
+      document.getElementById('inspUploadSelectors').innerHTML = `
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">처방 데이터 *</label>
+            <select class="form-control" id="inspPrescr">
+              <option value="">— 선택 —</option>${opts(prescr)}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">정산 데이터 *</label>
+            <select class="form-control" id="inspSettle">
+              <option value="">— 선택 —</option>${opts(settle)}
+            </select>
+          </div>
+        </div>`;
+    } catch(e) {}
+  },
+
+  async loadTolerance() {
+    try {
+      const tol = await CSOAPI.get(`/api/cso/data?resource=inspection&action=tolerance&pharma_id=${CSOApp.pharmaId}`);
+      document.getElementById('tolAmtAbs').value = tol.amt_abs;
+      document.getElementById('tolAmtPct').value = tol.amt_pct;
+      document.getElementById('tolQty').value = tol.qty;
+    } catch(e) {}
+  },
+
+  async saveTolerance() {
+    try {
+      await CSOAPI.put('/api/cso/data?resource=inspection&action=tolerance', {
+        pharma_id: CSOApp.pharmaId,
+        amt_abs: document.getElementById('tolAmtAbs').value,
+        amt_pct: document.getElementById('tolAmtPct').value,
+        qty: document.getElementById('tolQty').value
+      });
+      Toast.success('허용오차 저장 완료');
+    } catch(e) { Toast.error(e.message); }
+  },
+
+  async runInspection() {
+    const p = document.getElementById('inspPrescr')?.value;
+    const s = document.getElementById('inspSettle')?.value;
+    const ref_month = document.getElementById('inspRefMonth')?.value.trim();
+    if (!p || !s) return Toast.error('처방/정산 데이터를 선택하세요');
+    try {
+      const result = await CSOAPI.post('/api/cso/data?resource=inspection&action=run', {
+        pharma_id: CSOApp.pharmaId,
+        prescription_upload_id: p,
+        settlement_upload_id: s,
+        ref_month
+      });
+      this.currentResult = result;
+      Toast.success(`검수 완료: ${result.rows.length}건`);
+      this.renderKPI(result.summary);
+      this.renderCharts(result.rows, result.summary);
+      this.renderTable(result.rows, result.id);
+      document.getElementById('btnDownloadInsp').style.display = '';
+      await this.loadResultList();
+    } catch(e) { Toast.error(e.message); }
+  },
+
+  renderKPI(summary) {
+    const defs = [
+      { key: 'ok',    label: '정상',       color: 'var(--ok)',     icon: '✅' },
+      { key: 'cok',   label: '조건부정상', color: 'var(--cok)',    icon: '🔵' },
+      { key: 'check', label: '확인필요',   color: 'var(--yellow)', icon: '⚠️' },
+      { key: 'fail',  label: '매칭실패',   color: 'var(--red)',    icon: '❌' },
+      { key: 'qty',   label: '수량불일치', color: 'var(--purple)', icon: '📦' },
+      { key: 'amt',   label: '금액불일치', color: '#c2410c',       icon: '💰' }
+    ];
+    const total = Object.values(summary).reduce((s, n) => s + n, 0);
+    document.getElementById('kpiGrid').innerHTML = defs.map(d => `
+      <div class="kpi-card ${this.filterStatus===d.key?'active':''}" onclick="CSOInspectionTab.setFilter('${d.key}')">
+        <div class="kpi-label">${d.icon} ${d.label}</div>
+        <div class="kpi-value" style="color:${d.color}">${summary[d.key]||0}</div>
+        <div class="kpi-sub">${total > 0 ? ((summary[d.key]||0)/total*100).toFixed(1) : 0}%</div>
+      </div>`).join('') +
+      `<div class="kpi-card ${this.filterStatus==='all'?'active':''}" onclick="CSOInspectionTab.setFilter('all')">
+        <div class="kpi-label">📊 전체</div>
+        <div class="kpi-value">${total}</div>
+        <div class="kpi-sub">100%</div>
+      </div>`;
+  },
+
+  renderCharts(rows, summary) {
+    for (const c of Object.values(this.charts)) { try { c.destroy(); } catch(e) {} }
+    this.charts = {};
+
+    const errorCounts = Object.entries(summary).filter(([k]) => k !== 'ok');
+    const donutColors = { cok:'#0891b2', check:'#d97706', fail:'#dc2626', qty:'#7c3aed', amt:'#ea580c' };
+
+    const hospErrors = {};
+    rows.filter(r => !['ok','cok'].includes(r.status)).forEach(r => {
+      const name = r.settlement?.hospital_name || '불명';
+      if (!hospErrors[name]) hospErrors[name] = 0;
+      hospErrors[name]++;
+    });
+    const top10 = Object.entries(hospErrors).sort((a,b) => b[1]-a[1]).slice(0,10);
+
+    document.getElementById('inspCharts').innerHTML = `
+      <div class="chart-card">
+        <div class="chart-title">오류 유형 분포</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chartDonut"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">불일치 병원 TOP10</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chartBar"></canvas></div>
+      </div>
+    `;
+
+    const dLabels = { cok:'조건부정상', check:'확인필요', fail:'매칭실패', qty:'수량불일치', amt:'금액불일치' };
+    this.charts.donut = new Chart(document.getElementById('chartDonut'), {
+      type: 'doughnut',
+      data: {
+        labels: errorCounts.map(([k]) => dLabels[k]||k),
+        datasets: [{ data: errorCounts.map(([,v]) => v), backgroundColor: errorCounts.map(([k]) => donutColors[k]||'#ccc'), borderWidth: 2 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+    });
+
+    this.charts.bar = new Chart(document.getElementById('chartBar'), {
+      type: 'bar',
+      data: {
+        labels: top10.map(([k]) => k.length > 8 ? k.slice(0,8)+'…' : k),
+        datasets: [{ label: '오류건수', data: top10.map(([,v]) => v), backgroundColor: '#dc2626' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 11 } } }, y: { ticks: { font: { size: 11 } } } } }
+    });
+  },
+
+  setFilter(status) {
+    this.filterStatus = status;
+    if (this.currentResult) {
+      this.renderKPI(this.currentResult.summary || this.currentResult.result?.summary || {});
+      this.renderTable(this.currentResult.rows || this.currentResult.result?.rows || [], this.currentResult.id);
+    }
+  },
+
+  renderTable(rows, resultId) {
+    const issueRows = rows.filter(r => r.status !== 'ok');
+    const filtered = this.filterStatus === 'all'
+      ? issueRows
+      : issueRows.filter(r => r.status === this.filterStatus);
+    const okCount = rows.length - issueRows.length;
+
+    const statusBadge = s => `<span class="badge status-${s}">${STATUS_LABEL[s]||s}</span>`;
+
+    document.getElementById('inspResultTable').innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            검수 결과 (${Fmt.num(filtered.length)}건)
+            ${okCount > 0 ? `<span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:8px">정상 ${Fmt.num(okCount)}건 숨김</span>` : ''}
+          </span>
+          <div class="card-actions">
+            <div class="filter-chips" style="margin:0">
+              ${['all','cok','check','fail','qty','amt'].map(s => `<span class="chip ${this.filterStatus===s?'active':''}" onclick="CSOInspectionTab.setFilter('${s}')">${s==='all'?'이슈전체':(STATUS_LABEL[s]||s)}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+        ${renderTable([
+          { label: '#',       render: (r,i) => i+1 },
+          { label: '상태',    render: r => statusBadge(r.status) },
+          { label: '병원명',  render: r => r.settlement?.hospital_name || '-' },
+          { label: '사업자번호', render: r => `<span class="mono">${r.settlement?.biz_no||'-'}</span>` },
+          { label: '제품명',  render: r => Fmt.short(r.settlement?.product_name, 15) },
+          { label: '처방수량', render: r => r.prescription?.quantity ?? '-' },
+          { label: '정산수량', render: r => r.settlement?.quantity ?? '-' },
+          { label: '처방금액', render: r => r.prescription ? Fmt.money(r.prescription.amount) : '-' },
+          { label: '정산금액', render: r => Fmt.money(r.settlement?.amount) },
+          { label: '금액차이', render: r => r.diff ? `<span style="color:${r.diff.amt_diff===0?'var(--ok)':'var(--red)'}">${Fmt.diffSign(r.diff.amt_diff)}</span>` : '-' },
+          { label: '보정', render: r => r._correction ? `<span class="badge badge-gray">${r._correction.action}</span>` : `<button class="btn btn-xs btn-outline" onclick="CSOInspectionTab.showCorrection(${r.idx}, ${resultId})">보정</button>` },
+          { label: '상세', render: r => `<button class="btn btn-xs btn-ghost" onclick="CSOInspectionTab.showDetail(${JSON.stringify(r).replace(/"/g,'&quot;')})">상세</button>` }
+        ], filtered, { clickable: false })}
+      </div>`;
+  },
+
+  showDetail(row) {
+    const p = row.prescription;
+    const s = row.settlement;
+    const matchTypeLabel = { bi:'사번+보험코드', bp:'사번+제품명', hi:'병원명+보험코드', hp:'병원명+제품명' };
+
+    Drawer.show(`
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:16px">
+        검수 상세 — <span class="badge status-${row.status}">${STATUS_LABEL[row.status]||row.status}</span>
+        ${row.match_type ? `<span class="badge badge-gray" style="margin-left:4px">${matchTypeLabel[row.match_type]||row.match_type}</span>` : ''}
+      </h2>
+      <div class="compare-row">
+        <div>
+          <div class="compare-label">처방 데이터</div>
+          ${p ? Object.entries(p).map(([k,v]) => `<div class="compare-field" style="margin-bottom:4px"><span class="inline-label">${k}</span>${v??'-'}</div>`).join('') : '<div class="compare-field" style="color:var(--muted)">매칭 없음</div>'}
+        </div>
+        <div class="compare-diff" style="font-size:20px;padding-top:40px">⟷</div>
+        <div>
+          <div class="compare-label">정산 데이터</div>
+          ${s ? Object.entries(s).map(([k,v]) => `<div class="compare-field" style="margin-bottom:4px"><span class="inline-label">${k}</span>${v??'-'}</div>`).join('') : '<div class="compare-field">-</div>'}
+        </div>
+      </div>
+      ${row.diff ? `
+        <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)">
+          <div class="compare-label" style="margin-bottom:8px">차이 분석</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:13px">
+            <div><div class="inline-label">금액차이</div><strong>${Fmt.diffSign(row.diff.amt_diff)}</strong></div>
+            <div><div class="inline-label">금액비율</div><strong>${Fmt.pct(row.diff.amt_rate)}</strong></div>
+            <div><div class="inline-label">수량차이</div><strong>${Fmt.diffSign(row.diff.qty_diff)}</strong></div>
+          </div>
+        </div>` : ''}
+    `);
+  },
+
+  showCorrection(rowIdx, resultId) {
+    Modal.show('수동 보정', `
+      <div class="form-group">
+        <label class="form-label">보정 유형 *</label>
+        <select class="form-control" id="mCorrAction">
+          <option value="정상확인">✅ 정상확인</option>
+          <option value="제외">🚫 제외 (검수에서 제외)</option>
+          <option value="수량보정">📦 수량보정</option>
+          <option value="금액보정">💰 금액보정</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">사유</label>
+        <textarea class="form-control" id="mCorrReason" rows="3" placeholder="보정 사유를 입력하세요"></textarea>
+      </div>
+    `, async () => {
+      const action = document.getElementById('mCorrAction').value;
+      const reason = document.getElementById('mCorrReason').value.trim();
+      try {
+        await CSOAPI.post('/api/cso/data?resource=inspection&action=correct', { pharma_id: CSOApp.pharmaId, inspection_id: resultId, row_idx: rowIdx, action, reason });
+        Toast.success('보정 처리 완료');
+        Modal.hide();
+      } catch(e) { Toast.error(e.message); }
+    });
+  },
+
+  async loadResultList() {
+    try {
+      const list = await CSOAPI.get(`/api/cso/data?resource=inspection&action=results&pharma_id=${CSOApp.pharmaId}`);
+      const container = document.getElementById('resultSelector');
+      if (!list.length) { container.innerHTML = `<div class="empty-state" style="padding:30px"><div class="empty-state-text">검수 결과 없음</div></div>`; return; }
+      container.innerHTML = renderTable([
+        { label: '#',         render: r => r.id },
+        { label: '기준월',    render: r => r.ref_month || '-' },
+        { label: '처방 업로드', render: r => `#${r.prescription_upload_id}` },
+        { label: '정산 업로드', render: r => `#${r.settlement_upload_id}` },
+        { label: '실행일',    render: r => r.created_at?.slice(0,16) || '-' },
+        { label: '',          render: r => `<button class="btn btn-xs btn-outline" onclick="CSOInspectionTab.loadResult(${r.id})">불러오기</button>` }
+      ], list);
+    } catch(e) {}
+  },
+
+  async loadResult(id) {
+    try {
+      const data = await CSOAPI.get(`/api/cso/data?resource=inspection&action=result&id=${id}`);
+      this.currentResult = { id, ...data.result };
+      const result = data.result;
+      this.renderKPI(result.summary);
+      this.renderCharts(result.rows, result.summary);
+      this.renderTable(result.rows, id);
+      document.getElementById('btnDownloadInsp').style.display = '';
+      Toast.info(`결과 #${id} 불러옴`);
+    } catch(e) { Toast.error(e.message); }
+  },
+
+  // ── 간편 검수: 거래처 합계 대조 ──────────────────────────────────────────
+
+  addHospRow() {
+    const tbody = document.getElementById('hospInputBody');
+    if (!tbody) return;
+    const idx = tbody.querySelectorAll('tr').length + 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center;color:var(--muted);font-size:12px">${idx}</td>
+      <td><input class="form-control form-control-sm hosp-name" placeholder="거래처명" style="margin:0"></td>
+      <td><input class="form-control form-control-sm hosp-amount" placeholder="0" type="text" style="margin:0;text-align:right"></td>
+      <td><input class="form-control form-control-sm hosp-memo" placeholder="신규/기존" style="margin:0"></td>
+      <td><button class="btn btn-xs btn-ghost" onclick="this.closest('tr').remove(); CSOInspectionTab.renumberHospRows()" style="color:var(--muted)">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+    tr.querySelector('.hosp-amount').addEventListener('blur', function() {
+      const v = parseFloat(this.value.replace(/[^0-9.-]/g, ''));
+      if (!isNaN(v)) this.value = v.toLocaleString();
+    });
+    tr.querySelector('.hosp-amount').addEventListener('focus', function() {
+      this.value = this.value.replace(/,/g, '');
+    });
+  },
+
+  renumberHospRows() {
+    document.querySelectorAll('#hospInputBody tr').forEach((tr, i) => {
+      const td = tr.querySelector('td:first-child');
+      if (td) td.textContent = i + 1;
+    });
+  },
+
+  getHospInputData() {
+    const data = [];
+    document.querySelectorAll('#hospInputBody tr').forEach(tr => {
+      const name   = tr.querySelector('.hosp-name')?.value.trim();
+      const amtRaw = tr.querySelector('.hosp-amount')?.value.replace(/,/g, '').trim();
+      const memo   = tr.querySelector('.hosp-memo')?.value.trim() || '';
+      if (name && amtRaw) data.push({ hospital_name: name, amount: parseFloat(amtRaw) || 0, memo });
+    });
+    return data;
+  },
+
+  async runHospSummary() {
+    const prescrId = document.getElementById('simplePrescrSel')?.value;
+    if (!prescrId) return Toast.error('처방 데이터를 먼저 선택하세요');
+
+    const summaryData = this.getHospInputData();
+    if (!summaryData.length) return Toast.error('거래처 정보를 입력하세요');
+
+    try {
+      const result = await CSOAPI.post('/api/cso/data?resource=inspection&action=hospital_summary', {
+        pharma_id: CSOApp.pharmaId,
+        prescription_upload_id: prescrId,
+        summary_data: summaryData
+      });
+      this._hospSummaryResult = result;
+      this.renderHospSummaryResult(result);
+      document.getElementById('btnDownloadHospSummary').style.display = '';
+      Toast.success(`대조 완료: ${result.results.length}건`);
+    } catch(e) { Toast.error(e.message); }
+  },
+
+  renderHospSummaryResult(result) {
+    const { results, totals } = result;
+    const statusBadge = s => {
+      const map = {
+        ok:          ['정상',      'var(--ok)'],
+        cok:         ['허용오차',  'var(--cok)'],
+        diff:        ['차이발생',  'var(--red)'],
+        no_match:    ['처방없음',  'var(--yellow)'],
+        prescr_only: ['합계표없음','var(--purple)']
+      };
+      const [label, color] = map[s] || [s, '#ccc'];
+      return `<span class="badge" style="background:${color}20;color:${color};border:1px solid ${color}40">${label}</span>`;
+    };
+
+    const totalDiffColor = totals.total_diff === 0 ? 'var(--ok)' : 'var(--red)';
+
+    document.getElementById('hospSummaryResult').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:16px">
+        <div class="kpi-card" style="padding:12px">
+          <div class="kpi-label">합계표 합계</div>
+          <div class="kpi-value" style="font-size:16px">${Fmt.money(totals.summary_total)}</div>
+        </div>
+        <div class="kpi-card" style="padding:12px">
+          <div class="kpi-label">처방 합계</div>
+          <div class="kpi-value" style="font-size:16px">${Fmt.money(totals.prescription_total)}</div>
+        </div>
+        <div class="kpi-card" style="padding:12px">
+          <div class="kpi-label">전체 차이</div>
+          <div class="kpi-value" style="font-size:16px;color:${totalDiffColor}">${Fmt.diffSign(totals.total_diff)}</div>
+        </div>
+        <div class="kpi-card" style="padding:12px">
+          <div class="kpi-label">정상</div>
+          <div class="kpi-value" style="font-size:16px;color:var(--ok)">${totals.ok}</div>
+        </div>
+        <div class="kpi-card" style="padding:12px">
+          <div class="kpi-label">차이발생</div>
+          <div class="kpi-value" style="font-size:16px;color:var(--red)">${totals.diff}</div>
+        </div>
+        <div class="kpi-card" style="padding:12px">
+          <div class="kpi-label">매칭없음</div>
+          <div class="kpi-value" style="font-size:16px;color:var(--yellow)">${totals.no_match + totals.prescr_only}</div>
+        </div>
+      </div>
+      ${renderTable([
+        { label: '#',        render: (r,i) => i+1 },
+        { label: '상태',     render: r => statusBadge(r.status) },
+        { label: '거래처명', render: r => r.hospital_name },
+        { label: '비고',     render: r => r.memo ? `<span style="font-size:11px;color:var(--muted)">${r.memo}</span>` : '' },
+        { label: '합계표 금액', render: r => r.summary_amount ? `<span class="mono">${Fmt.money(r.summary_amount)}</span>` : '-' },
+        { label: '처방 합계',   render: r => r.prescription_amount ? `<span class="mono">${Fmt.money(r.prescription_amount)}</span>` : '-' },
+        { label: '차이', render: r => {
+          if (r.status === 'ok') return '<span style="color:var(--ok)">±0</span>';
+          const color = r.diff === 0 ? 'var(--ok)' : (Math.abs(r.diff) <= 100 ? 'var(--cok)' : 'var(--red)');
+          return `<span class="mono" style="color:${color}">${Fmt.diffSign(r.diff)}</span>`;
+        }},
+        { label: '차이율', render: r => {
+          if (r.diff_pct === 0) return '<span style="color:var(--ok)">0%</span>';
+          const color = r.diff_pct <= 1 ? 'var(--cok)' : 'var(--red)';
+          return `<span style="color:${color}">${r.diff_pct.toFixed(1)}%</span>`;
+        }}
+      ], results, { clickable: false })}
+    `;
+  },
+
+  downloadHospSummary() {
+    if (!this._hospSummaryResult) return;
+    const { results, totals } = this._hospSummaryResult;
+    const statusLabel = { ok:'정상', cok:'허용오차', diff:'차이발생', no_match:'처방없음', prescr_only:'합계표없음' };
+
+    const data = results.map(r => ({
+      '거래처명':   r.hospital_name,
+      '비고':       r.memo,
+      '합계표금액': r.summary_amount,
+      '처방합계':   r.prescription_amount,
+      '차이':       r.diff,
+      '차이율(%)':  r.diff_pct,
+      '상태':       statusLabel[r.status] || r.status
+    }));
+    data.push({
+      '거래처명': '【합계】', '비고': '',
+      '합계표금액': totals.summary_total,
+      '처방합계':   totals.prescription_total,
+      '차이':       totals.total_diff,
+      '차이율(%)':  '', '상태': ''
+    });
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '거래처합계대조');
+    XLSX.writeFile(wb, `거래처합계대조_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+};
+
+
+// 체크메이트 뷰 진입 시 자동 초기화
+const _origShowView = showView;
 </script>
 
 </body>
