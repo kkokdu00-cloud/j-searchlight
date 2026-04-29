@@ -813,8 +813,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
     <button class="nav-item admin-only" id="nav-commission" onclick="showView('commission')">
       <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
     </button>
-  </nav>
-  <div class="nav-divider"></div>
+    <div class="nav-divider"></div>
   <div class="nav-group-label">체크메이트</div>
   <button class="nav-item" id="nav-cso-upload" onclick="showView('cso-upload')">
     <span class="nav-icon"><i data-lucide="upload" style="width:18px;height:18px;"></i></span> 데이터 업로드
@@ -825,6 +824,7 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
   <button class="nav-item" id="nav-cso-inspection" onclick="showView('cso-inspection')">
     <span class="nav-icon"><i data-lucide="search-check" style="width:18px;height:18px;"></i></span> 비교 검수
   </button>
+  </nav>
   <div id="nav-users-wrap" style="display:none;">
     <div class="nav-divider"></div>
     <div class="nav-group-label">관리자</div>
@@ -1548,11 +1548,11 @@ async function addManualDrug() {
   </script>
 </div>
 
-</div><!-- /wrap -->
 <!-- ═══ 체크메이트 View Divs ═══ -->
 <div id="view-cso-upload" style="display:none;padding:24px 32px"></div>
 <div id="view-cso-separation" style="display:none;padding:24px 32px"></div>
 <div id="view-cso-inspection" style="display:none;padding:24px 32px"></div>
+</div><!-- /wrap -->
 </div><!-- /main-area -->
 </div><!-- /app -->
 
