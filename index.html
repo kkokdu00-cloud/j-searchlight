@@ -5315,6 +5315,11 @@ const CSOUploadTab = {
   },
 
   async loadHistory() {
+    if (!CSOApp.pharmaId) {
+      const container = document.getElementById('historyList');
+      if (container) container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-text">제약사를 먼저 추가하세요</div></div>`;
+      return;
+    }
     try {
       const list = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
       const container = document.getElementById('historyList');
@@ -5381,6 +5386,12 @@ const CSOSeparationTab = {
     let mappings = [];
     let mappingCount = 0;
     let pharmaConfigs = [];
+
+    if (!CSOApp.pharmaId) {
+      const c = document.getElementById('view-cso-separation');
+      if (c) c.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-text">제약사를 먼저 추가하세요</div><div class="empty-state-hint">데이터 업로드 탭에서 제약사를 추가해주세요</div></div></div>`;
+      return;
+    }
 
     try {
       uploads = await CSOAPI.get(`/api/cso/data?resource=upload&action=history&pharma_id=${CSOApp.pharmaId}`);
@@ -5866,6 +5877,7 @@ const CSOInspectionTab = {
   },
 
   async loadTolerance() {
+    if (!CSOApp.pharmaId) return;
     try {
       const tol = await CSOAPI.get(`/api/cso/data?resource=inspection&action=tolerance&pharma_id=${CSOApp.pharmaId}`);
       document.getElementById('tolAmtAbs').value = tol.amt_abs;
@@ -6084,6 +6096,7 @@ const CSOInspectionTab = {
   },
 
   async loadResultList() {
+    if (!CSOApp.pharmaId) return;
     try {
       const list = await CSOAPI.get(`/api/cso/data?resource=inspection&action=results&pharma_id=${CSOApp.pharmaId}`);
       const container = document.getElementById('resultSelector');
