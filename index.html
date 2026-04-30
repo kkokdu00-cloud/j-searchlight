@@ -1750,6 +1750,40 @@ async function addManualDrug() {
 </div>
 
 <!-- Gallery Modal -->
+<!-- ── 첨부파일 추가 모달 ── -->
+<div id="attach-modal-overlay" onclick="closeAttachModal()" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:1400;"></div>
+<div id="attach-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:92%;max-width:480px;background:#fff;border-radius:16px;z-index:1500;box-shadow:0 24px 64px rgba(0,0,0,.25);overflow:hidden;">
+  <div style="padding:18px 20px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:16px;font-weight:700;color:var(--brown);">📎 첨부파일 추가</div>
+      <div id="attach-modal-subtitle" style="font-size:12px;color:var(--gray-400);margin-top:2px;"></div>
+    </div>
+    <button onclick="closeAttachModal()" style="background:var(--gray-100);border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:18px;color:var(--gray-600);">✕</button>
+  </div>
+  <div style="padding:18px 20px;">
+    <!-- 기존 첨부파일 목록 -->
+    <div id="attach-modal-existing" style="margin-bottom:14px;"></div>
+    <!-- 새 파일 업로드 영역 -->
+    <label style="display:block;border:2px dashed var(--gray-200);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;background:var(--gray-50);transition:all .15s;" id="attach-drop-label"
+      ondragover="event.preventDefault();this.style.borderColor='var(--gold)';this.style.background='var(--gold-bg)'"
+      ondragleave="this.style.borderColor='';this.style.background=''"
+      ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handleAttachDrop(event)">
+      <input type="file" id="attach-file-input" accept="image/*,.pdf" multiple style="display:none;" onchange="handleAttachFiles(this.files)">
+      <div style="font-size:28px;margin-bottom:8px;">📁</div>
+      <div style="font-size:14px;font-weight:600;color:var(--gray-600);">클릭하거나 파일을 드래그하세요</div>
+      <div style="font-size:12px;color:var(--gray-400);margin-top:4px;">이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능</div>
+    </label>
+    <!-- 새로 선택된 파일 미리보기 -->
+    <div id="attach-new-preview" style="margin-top:12px;"></div>
+  </div>
+  <div style="padding:14px 20px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:8px;">
+    <button class="btn" onclick="closeAttachModal()">취소</button>
+    <button class="btn btn-primary" id="attach-save-btn" onclick="saveAttachFiles()">
+      <i data-lucide="save" style="width:14px;height:14px;vertical-align:-2px;"></i> 저장
+    </button>
+  </div>
+</div>
+
 <div id="gallery-modal" class="gallery-modal" style="display:none" onclick="closeGallery(event)">
   <div class="gallery-box" onclick="event.stopPropagation()">
     <div class="gallery-header">
@@ -3367,6 +3401,9 @@ function renderList() {
         <div class="list-row-top">
           <label style="flex:1;font-weight:700;"><input type="checkbox" data-id="${s.id}"> ${esc(mainLabel)}</label>
           <div class="list-btns">
+            <button class="btn btn-sm" onclick="openAttachModal('${s.id}')" title="첨부파일 추가">
+              <i data-lucide="paperclip" style="width:13px;height:13px;vertical-align:-2px;"></i> 첨부
+            </button>
             <button class="btn btn-sm" onclick="loadSessionById('${s.id}')">수정</button>
             <button class="btn btn-danger btn-sm" onclick="deleteSessionById('${s.id}')">삭제</button>
           </div>
@@ -3881,6 +3918,157 @@ function bulkImportPharma(input) {
 // ══════════════════════════════════════════════
 // GALLERY (첨부 이미지 모달)
 // ══════════════════════════════════════════════
+// ══ 세션 첨부파일 추가 기능 ════════════════════════════════════
+let _attachModalSessionId = null;
+let _attachNewFiles = []; // { file, name, fileType }
+
+async function openAttachModal(sessionId) {
+  _attachModalSessionId = sessionId;
+  _attachNewFiles = [];
+  const session = savedSessions.find(s => s.id === sessionId);
+  if (!session) return;
+
+  // 부제목
+  document.getElementById('attach-modal-subtitle').textContent =
+    `${session.hospital} · ${session.pharma} · ${session.presc}`;
+
+  // 기존 첨부파일 목록
+  const existing = session.attachFiles || [];
+  const existEl = document.getElementById('attach-modal-existing');
+  if (existing.length) {
+    existEl.innerHTML = `
+      <div style="font-size:12px;font-weight:700;color:var(--gray-400);margin-bottom:8px;">기존 첨부파일 (${existing.length}개)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${existing.map((a, i) => {
+          const url = a.blobUrl || a.dataUrl || '';
+          const ico = (a.fileType||'').startsWith('image/') ? '🖼️' : '📄';
+          return `<div style="display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:6px 10px;font-size:13px;">
+            <span style="cursor:${url?'pointer':'default'}" onclick="${url?`viewImg('${url}')`:''}">${ico} ${escHtml(a.name||'파일')}</span>
+            <button onclick="removeExistingAttach('${sessionId}',${i})" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:16px;line-height:1;padding:0;">✕</button>
+          </div>`;
+        }).join('')}
+      </div>`;
+  } else {
+    existEl.innerHTML = `<div style="font-size:13px;color:var(--gray-400);margin-bottom:8px;">기존 첨부파일 없음</div>`;
+  }
+
+  document.getElementById('attach-new-preview').innerHTML = '';
+
+  // 모달 표시
+  document.getElementById('attach-modal-overlay').style.display = 'block';
+  document.getElementById('attach-modal').style.display = 'block';
+  requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
+}
+
+function closeAttachModal() {
+  document.getElementById('attach-modal-overlay').style.display = 'none';
+  document.getElementById('attach-modal').style.display = 'none';
+  _attachModalSessionId = null;
+  _attachNewFiles = [];
+}
+
+function handleAttachDrop(event) {
+  handleAttachFiles(event.dataTransfer.files);
+}
+
+function handleAttachFiles(files) {
+  for (const f of files) {
+    _attachNewFiles.push({ file: f, name: f.name, fileType: f.type });
+  }
+  renderAttachPreview();
+}
+
+function renderAttachPreview() {
+  const el = document.getElementById('attach-new-preview');
+  if (!_attachNewFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:var(--gray-400);margin-bottom:8px;">새로 추가할 파일 (${_attachNewFiles.length}개)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      ${_attachNewFiles.map((f, i) => {
+        const ico = f.fileType.startsWith('image/') ? '🖼️' : '📄';
+        return `<div style="display:flex;align-items:center;gap:6px;background:var(--gold-bg);border:1px solid var(--gold-lt);border-radius:8px;padding:6px 10px;font-size:13px;">
+          ${ico} ${escHtml(f.name)}
+          <button onclick="_attachNewFiles.splice(${i},1);renderAttachPreview()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:16px;line-height:1;padding:0;">✕</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function removeExistingAttach(sessionId, idx) {
+  const session = savedSessions.find(s => s.id === sessionId);
+  if (!session) return;
+  session.attachFiles.splice(idx, 1);
+  // DB 업데이트
+  try {
+    await apiPost('/api/sessions', { ...session, _update: true });
+    showToast('✅ 첨부파일 삭제 완료');
+  } catch(e) {
+    showToast('✗ 삭제 실패: ' + e.message, 3500);
+  }
+  openAttachModal(sessionId); // 모달 새로고침
+  renderList();
+}
+
+async function saveAttachFiles() {
+  if (!_attachModalSessionId) return;
+  if (!_attachNewFiles.length) { closeAttachModal(); return; }
+
+  const btn = document.getElementById('attach-save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 저장 중...';
+
+  const session = savedSessions.find(s => s.id === _attachModalSessionId);
+  if (!session) return;
+
+  const newAttach = [];
+  for (const f of _attachNewFiles) {
+    try {
+      let base64, contentType;
+      if (f.fileType.startsWith('image/')) {
+        const dataUrl = await compressImageForStorage(f.file);
+        base64 = dataUrl.split(',')[1];
+        contentType = 'image/jpeg';
+      } else {
+        base64 = await fileToBase64(f.file);
+        contentType = f.fileType || 'application/octet-stream';
+      }
+      const r = await fetch('/api/blob-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: f.name, contentType, dataBase64: base64 })
+      });
+      const result = await r.json();
+      const meta = { name: f.name, fileType: f.fileType, type: '', blobUrl: '', dataUrl: '' };
+      if (result.url) {
+        meta.blobUrl = result.url;
+      } else if (f.fileType.startsWith('image/')) {
+        meta.dataUrl = 'data:image/jpeg;base64,' + base64;
+      }
+      newAttach.push(meta);
+    } catch(e) {
+      console.error('첨부 업로드 실패:', f.name, e);
+      showToast('✗ ' + f.name + ' 업로드 실패', 3500);
+    }
+  }
+
+  // 세션에 병합
+  session.attachFiles = [...(session.attachFiles || []), ...newAttach];
+  session.attach_files = session.attachFiles;
+
+  try {
+    await apiPost('/api/sessions', { ...session, _update: true });
+    showToast(`✅ ${newAttach.length}개 첨부파일 저장 완료!`);
+    closeAttachModal();
+    renderList();
+  } catch(e) {
+    showToast('✗ 저장 실패: ' + e.message, 3500);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i data-lucide="save" style="width:14px;height:14px;vertical-align:-2px;"></i> 저장';
+}
+// ══ 첨부파일 추가 기능 끝 ════════════════════════════════════════
+
 function openGallery() {
   const checks = Array.from(document.querySelectorAll('#list-body input[type=checkbox]:checked'));
   if (!checks.length) { alert('항목을 선택해주세요.'); return; }
