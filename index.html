@@ -6839,9 +6839,6 @@ const CSOSeparationTab = {
       mappings = await CSOAPI.get(`/api/cso/data?resource=separation&action=mapping&pharma_id=${CSOApp.pharmaId}`);
       mappingCount = mappings.length;
     } catch(e) {}
-    try {
-      pharmaConfigs = await CSOAPI.get('/api/cso/data?resource=separation&action=pharma_configs');
-    } catch(e) {}
 
     const currentPharmaName = (CSOApp.pharmas || []).find(p => String(p.id) === String(CSOApp.pharmaId))?.name || '';
 
