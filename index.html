@@ -712,6 +712,25 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .login-btn:hover { background: var(--brown2); }
 .login-error { color: #e53e3e; font-size: 13px; text-align: center; margin-top: 10px; min-height: 20px; }
 
+
+/* ══ 정산관리 CSS ═══════════════════════════════════════════════ */
+.stl-tab-btn {
+  padding: 10px 18px; border: none; background: transparent;
+  font-size: 14px; font-weight: 600; color: var(--gray-400);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all .15s;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+.stl-tab-btn:hover { color: var(--brown); }
+.stl-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+.stl-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.stl-tbl th { background:var(--gray-50); font-weight:700; padding:9px 10px; border-bottom:2px solid var(--gray-200); text-align:left; color:var(--gray-600); font-size:12px; white-space:nowrap; }
+.stl-tbl td { padding:8px 10px; border-bottom:1px solid var(--gray-100); color:var(--gray-800); vertical-align:middle; font-size:13px; }
+.stl-tbl tr:last-child td { border-bottom:none; }
+.stl-tbl tr:hover td { background:var(--gold-bg); }
+.stl-tbl .num { text-align:right; font-variant-numeric:tabular-nums; }
+.stl-tbl .total-row td { font-weight:700; background:var(--gold-bg); color:var(--brown); border-top:2px solid var(--gold-lt); }
+/* ══ 정산관리 CSS 끝 ════════════════════════════════════════════ */
 /* ══ 모바일 네비게이션 CSS ══════════════════════════════════════ */
 .mnav-item {
   display: flex; align-items: center; gap: 12px;
@@ -741,6 +760,25 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 @media (max-width: 768px) {
   #mobile-tabbar { display: flex !important; }
 }
+
+/* ══ 정산관리 CSS ═══════════════════════════════════════════════ */
+.stl-tab-btn {
+  padding: 10px 18px; border: none; background: transparent;
+  font-size: 14px; font-weight: 600; color: var(--gray-400);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all .15s;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+.stl-tab-btn:hover { color: var(--brown); }
+.stl-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+.stl-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.stl-tbl th { background:var(--gray-50); font-weight:700; padding:9px 10px; border-bottom:2px solid var(--gray-200); text-align:left; color:var(--gray-600); font-size:12px; white-space:nowrap; }
+.stl-tbl td { padding:8px 10px; border-bottom:1px solid var(--gray-100); color:var(--gray-800); vertical-align:middle; font-size:13px; }
+.stl-tbl tr:last-child td { border-bottom:none; }
+.stl-tbl tr:hover td { background:var(--gold-bg); }
+.stl-tbl .num { text-align:right; font-variant-numeric:tabular-nums; }
+.stl-tbl .total-row td { font-weight:700; background:var(--gold-bg); color:var(--brown); border-top:2px solid var(--gold-lt); }
+/* ══ 정산관리 CSS 끝 ════════════════════════════════════════════ */
 /* ══ 모바일 네비게이션 CSS 끝 ════════════════════════════════════ */
 
 /* ══ 체크메이트 통합 CSS ══════════════════════════════════════════ */
@@ -902,6 +940,9 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <button class="nav-item admin-only" id="nav-commission" onclick="showView('commission')">
       <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
     </button>
+    <button class="nav-item" id="nav-settlement" onclick="showView('settlement')">
+      <span class="nav-icon"><i data-lucide="calculator" style="width:18px;height:18px;"></i></span> 정산 관리
+    </button>
     <div id="nav-cso-wrap">
       <div class="nav-divider"></div>
       <div class="nav-group-label">체크메이트</div>
@@ -968,6 +1009,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">의약품</div>
     <button class="mnav-item" onclick="showView('drug');closeMobileNav()"><i data-lucide="pill" style="width:18px;height:18px;"></i> 제품 검색</button>
+    <button class="mnav-item" onclick="showView('settlement');closeMobileNav()"><i data-lucide="calculator" style="width:18px;height:18px;"></i> 정산 관리</button>
     <div id="mnav-admin-section" style="display:none;">
       <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
       <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">관리</div>
@@ -1313,6 +1355,72 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     </div>
   </div>
 </div><!-- /view-list -->
+
+<!-- ════════════════════════════════════════════
+     VIEW: 정산 관리
+════════════════════════════════════════════ -->
+<div id="view-settlement" style="display:none;">
+  <div class="wrap">
+
+    <!-- 필터 카드 -->
+    <div class="card">
+      <div class="section-title"><i data-lucide="filter" style="width:16px;height:16px;vertical-align:-3px;"></i> 조회 필터</div>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px;">
+        <div class="field">
+          <label>처방월 (시작)</label>
+          <input type="month" id="stl-from">
+        </div>
+        <div class="field">
+          <label>처방월 (종료)</label>
+          <input type="month" id="stl-to">
+        </div>
+        <div class="field">
+          <label>제약사</label>
+          <select id="stl-pharma" class="form-control">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>거래처</label>
+          <select id="stl-hospital" class="form-control">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="field" id="stl-user-wrap">
+          <label>담당자</label>
+          <select id="stl-user" class="form-control">
+            <option value="">전체</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="renderSettlement()">
+          <i data-lucide="search" style="width:14px;height:14px;vertical-align:-2px;"></i> 조회
+        </button>
+        <button class="btn btn-sm" onclick="resetSettlementFilter()">초기화</button>
+        <button class="btn btn-sm" onclick="exportSettlementXlsx()" style="margin-left:auto;">
+          <i data-lucide="download" style="width:14px;height:14px;vertical-align:-2px;"></i> 엑셀 내보내기
+        </button>
+      </div>
+    </div>
+
+    <!-- 요약 KPI -->
+    <div class="kpi-grid" id="stl-kpi" style="margin-bottom:16px;"></div>
+
+    <!-- 그룹 탭 -->
+    <div class="card" style="padding-bottom:0;">
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--gray-200);margin:-20px -20px 16px;padding:0 20px;">
+        <button class="stl-tab-btn active" data-tab="month"   onclick="setStlTab('month')">월별</button>
+        <button class="stl-tab-btn"        data-tab="pharma"  onclick="setStlTab('pharma')">제약사별</button>
+        <button class="stl-tab-btn"        data-tab="hospital" onclick="setStlTab('hospital')">거래처별</button>
+        <button class="stl-tab-btn"        data-tab="drug"    onclick="setStlTab('drug')">품목별</button>
+      </div>
+      <div id="stl-table-wrap"></div>
+    </div>
+
+  </div>
+</div><!-- /view-settlement -->
+
 
 <!-- ZIP 다운로드 모달 -->
 <div id="zip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
@@ -2056,11 +2164,12 @@ const VIEW_TITLES = {
   commission: '수수료 관리',
   'cso-upload': '데이터 업로드',
   'cso-separation': '정산 분리',
-  'cso-inspection': '비교 검수'
+  'cso-inspection': '비교 검수',
+  'settlement': '정산 관리'
 };
 
 function showView(v) {
-  ['dashboard','input','list','master','users','drug','commission','cso-upload','cso-separation','cso-inspection'].forEach(name => {
+  ['dashboard','input','list','master','users','drug','commission','cso-upload','cso-separation','cso-inspection','settlement'].forEach(name => {
     const viewEl = document.getElementById('view-' + name);
     const navEl  = document.getElementById('nav-'  + name);
     if (viewEl) viewEl.style.display = (name === v) ? 'block' : 'none';
@@ -2090,6 +2199,18 @@ function showView(v) {
   if (v === 'cso-upload')     { initCSOView().then(() => CSOUploadTab.render()); }
   if (v === 'cso-separation') { initCSOView().then(() => CSOSeparationTab.render()); }
   if (v === 'cso-inspection') { initCSOView().then(() => CSOInspectionTab.render()); }
+  if (v === 'settlement') {
+    // 필터 초기값: 최근 3개월
+    const now = new Date();
+    const toVal = now.toISOString().slice(0,7);
+    now.setMonth(now.getMonth() - 2);
+    const fromVal = now.toISOString().slice(0,7);
+    const fromEl = document.getElementById('stl-from');
+    const toEl   = document.getElementById('stl-to');
+    if (fromEl && !fromEl.value) fromEl.value = fromVal;
+    if (toEl   && !toEl.value)   toEl.value   = toVal;
+    renderSettlement();
+  }
   requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
 }
 
@@ -3918,6 +4039,208 @@ function bulkImportPharma(input) {
 // ══════════════════════════════════════════════
 // GALLERY (첨부 이미지 모달)
 // ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// 정산 관리
+// ══════════════════════════════════════════════════════════════
+let _stlTab = 'month';
+
+function setStlTab(tab) {
+  _stlTab = tab;
+  document.querySelectorAll('.stl-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  renderSettlementTable();
+}
+
+function resetSettlementFilter() {
+  document.getElementById('stl-from').value = '';
+  document.getElementById('stl-to').value = '';
+  document.getElementById('stl-pharma').value = '';
+  document.getElementById('stl-hospital').value = '';
+  const u = document.getElementById('stl-user');
+  if (u) u.value = '';
+  renderSettlement();
+}
+
+function renderSettlement() {
+  const isAdmin = currentUser && currentUser.role === 'admin';
+
+  // 관리자 전용 필터 표시
+  const userWrap = document.getElementById('stl-user-wrap');
+  if (userWrap) userWrap.style.display = isAdmin ? '' : 'none';
+
+  // 필터 옵션 채우기
+  const pharmaEl    = document.getElementById('stl-pharma');
+  const hospitalEl  = document.getElementById('stl-hospital');
+  const userEl      = document.getElementById('stl-user');
+
+  const sessions = isAdmin ? savedSessions : savedSessions.filter(s => s.user_id === currentUser.id);
+
+  const pharmas   = [...new Set(sessions.map(s => s.pharma).filter(Boolean))].sort();
+  const hospitals = [...new Set(sessions.map(s => s.hospital).filter(Boolean))].sort();
+  const users     = [...new Set(sessions.map(s => s.user_name).filter(Boolean))].sort();
+
+  const fillSelect = (el, items) => {
+    const cur = el.value;
+    el.innerHTML = '<option value="">전체</option>' + items.map(v => `<option value="${escHtml(v)}" ${cur===v?'selected':''}>${escHtml(v)}</option>`).join('');
+  };
+  fillSelect(pharmaEl, pharmas);
+  fillSelect(hospitalEl, hospitals);
+  if (userEl && isAdmin) fillSelect(userEl, users);
+
+  renderSettlementTable();
+}
+
+function getFilteredSettlementData() {
+  const isAdmin  = currentUser && currentUser.role === 'admin';
+  const from     = document.getElementById('stl-from')?.value || '';
+  const to       = document.getElementById('stl-to')?.value || '';
+  const pharmaF  = document.getElementById('stl-pharma')?.value || '';
+  const hospF    = document.getElementById('stl-hospital')?.value || '';
+  const userF    = document.getElementById('stl-user')?.value || '';
+
+  let sessions = isAdmin ? savedSessions : savedSessions.filter(s => s.user_id === currentUser.id);
+
+  if (from)    sessions = sessions.filter(s => (s.presc||'') >= from);
+  if (to)      sessions = sessions.filter(s => (s.presc||'') <= to);
+  if (pharmaF) sessions = sessions.filter(s => s.pharma === pharmaF);
+  if (hospF)   sessions = sessions.filter(s => s.hospital === hospF);
+  if (userF)   sessions = sessions.filter(s => s.user_name === userF);
+
+  // rows 펼치기
+  const rows = [];
+  sessions.forEach(s => {
+    (s.rows || []).forEach(r => {
+      const price = parseFloat(String(r.price||'').replace(/,/g,'')) || 0;
+      const qin   = parseInt(r.qin)  || 0;
+      const qout  = parseInt(r.qout) || 0;
+      const qty   = qin + qout;
+      const comm  = parseFloat(r.commission) || 0;
+      const prescAmt   = price * qty;
+      const settleAmt  = Math.round(prescAmt * comm / 100);
+      rows.push({
+        month:    s.presc || '-',
+        pharma:   s.pharma || '-',
+        hospital: s.hospital || '-',
+        user:     s.user_name || '-',
+        code:     r.code || '-',
+        name:     r.name || '-',
+        price, qin, qout, qty,
+        commission: comm,
+        prescAmt, settleAmt
+      });
+    });
+  });
+  return rows;
+}
+
+function renderSettlementTable() {
+  const rows = getFilteredSettlementData();
+
+  // KPI
+  const totalPresc   = rows.reduce((s,r) => s + r.prescAmt,  0);
+  const totalSettle  = rows.reduce((s,r) => s + r.settleAmt, 0);
+  const totalQty     = rows.reduce((s,r) => s + r.qty, 0);
+  const kpiEl = document.getElementById('stl-kpi');
+  if (kpiEl) kpiEl.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">총 품목수</div><div class="kpi-value">${rows.length.toLocaleString()}</div><div class="kpi-sub">건</div></div>
+    <div class="kpi-card"><div class="kpi-label">총 처방수량</div><div class="kpi-value">${totalQty.toLocaleString()}</div><div class="kpi-sub">개</div></div>
+    <div class="kpi-card"><div class="kpi-label">총 처방금액</div><div class="kpi-value">${(totalPresc/10000).toFixed(0)}</div><div class="kpi-sub">만원</div></div>
+    <div class="kpi-card"><div class="kpi-label">총 정산금액</div><div class="kpi-value" style="color:var(--ok);">${(totalSettle/10000).toFixed(0)}</div><div class="kpi-sub">만원</div></div>
+  `;
+
+  if (!rows.length) {
+    document.getElementById('stl-table-wrap').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">조회된 데이터가 없습니다</div></div>';
+    return;
+  }
+
+  // 그룹핑
+  const groupKey = { month:'month', pharma:'pharma', hospital:'hospital', drug:'code' }[_stlTab];
+  const groupLabel = { month:'처방월', pharma:'제약사', hospital:'거래처', drug:'품목(코드)' }[_stlTab];
+
+  const grouped = {};
+  rows.forEach(r => {
+    const k = _stlTab === 'drug' ? `${r.name} (${r.code})` : r[groupKey];
+    if (!grouped[k]) grouped[k] = { key:k, rows:[], prescAmt:0, settleAmt:0, qty:0 };
+    grouped[k].rows.push(r);
+    grouped[k].prescAmt  += r.prescAmt;
+    grouped[k].settleAmt += r.settleAmt;
+    grouped[k].qty       += r.qty;
+  });
+
+  const sorted = Object.values(grouped).sort((a,b) => b.settleAmt - a.settleAmt);
+
+  // 서브 컬럼 (탭별 다르게)
+  const subCols = {
+    month:    ['제약사','거래처','품목'],
+    pharma:   ['처방월','거래처','품목'],
+    hospital: ['처방월','제약사','품목'],
+    drug:     ['처방월','제약사','거래처']
+  }[_stlTab];
+
+  let html = `<div style="overflow-x:auto;"><table class="stl-tbl">
+    <thead><tr>
+      <th>${groupLabel}</th>
+      <th class="num">처방수량</th>
+      <th class="num">처방금액</th>
+      <th class="num">정산금액</th>
+      <th class="num">평균수수료</th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach(g => {
+    const avgComm = g.rows.length ? (g.rows.reduce((s,r)=>s+r.commission,0)/g.rows.length).toFixed(1) : 0;
+    html += `<tr>
+      <td style="font-weight:600;color:var(--brown);">${escHtml(g.key)}</td>
+      <td class="num">${g.qty.toLocaleString()}</td>
+      <td class="num">${g.prescAmt.toLocaleString()}원</td>
+      <td class="num" style="color:var(--ok);font-weight:700;">${g.settleAmt.toLocaleString()}원</td>
+      <td class="num">${avgComm}%</td>
+    </tr>`;
+  });
+
+  // 합계 행
+  html += `<tr class="total-row">
+    <td>합계 (${sorted.length}건)</td>
+    <td class="num">${totalQty.toLocaleString()}</td>
+    <td class="num">${totalPresc.toLocaleString()}원</td>
+    <td class="num">${totalSettle.toLocaleString()}원</td>
+    <td class="num">-</td>
+  </tr>`;
+
+  html += '</tbody></table></div>';
+  document.getElementById('stl-table-wrap').innerHTML = html;
+}
+
+function exportSettlementXlsx() {
+  const rows = getFilteredSettlementData();
+  if (!rows.length) { showToast('✗ 내보낼 데이터가 없습니다.', 3000); return; }
+
+  const headers = ['처방월','제약사','거래처','담당자','보험코드','품목명','단가','원내수량','원외수량','수량합계','수수료%','처방금액','정산금액'];
+  const data = rows.map(r => [
+    r.month, r.pharma, r.hospital, r.user, r.code, r.name,
+    r.price, r.qin, r.qout, r.qty, r.commission, r.prescAmt, r.settleAmt
+  ]);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+  ws['!cols'] = [
+    {wch:10},{wch:14},{wch:16},{wch:10},{wch:12},{wch:22},
+    {wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:12},{wch:12}
+  ];
+  // 헤더 스타일
+  for (let c = 0; c < headers.length; c++) {
+    const addr = XLSX.utils.encode_cell({r:0, c});
+    if (ws[addr]) ws[addr].s = { fill:{fgColor:{rgb:'C4956A'}}, font:{bold:true,color:{rgb:'FFFFFF'}} };
+  }
+  XLSX.utils.book_append_sheet(wb, ws, '정산내역');
+
+  const from = document.getElementById('stl-from')?.value || '';
+  const to   = document.getElementById('stl-to')?.value   || '';
+  const fname = `정산내역_${from||'전체'}${to?'~'+to:''}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  showToast('✅ 엑셀 내보내기 완료!');
+}
+// ══ 정산 관리 끝 ══════════════════════════════════════════════
+
 // ══ 세션 첨부파일 추가 기능 ════════════════════════════════════
 let _attachModalSessionId = null;
 let _attachNewFiles = []; // { file, name, fileType }
