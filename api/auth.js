@@ -1,5 +1,9 @@
 const supabase = require('./_db');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'jsearchlight_cso_secret_2024';
 
 function hashPassword(pw) {
   return crypto.createHash('sha256').update(pw + 'jsearchlight_salt').digest('hex');
@@ -27,7 +31,26 @@ export default async function handler(req, res) {
     if (error || !data) return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
     if (data.password_hash !== hashPassword(password)) return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
 
-    return res.json({ success: true, user: { id: data.id, email: data.email, name: data.name, role: data.role } });
+    // cso_users 자동 동기화 (체크메이트 토큰 발급용)
+    let csoToken = null;
+    try {
+      const hash = await bcrypt.hash(password, 10);
+      const { data: existing } = await supabase.from('cso_users').select('id').eq('username', data.email).limit(1);
+      if (existing && existing.length > 0) {
+        await supabase.from('cso_users').update({ password_hash: hash, name: data.name }).eq('username', data.email);
+      } else {
+        await supabase.from('cso_users').insert({
+          username: data.email, password_hash: hash,
+          name: data.name, role: data.role === 'admin' ? 'admin' : 'user', must_change_pw: false
+        });
+      }
+      csoToken = jwt.sign(
+        { id: data.id, username: data.email, name: data.name, role: data.role },
+        JWT_SECRET, { expiresIn: '7d' }
+      );
+    } catch(e) { /* CSO 동기화 실패해도 써치라이트는 정상 동작 */ }
+
+    return res.json({ success: true, user: { id: data.id, email: data.email, name: data.name, role: data.role }, csoToken });
   }
 
   // GET /api/auth?action=users  (관리자???��? 목록)
