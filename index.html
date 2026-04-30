@@ -4189,9 +4189,10 @@ function renderSettlementTable() {
   const thPresc  = colPresc  ? '<th>처방월</th>'  : '';
   const thSettle = colSettle ? '<th>정산월</th>'  : '';
 
+  const firstColWidth = { month:'100px', settle:'100px', pharma:'200px', hospital:'220px', drug:'420px' }[_stlTab];
   let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="width:100%;">
     <thead><tr>
-      <th style="text-align:left;">${groupLabel}</th>
+      <th style="text-align:left;width:${firstColWidth};">${groupLabel}</th>
       ${colPresc  ? '<th style="text-align:center;width:90px;white-space:nowrap;">처방월</th>'  : ''}
       ${colSettle ? '<th style="text-align:center;width:90px;white-space:nowrap;">정산월</th>' : ''}
       <th style="text-align:right;width:80px;white-space:nowrap;">처방수량</th>
