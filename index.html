@@ -4392,7 +4392,7 @@ function renderSettlementTable() {
         <td style="font-weight:600;color:var(--brown);">${escHtml(r.hospital)}</td>
         <td style="text-align:center;">${escHtml(r.month)}</td>
         <td style="font-size:13px;">${escHtml(r.pharma)}</td>
-        <td style="font-size:13px;">${escHtml(r.name)}</td>
+        <td style="font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(r.name)}">${escHtml(r.name)}</td>
         <td class="num">${r.price.toLocaleString()}원</td>
         <td class="num">${r.qty.toLocaleString()}</td>
         <td class="num">${r.prescAmt.toLocaleString()}원</td>
