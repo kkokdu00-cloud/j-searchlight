@@ -4189,16 +4189,15 @@ function renderSettlementTable() {
   const thPresc  = colPresc  ? '<th>처방월</th>'  : '';
   const thSettle = colSettle ? '<th>정산월</th>'  : '';
 
-  const thW = 'style="width:110px;white-space:nowrap;"';
-  let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="table-layout:fixed;width:100%;">
+  let html = `<div style="overflow-x:auto;"><table class="stl-tbl">
     <thead><tr>
-      <th style="min-width:120px;">${groupLabel}</th>
-      ${colPresc  ? `<th ${thW}>처방월</th>`  : ''}
-      ${colSettle ? `<th ${thW}>정산월</th>` : ''}
-      <th class="num" style="width:90px;">처방수량</th>
-      <th class="num" style="width:140px;">처방금액</th>
-      <th class="num" style="width:140px;">정산금액</th>
-      <th class="num" style="width:90px;">평균수수료</th>
+      <th style="white-space:nowrap;">${groupLabel}</th>
+      ${colPresc  ? '<th style="width:90px;white-space:nowrap;">처방월</th>'  : ''}
+      ${colSettle ? '<th style="width:90px;white-space:nowrap;">정산월</th>' : ''}
+      <th class="num" style="width:80px;">처방수량</th>
+      <th class="num" style="width:130px;">처방금액</th>
+      <th class="num" style="width:130px;">정산금액</th>
+      <th class="num" style="width:80px;">평균수수료</th>
     </tr></thead><tbody>`;
 
   sorted.forEach(g => {
