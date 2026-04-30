@@ -1424,15 +1424,34 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
 </div><!-- /view-settlement -->
 
 
+<!-- 제출처 매핑 모달 -->
+<div id="sep-mapping-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:28px 24px;width:540px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:17px;font-weight:700;color:var(--brown);margin-bottom:4px;">🏬 제출처 매핑</div>
+    <div id="sep-mapping-client-name" style="font-size:13px;color:var(--gray-500);margin-bottom:18px;"></div>
+    <div id="sep-mapping-rows" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-sm" onclick="closeSepMappingModal()">닫기</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSepMappingAll()">저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- 묶음 내보내기 모달 -->
 <div id="zip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:14px;padding:32px 28px;width:460px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);">
     <div style="font-size:17px;font-weight:700;color:var(--brown);margin-bottom:20px;"><i data-lucide="package" style="width:18px;height:18px;vertical-align:-3px;"></i> 묶음 내보내기</div>
 
     <div class="field" style="margin-bottom:16px;">
+      <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:6px;">제출처 선택 <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(설정된 경우 해당 거래처만 필터)</span></label>
+      <select id="zip-sep-org-select" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;" onchange="onZipSepOrgChange()">
+        <option value="">— 전체 (제출처 무관) —</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:16px;">
       <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:6px;">제약사 선택</label>
       <select id="zip-pharma-select" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;">
-        <option value="">— 제약사를 선택하세요 —</option>
+        <option value="">— 전체 —</option>
       </select>
     </div>
     <div class="field" style="margin-bottom:20px;">
@@ -1551,6 +1570,24 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
         <div class="master-form-btns">
           <button class="btn btn-sm" id="pharma-cancel-btn" onclick="cancelPharmaEdit()" style="display:none">취소</button>
           <button class="btn btn-primary btn-sm" id="pharma-save-btn" onclick="savePharmaForm()">등록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제출처 마스터 -->
+    <div class="card">
+      <div class="section-title">🏬 제출처 마스터</div>
+      <div id="sep-orgs-grid" class="sep-org-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:4px;"></div>
+      <div id="sep-orgs-empty" class="empty-tip">등록된 제출처가 없습니다.</div>
+      <div class="master-form-area">
+        <div class="master-form-title" id="sep-org-form-title">+ 제출처 등록</div>
+        <div style="display:grid;grid-template-columns:2fr 2fr;gap:12px;align-items:end;max-width:540px;">
+          <div class="field"><label>제출처명 <span class="required">*</span></label><input type="text" id="so-name" placeholder="업체명"></div>
+          <div class="field"><label>비고</label><input type="text" id="so-note" placeholder="메모"></div>
+        </div>
+        <div class="master-form-btns">
+          <button class="btn btn-sm" id="sep-org-cancel-btn" onclick="cancelSepOrgEdit()" style="display:none">취소</button>
+          <button class="btn btn-primary btn-sm" id="sep-org-save-btn" onclick="saveSepOrgForm()">등록</button>
         </div>
       </div>
     </div>
@@ -1946,6 +1983,8 @@ let ocrSepData  = null;       // OCR 후 매칭 결과
 let savedSessions = [];
 let masterClients = [];
 let masterPharma  = [];
+let sepOrgs       = [];   // 제출처 목록
+let sepMapping    = [];   // 거래처+제약사 → 제출처 매핑
 
 // 마스터 편집 상태
 let clientEditId = null;
@@ -2075,6 +2114,20 @@ async function loadClients() {
   } catch(e) {
     console.error('거래처 로드 실패:', e);
   }
+}
+
+async function loadSepOrgs() {
+  try {
+    const { data } = await apiGet('/api/sep');
+    sepOrgs = data || [];
+  } catch(e) { console.error('제출처 로드 실패:', e); }
+}
+
+async function loadSepMapping() {
+  try {
+    const { data } = await apiGet('/api/sep/mapping');
+    sepMapping = data || [];
+  } catch(e) { console.error('제출처 매핑 로드 실패:', e); }
 }
 
 function genId() { return Date.now() + '_' + Math.floor(Math.random() * 10000); }
@@ -2221,7 +2274,7 @@ function showView(v) {
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = VIEW_TITLES[v] || '';
   if (v === 'list')           renderList();
-  if (v === 'master')         { renderClientMaster(); renderPharmaMaster(); }
+  if (v === 'master')         { renderClientMaster(); renderPharmaMaster(); renderSepOrgMaster(); }
   if (v === 'users')          renderUserMaster();
   if (v === 'commission')     loadCommissionList();
   if (v === 'cso-upload')     { initCSOView().then(() => CSOUploadTab.render()); }
@@ -3688,8 +3741,14 @@ function deselectAll() { document.querySelectorAll('#list-body input[type=checkb
 function openZipModal() {
   const pharmas = [...new Set(savedSessions.map(s => s.pharma).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko'));
   const sel = document.getElementById('zip-pharma-select');
-  sel.innerHTML = '<option value="">— 제약사를 선택하세요 —</option>' +
+  sel.innerHTML = '<option value="">— 전체 —</option>' +
     pharmas.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
+  // 제출처 드롭다운
+  const sepSel = document.getElementById('zip-sep-org-select');
+  sepSel.innerHTML = '<option value="">— 전체 (제출처 무관) —</option>' +
+    sepOrgs.map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('');
+
   document.getElementById('zip-status').textContent = '';
   document.getElementById('zip-month').value = '';
   // 기본값 both 선택 상태로
@@ -3698,6 +3757,24 @@ function openZipModal() {
   const modal = document.getElementById('zip-modal');
   modal.style.display = 'flex';
   requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
+}
+
+function onZipSepOrgChange() {
+  const orgId = document.getElementById('zip-sep-org-select').value;
+  const pharmaSel = document.getElementById('zip-pharma-select');
+  if (!orgId) {
+    // 전체 제약사
+    const pharmas = [...new Set(savedSessions.map(s => s.pharma).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko'));
+    pharmaSel.innerHTML = '<option value="">— 전체 —</option>' +
+      pharmas.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    return;
+  }
+  // 해당 제출처에 매핑된 제약사만
+  const mappedPharmas = [...new Set(
+    sepMapping.filter(m => m.sep_org_id === orgId).map(m => m.pharma_name)
+  )].sort((a,b) => a.localeCompare(b,'ko'));
+  pharmaSel.innerHTML = '<option value="">— 전체 —</option>' +
+    mappedPharmas.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
 }
 
 function closeZipModal() {
@@ -3720,45 +3797,54 @@ function updateZipOptStyle() {
 }
 
 async function runBundleExport() {
+  const orgId  = document.getElementById('zip-sep-org-select').value;
   const pharma = document.getElementById('zip-pharma-select').value;
   const month  = document.getElementById('zip-month').value;
   const type   = document.querySelector('input[name="zip-export-type"]:checked')?.value || 'both';
   const statusEl = document.getElementById('zip-status');
 
-  if (!pharma) { alert('제약사를 선택해주세요.'); return; }
+  // 제출처 또는 제약사 중 하나는 있어야 함
+  if (!orgId && !pharma) { alert('제출처 또는 제약사를 선택해주세요.'); return; }
 
-  let sessions = savedSessions.filter(s => s.pharma === pharma);
+  let sessions = [...savedSessions];
   if (month) sessions = sessions.filter(s => s.presc === month);
+
+  if (orgId) {
+    // 제출처 → 해당 제출처에 매핑된 (거래처+제약사) 조합만 필터
+    const mappings = sepMapping.filter(m => m.sep_org_id === orgId);
+    sessions = sessions.filter(s =>
+      mappings.some(m => m.client_name === s.hospital && (!pharma || m.pharma_name === pharma))
+      && (!pharma || s.pharma === pharma)
+    );
+  } else if (pharma) {
+    sessions = sessions.filter(s => s.pharma === pharma);
+  }
+
   if (!sessions.length) { alert('해당 조건의 데이터가 없습니다.'); return; }
 
   const btn = document.getElementById('zip-download-btn');
   btn.disabled = true;
 
+  const orgName  = orgId ? (sepOrgs.find(o => o.id === orgId)?.name || '') : '';
   const monthStr = month ? '_' + month : '';
-  const baseName = pharma + monthStr;
+  const baseName = (orgName || pharma || '전체') + monthStr;
 
   try {
-    // ── 엑셀만 ──────────────────────────────────
     if (type === 'xlsx') {
       statusEl.textContent = '엑셀 생성 중...';
       _exportXlsxFromSessions(sessions, baseName);
       statusEl.textContent = '완료!';
 
-    // ── 첨부파일만 ZIP ───────────────────────────
     } else if (type === 'zip') {
       statusEl.textContent = '파일 준비 중...';
-      await _downloadAttachZip(sessions, pharma, baseName, statusEl);
+      await _downloadAttachZip(sessions, orgName || pharma || '전체', baseName, statusEl);
 
-    // ── 엑셀 + 첨부파일 ZIP ──────────────────────
     } else {
       statusEl.textContent = '엑셀 생성 중...';
       const zip = new JSZip();
-
-      // 엑셀 blob 생성
       const xlsxBlob = _makeXlsxBlob(sessions);
       zip.file(baseName + '.xlsx', xlsxBlob);
 
-      // 첨부파일 수집
       const filesData = [];
       for (const s of sessions) {
         for (const f of (s.attachFiles || s.attach_files || [])) {
@@ -3768,8 +3854,6 @@ async function runBundleExport() {
 
       let done = 0;
       const total = filesData.length;
-
-      // 거래처별 폴더
       const grouped = {};
       for (const item of filesData) {
         const h = item.s.hospital || '미분류';
@@ -3787,7 +3871,7 @@ async function runBundleExport() {
             let blob;
             if (f.blobUrl)      blob = await (await fetch(f.blobUrl)).blob();
             else if (f.dataUrl) blob = await (await fetch(f.dataUrl)).blob();
-            if (blob) folder.file(String(idx).padStart(3,'0') + '_' + pharma + '_' + hospital + '.' + ext, blob);
+            if (blob) folder.file(String(idx).padStart(3,'0') + '_' + (s.pharma||'') + '_' + hospital + '.' + ext, blob);
           } catch(e) { console.error(e); }
           done++; idx++;
         }
@@ -3921,6 +4005,7 @@ function renderClientMaster() {
         <div style="display:flex;gap:6px;flex-shrink:0;">
           <button class="btn btn-sm" onclick="editClient('${c.id}')">수정</button>
           <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">삭제</button>
+          <button class="btn btn-sm" onclick="openSepMappingModal('${c.id}')" style="background:var(--gold-bg);color:var(--brown);border-color:var(--gold-lt);" title="제출처 매핑">🏬</button>
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;">
@@ -4532,6 +4617,177 @@ function exportSettlementXlsx() {
 }
 // ══ 정산 관리 끝 ══════════════════════════════════════════════
 
+// ══════════════════════════════════════════════
+// 제출처(SEP ORGS) 마스터 관리
+// ══════════════════════════════════════════════
+let _sepOrgEditId = null;
+
+function renderSepOrgMaster() {
+  const grid  = document.getElementById('sep-orgs-grid');
+  const empty = document.getElementById('sep-orgs-empty');
+  if (!grid) return;
+  if (!sepOrgs.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = sepOrgs.map(o => {
+    const cnt = sepMapping.filter(m => m.sep_org_id === o.id).length;
+    return `
+    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div style="font-size:15px;font-weight:700;color:var(--brown);">${esc(o.name)}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="editSepOrg('${o.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSepOrg('${o.id}')">삭제</button>
+        </div>
+      </div>
+      ${o.note ? `<div style="font-size:12px;color:var(--gray-400);">${esc(o.note)}</div>` : ''}
+      <div style="font-size:12px;color:var(--gray-500);">매핑 ${cnt}건</div>
+    </div>`;
+  }).join('');
+}
+
+async function saveSepOrgForm() {
+  const name = document.getElementById('so-name').value.trim();
+  if (!name) { alert('제출처명을 입력해주세요.'); return; }
+  const note = document.getElementById('so-note').value.trim();
+  try {
+    await apiPost('/api/sep', { id: _sepOrgEditId || undefined, name, note });
+    await loadSepOrgs();
+    renderSepOrgMaster();
+    cancelSepOrgEdit();
+    showToast('✅ 제출처 저장 완료!');
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+
+function editSepOrg(id) {
+  const o = sepOrgs.find(x => x.id === id);
+  if (!o) return;
+  _sepOrgEditId = id;
+  document.getElementById('so-name').value = o.name;
+  document.getElementById('so-note').value = o.note || '';
+  document.getElementById('sep-org-form-title').textContent = '✏️ 제출처 수정';
+  document.getElementById('sep-org-cancel-btn').style.display = '';
+  document.getElementById('so-name').focus();
+}
+
+function cancelSepOrgEdit() {
+  _sepOrgEditId = null;
+  document.getElementById('so-name').value = '';
+  document.getElementById('so-note').value = '';
+  document.getElementById('sep-org-form-title').textContent = '+ 제출처 등록';
+  document.getElementById('sep-org-cancel-btn').style.display = 'none';
+}
+
+async function deleteSepOrg(id) {
+  const o = sepOrgs.find(x => x.id === id);
+  if (!confirm(`"${o?.name}" 제출처를 삭제할까요?\n해당 매핑도 모두 해제됩니다.`)) return;
+  try {
+    await apiDelete('/api/sep?id=' + id);
+    await Promise.all([loadSepOrgs(), loadSepMapping()]);
+    renderSepOrgMaster();
+    showToast('✅ 삭제 완료');
+  } catch(e) { alert('삭제 실패: ' + e.message); }
+}
+
+// ══════════════════════════════════════════════
+// 제출처 매핑 모달 (거래처 카드에서 열기)
+// ══════════════════════════════════════════════
+let _sepMappingClientId = null;
+
+function openSepMappingModal(clientId) {
+  if (!sepOrgs.length) {
+    alert('먼저 마스터 관리에서 제출처를 등록해주세요.');
+    return;
+  }
+  const client = masterClients.find(c => c.id === clientId);
+  if (!client) return;
+  _sepMappingClientId = clientId;
+
+  document.getElementById('sep-mapping-client-name').textContent =
+    `거래처: ${client.name}  |  이 거래처가 쓰는 제약사별로 제출처를 지정하세요`;
+
+  // 이 거래처가 저장된 세션에서 쓴 제약사 목록 추출
+  const pharmas = [...new Set(
+    savedSessions
+      .filter(s => s.hospital === client.name)
+      .map(s => s.pharma)
+      .filter(Boolean)
+  )].sort((a,b) => a.localeCompare(b,'ko'));
+
+  // 제약사 마스터에서도 추가
+  masterPharma.forEach(p => {
+    if (!pharmas.includes(p.name)) pharmas.push(p.name);
+  });
+
+  const rowsEl = document.getElementById('sep-mapping-rows');
+  if (!pharmas.length) {
+    rowsEl.innerHTML = '<div style="color:var(--gray-400);font-size:13px;">연결된 제약사 데이터가 없습니다.</div>';
+  } else {
+    const orgOptions = sepOrgs.map(o =>
+      `<option value="${esc(o.id)}" data-name="${esc(o.name)}">${esc(o.name)}</option>`
+    ).join('');
+
+    rowsEl.innerHTML = pharmas.map(pharma => {
+      const existing = sepMapping.find(m => m.client_id === clientId && m.pharma_name === pharma);
+      return `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200);">
+        <div style="flex:1;font-size:14px;font-weight:600;color:var(--brown);">${esc(pharma)}</div>
+        <div style="font-size:13px;color:var(--gray-500);">→</div>
+        <select data-pharma="${esc(pharma)}" style="flex:1.2;padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;">
+          <option value="">— 미지정 —</option>
+          ${orgOptions}
+        </select>
+      </div>`;
+    }).join('');
+
+    // 기존 매핑값 세팅
+    rowsEl.querySelectorAll('select[data-pharma]').forEach(sel => {
+      const m = sepMapping.find(x => x.client_id === clientId && x.pharma_name === sel.dataset.pharma);
+      if (m) sel.value = m.sep_org_id;
+    });
+  }
+
+  document.getElementById('sep-mapping-modal').style.display = 'flex';
+  requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
+}
+
+function closeSepMappingModal() {
+  document.getElementById('sep-mapping-modal').style.display = 'none';
+  _sepMappingClientId = null;
+}
+
+async function saveSepMappingAll() {
+  const clientId = _sepMappingClientId;
+  const client = masterClients.find(c => c.id === clientId);
+  if (!client) return;
+
+  const selects = document.querySelectorAll('#sep-mapping-rows select[data-pharma]');
+  const items = [];
+  selects.forEach(sel => {
+    const pharma = sel.dataset.pharma;
+    const orgId  = sel.value;
+    const org    = sepOrgs.find(o => o.id === orgId);
+    items.push({
+      client_id:    clientId,
+      client_name:  client.name,
+      pharma_name:  pharma,
+      sep_org_id:   orgId || null,
+      sep_org_name: org?.name || ''
+    });
+  });
+
+  try {
+    await apiPost('/api/sep/mapping', items);
+    await loadSepMapping();
+    renderSepOrgMaster();
+    closeSepMappingModal();
+    showToast('✅ 제출처 매핑 저장 완료!');
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+
 // ══ 세션 첨부파일 추가 기능 ════════════════════════════════════
 let _attachModalSessionId = null;
 let _attachNewFiles = []; // { file, name, fileType }
@@ -5094,7 +5350,7 @@ async function afterLogin() {
 
   // 4. 백그라운드에서 데이터 로드 후 갱신
   if (isAdmin) {
-    await Promise.all([loadPharma(), loadClients(), loadSessions()]);
+    await Promise.all([loadPharma(), loadClients(), loadSessions(), loadSepOrgs(), loadSepMapping()]);
   } else {
     await Promise.all([loadPharma(), loadUserClients()]);
     await loadSessionsForUser();
