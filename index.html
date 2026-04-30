@@ -4189,14 +4189,16 @@ function renderSettlementTable() {
   const thPresc  = colPresc  ? '<th>처방월</th>'  : '';
   const thSettle = colSettle ? '<th>정산월</th>'  : '';
 
-  let html = `<div style="overflow-x:auto;"><table class="stl-tbl">
+  const thW = 'style="width:110px;white-space:nowrap;"';
+  let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="table-layout:fixed;width:100%;">
     <thead><tr>
-      <th>${groupLabel}</th>
-      ${thPresc}${thSettle}
-      <th class="num">처방수량</th>
-      <th class="num">처방금액</th>
-      <th class="num">정산금액</th>
-      <th class="num">평균수수료</th>
+      <th style="min-width:120px;">${groupLabel}</th>
+      ${colPresc  ? `<th ${thW}>처방월</th>`  : ''}
+      ${colSettle ? `<th ${thW}>정산월</th>` : ''}
+      <th class="num" style="width:90px;">처방수량</th>
+      <th class="num" style="width:140px;">처방금액</th>
+      <th class="num" style="width:140px;">정산금액</th>
+      <th class="num" style="width:90px;">평균수수료</th>
     </tr></thead><tbody>`;
 
   sorted.forEach(g => {
