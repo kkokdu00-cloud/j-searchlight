@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jsearchlight_cso_secret_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'jsearchlight-jwt-secret';
 
 function hashPassword(pw) {
   return crypto.createHash('sha256').update(pw + 'jsearchlight_salt').digest('hex');
