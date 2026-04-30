@@ -1348,7 +1348,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <div id="list-body"><p class="empty-tip">저장된 데이터가 없습니다.</p></div>
     <div class="export-bar">
       <button class="btn btn-primary" onclick="exportXlsx()">✦ 선택 항목 내보내기 (.xlsx)</button>
-      <button class="btn btn-sm" onclick="openZipModal()" style="background:var(--brown);color:#fff;"><i data-lucide="archive" style="width:14px;height:14px;vertical-align:-2px;"></i> 첨부파일 ZIP</button>
+      <button class="btn btn-sm" onclick="openZipModal()" style="background:var(--brown);color:#fff;"><i data-lucide="package" style="width:14px;height:14px;vertical-align:-2px;"></i> 묶음 내보내기</button>
       <button class="btn btn-sm" onclick="openGallery()"><i data-lucide="images" style="width:14px;height:14px;vertical-align:-2px;"></i> 첨부 이미지 보기</button>
       <button class="btn btn-sm" onclick="selectAll()">전체 선택</button>
       <button class="btn btn-sm" onclick="deselectAll()">선택 해제</button>
@@ -1423,10 +1423,11 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
 </div><!-- /view-settlement -->
 
 
-<!-- ZIP 다운로드 모달 -->
+<!-- 묶음 내보내기 모달 -->
 <div id="zip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:420px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);">
-    <div style="font-size:17px;font-weight:700;color:var(--brown);margin-bottom:20px;"><i data-lucide="archive" style="width:18px;height:18px;vertical-align:-3px;"></i> 첨부파일 ZIP 다운로드</div>
+  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:460px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:17px;font-weight:700;color:var(--brown);margin-bottom:20px;"><i data-lucide="package" style="width:18px;height:18px;vertical-align:-3px;"></i> 묶음 내보내기</div>
+
     <div class="field" style="margin-bottom:16px;">
       <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:6px;">제약사 선택</label>
       <select id="zip-pharma-select" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;">
@@ -1437,10 +1438,35 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
       <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:6px;">처방월 (선택)</label>
       <input type="month" id="zip-month" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;box-sizing:border-box;">
     </div>
+
+    <div style="margin-bottom:20px;">
+      <label style="font-size:13px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:10px;">내보내기 방식</label>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:8px;cursor:pointer;transition:border-color .15s;"
+          onmouseover="this.style.borderColor='var(--gold-lt)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--gray-200)'"
+          id="zip-opt-label-xlsx">
+          <input type="radio" name="zip-export-type" value="xlsx" style="accent-color:var(--brown);" onchange="updateZipOptStyle()">
+          <span><b style="font-size:13px;">📊 엑셀만</b><span style="font-size:12px;color:var(--gray-500);margin-left:6px;">EDI 데이터를 .xlsx로 내보내기</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:8px;cursor:pointer;transition:border-color .15s;"
+          onmouseover="this.style.borderColor='var(--gold-lt)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--gray-200)'"
+          id="zip-opt-label-zip">
+          <input type="radio" name="zip-export-type" value="zip" style="accent-color:var(--brown);" onchange="updateZipOptStyle()">
+          <span><b style="font-size:13px;">📦 첨부파일만 ZIP</b><span style="font-size:12px;color:var(--gray-500);margin-left:6px;">사진/PDF만 압축</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--gold-lt);border-radius:8px;cursor:pointer;transition:border-color .15s;background:var(--gold-bg);"
+          onmouseover="this.style.borderColor='var(--brown)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--gold-lt)'"
+          id="zip-opt-label-both">
+          <input type="radio" name="zip-export-type" value="both" checked style="accent-color:var(--brown);" onchange="updateZipOptStyle()">
+          <span><b style="font-size:13px;">🗂️ 엑셀 + 첨부파일 ZIP</b><span style="font-size:12px;color:var(--gray-500);margin-left:6px;">함께 압축해서 한 번에</span></span>
+        </label>
+      </div>
+    </div>
+
     <div id="zip-status" style="font-size:13px;color:var(--gray-500);margin-bottom:12px;min-height:18px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="btn btn-sm" onclick="closeZipModal()">취소</button>
-      <button class="btn btn-primary btn-sm" onclick="downloadZip()" id="zip-download-btn">📦 ZIP 다운로드</button>
+      <button class="btn btn-primary btn-sm" onclick="runBundleExport()" id="zip-download-btn">내보내기</button>
     </div>
   </div>
 </div>
@@ -3655,17 +3681,19 @@ function selectAll()   { document.querySelectorAll('#list-body input[type=checkb
 function deselectAll() { document.querySelectorAll('#list-body input[type=checkbox]').forEach(c => c.checked = false); }
 
 // ══════════════════════════════════════════════
-// ZIP 다운로드 (미션1)
+// 묶음 내보내기
 // ══════════════════════════════════════════════
 
 function openZipModal() {
-  // 제약사 목록 채우기
   const pharmas = [...new Set(savedSessions.map(s => s.pharma).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko'));
   const sel = document.getElementById('zip-pharma-select');
   sel.innerHTML = '<option value="">— 제약사를 선택하세요 —</option>' +
     pharmas.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
   document.getElementById('zip-status').textContent = '';
   document.getElementById('zip-month').value = '';
+  // 기본값 both 선택 상태로
+  const both = document.querySelector('input[name="zip-export-type"][value="both"]');
+  if (both) { both.checked = true; updateZipOptStyle(); }
   const modal = document.getElementById('zip-modal');
   modal.style.display = 'flex';
   requestAnimationFrame(() => { if(window.lucide) lucide.createIcons(); });
@@ -3675,94 +3703,186 @@ function closeZipModal() {
   document.getElementById('zip-modal').style.display = 'none';
 }
 
-async function downloadZip() {
+function updateZipOptStyle() {
+  ['xlsx','zip','both'].forEach(v => {
+    const lbl = document.getElementById('zip-opt-label-' + v);
+    const inp = lbl && lbl.querySelector('input');
+    if (!lbl || !inp) return;
+    if (inp.checked) {
+      lbl.style.borderColor = 'var(--brown)';
+      lbl.style.background = 'var(--gold-bg)';
+    } else {
+      lbl.style.borderColor = 'var(--gray-200)';
+      lbl.style.background = '';
+    }
+  });
+}
+
+async function runBundleExport() {
   const pharma = document.getElementById('zip-pharma-select').value;
   const month  = document.getElementById('zip-month').value;
+  const type   = document.querySelector('input[name="zip-export-type"]:checked')?.value || 'both';
   const statusEl = document.getElementById('zip-status');
 
   if (!pharma) { alert('제약사를 선택해주세요.'); return; }
 
-  // 해당 제약사 세션 필터
   let sessions = savedSessions.filter(s => s.pharma === pharma);
   if (month) sessions = sessions.filter(s => s.presc === month);
-
-  // 첨부파일 있는 것만
-  const filesData = [];
-  for (const s of sessions) {
-    const files = (s.attachFiles || s.attach_files || []);
-    for (const f of files) {
-      if (f.blobUrl || f.dataUrl) {
-        filesData.push({ session: s, file: f });
-      }
-    }
-  }
-
-  if (!filesData.length) { alert('다운로드할 첨부파일이 없습니다.'); return; }
+  if (!sessions.length) { alert('해당 조건의 데이터가 없습니다.'); return; }
 
   const btn = document.getElementById('zip-download-btn');
   btn.disabled = true;
-  statusEl.textContent = '파일 준비 중...';
+
+  const monthStr = month ? '_' + month : '';
+  const baseName = pharma + monthStr;
+
+  try {
+    // ── 엑셀만 ──────────────────────────────────
+    if (type === 'xlsx') {
+      statusEl.textContent = '엑셀 생성 중...';
+      _exportXlsxFromSessions(sessions, baseName);
+      statusEl.textContent = '완료!';
+
+    // ── 첨부파일만 ZIP ───────────────────────────
+    } else if (type === 'zip') {
+      statusEl.textContent = '파일 준비 중...';
+      await _downloadAttachZip(sessions, pharma, baseName, statusEl);
+
+    // ── 엑셀 + 첨부파일 ZIP ──────────────────────
+    } else {
+      statusEl.textContent = '엑셀 생성 중...';
+      const zip = new JSZip();
+
+      // 엑셀 blob 생성
+      const xlsxBlob = _makeXlsxBlob(sessions);
+      zip.file(baseName + '.xlsx', xlsxBlob);
+
+      // 첨부파일 수집
+      const filesData = [];
+      for (const s of sessions) {
+        for (const f of (s.attachFiles || s.attach_files || [])) {
+          if (f.blobUrl || f.dataUrl) filesData.push({ s, f });
+        }
+      }
+
+      let done = 0;
+      const total = filesData.length;
+
+      // 거래처별 폴더
+      const grouped = {};
+      for (const item of filesData) {
+        const h = item.s.hospital || '미분류';
+        if (!grouped[h]) grouped[h] = [];
+        grouped[h].push(item);
+      }
+
+      for (const hospital of Object.keys(grouped).sort((a,b) => a.localeCompare(b,'ko'))) {
+        const folder = zip.folder(hospital);
+        let idx = 1;
+        for (const { s, f } of grouped[hospital]) {
+          statusEl.textContent = `첨부파일 처리 중... ${done+1}/${total}`;
+          try {
+            const ext = (f.name || 'file').split('.').pop().toLowerCase();
+            let blob;
+            if (f.blobUrl)      blob = await (await fetch(f.blobUrl)).blob();
+            else if (f.dataUrl) blob = await (await fetch(f.dataUrl)).blob();
+            if (blob) folder.file(String(idx).padStart(3,'0') + '_' + pharma + '_' + hospital + '.' + ext, blob);
+          } catch(e) { console.error(e); }
+          done++; idx++;
+        }
+      }
+
+      statusEl.textContent = 'ZIP 압축 중...';
+      const zipBlob = await zip.generateAsync({ type:'blob', compression:'DEFLATE' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = baseName + '_묶음.zip';
+      a.click();
+      statusEl.textContent = `완료! (엑셀 + 첨부파일 ${done}개)`;
+    }
+  } catch(e) {
+    console.error(e);
+    statusEl.textContent = '오류가 발생했습니다.';
+  }
+
+  btn.disabled = false;
+}
+
+// 공통: sessions → xlsx blob
+function _makeXlsxBlob(sessions) {
+  const header = ['순번','처방월','정산월','거래처명(병의원명)','사업자번호','보험코드','제품명','수량(원내)','수량(원외)','단가','처방/조제','비고'];
+  const allRows = [];
+  sessions.forEach(s => {
+    (s.rows || []).forEach((r, ri) => allRows.push([
+      ri+1, s.presc, s.settle, s.hospital, s.bizno,
+      r.code, r.name, r.qin||0, r.qout||0, r.price||0, r.type||'처방', r.note||''
+    ]));
+  });
+  const ws = XLSX.utils.aoa_to_sheet([header, ...allRows]);
+  ws['!cols'] = [8,12,12,20,14,14,24,10,10,10,10,16].map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'EDI목록');
+  return new Blob([XLSX.write(wb, { bookType:'xlsx', type:'array' })],
+    { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+// 공통: sessions → xlsx 파일 다운로드
+function _exportXlsxFromSessions(sessions, baseName) {
+  const blob = _makeXlsxBlob(sessions);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = baseName + '.xlsx';
+  a.click();
+}
+
+// 공통: 첨부파일만 ZIP
+async function _downloadAttachZip(sessions, pharma, baseName, statusEl) {
+  const filesData = [];
+  for (const s of sessions) {
+    for (const f of (s.attachFiles || s.attach_files || [])) {
+      if (f.blobUrl || f.dataUrl) filesData.push({ s, f });
+    }
+  }
+  if (!filesData.length) { alert('다운로드할 첨부파일이 없습니다.'); return; }
 
   const zip = new JSZip();
-
-  // 거래처별 그룹화 + 가나다 정렬
   const grouped = {};
-  for (const { session: s, file: f } of filesData) {
-    const hospital = s.hospital || '미분류';
-    if (!grouped[hospital]) grouped[hospital] = [];
-    grouped[hospital].push({ s, f });
+  for (const item of filesData) {
+    const h = item.s.hospital || '미분류';
+    if (!grouped[h]) grouped[h] = [];
+    grouped[h].push(item);
   }
-  const sortedHospitals = Object.keys(grouped).sort((a,b) => a.localeCompare(b,'ko'));
 
-  let total = filesData.length;
   let done = 0;
+  const total = filesData.length;
 
-  for (const hospital of sortedHospitals) {
+  for (const hospital of Object.keys(grouped).sort((a,b) => a.localeCompare(b,'ko'))) {
     const folder = zip.folder(hospital);
     let idx = 1;
-
     for (const { s, f } of grouped[hospital]) {
       statusEl.textContent = `처리 중... ${done+1}/${total}`;
-
       try {
         const ext = (f.name || 'file').split('.').pop().toLowerCase();
-        const isPdf = ext === 'pdf';
-        const baseName = String(idx).padStart(3,'0') + '_' + pharma + '_' + hospital;
-        const fileName = baseName + '.' + ext;
-        const footerText = `제약사: ${pharma}  |  거래처: ${hospital}  |  처방월: ${s.presc || '-'}`;
-
-        // 파일 fetch
         let blob;
-        if (f.blobUrl) {
-          const res = await fetch(f.blobUrl);
-          blob = await res.blob();
-        } else if (f.dataUrl) {
-          const res = await fetch(f.dataUrl);
-          blob = await res.blob();
-        }
-
-        if (!blob) { done++; idx++; continue; }
-
-        // 저장 시점에 이미 꼬리말 합성됨 → 원본 그대로 압축
-        folder.file(fileName, blob);
-      } catch(e) {
-        console.error('파일 처리 오류:', f.name, e);
-      }
+        if (f.blobUrl)      blob = await (await fetch(f.blobUrl)).blob();
+        else if (f.dataUrl) blob = await (await fetch(f.dataUrl)).blob();
+        if (blob) folder.file(String(idx).padStart(3,'0') + '_' + pharma + '_' + hospital + '.' + ext, blob);
+      } catch(e) { console.error(e); }
       done++; idx++;
     }
   }
 
   statusEl.textContent = 'ZIP 압축 중...';
-  const monthStr = month ? '_' + month : '';
   const zipBlob = await zip.generateAsync({ type:'blob', compression:'DEFLATE' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(zipBlob);
-  a.download = pharma + monthStr + '_첨부파일.zip';
+  a.download = baseName + '_첨부파일.zip';
   a.click();
-
   statusEl.textContent = `완료! ${done}개 파일`;
-  btn.disabled = false;
 }
+
+// 구버전 호환 (혹시 어딘가 직접 호출하는 곳 있을 경우)
+async function downloadZip() { openZipModal(); }
 
 // ══════════════════════════════════════════════
 // EXCEL EXPORT
@@ -3770,20 +3890,10 @@ async function downloadZip() {
 function exportXlsx() {
   const checks = Array.from(document.querySelectorAll('#list-body input[type=checkbox]:checked'));
   if (!checks.length) { alert('내보낼 항목을 선택해주세요.'); return; }
-  const allRows = [];
-  checks.map(c => savedSessions.findIndex(s => String(s.id) === String(c.dataset.id))).forEach(i => {
-    const s = savedSessions[i];
-    (s.rows || []).forEach((r, ri) => allRows.push([
-      ri+1, s.presc, s.settle, s.hospital, s.bizno,
-      r.code, r.name, r.qin||0, r.qout||0, r.price||0, r.type||'처방', r.note||''
-    ]));
-  });
-  const header = ['순번','처방월','정산월','거래처명(병의원명)','사업자번호','보험코드','제품명','수량(원내)','수량(원외)','단가','처방/조제','비고'];
-  const ws = XLSX.utils.aoa_to_sheet([header, ...allRows]);
-  ws['!cols'] = [8,12,12,20,14,14,24,10,10,10,10,16].map(w => ({ wch: w }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'EDI목록');
-  XLSX.writeFile(wb, `EDI목록_${new Date().toISOString().slice(0,10)}.xlsx`);
+  const sessions = checks
+    .map(c => savedSessions.find(s => String(s.id) === String(c.dataset.id)))
+    .filter(Boolean);
+  _exportXlsxFromSessions(sessions, `EDI목록_${new Date().toISOString().slice(0,10)}`);
 }
 
 // ══════════════════════════════════════════════
