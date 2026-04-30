@@ -11,7 +11,7 @@
     { "src": "/api/clients(.*)",               "dest": "/api/clients.js" },
     { "src": "/api/verify-codes",              "dest": "/api/verify-codes.js" },
     { "src": "/api/auth(.*)",                  "dest": "/api/auth.js" },
-    { "src": "/api/sep(.*)",                   "dest": "/api/sep.js" },
+    { "src": "/api/sep(.*)",                   "dest": "/api/clients.js" },
     { "src": "/api/cso/core(.*)",              "dest": "/api/cso/core.js" },
     { "src": "/api/cso/data(.*)",              "dest": "/api/cso/data.js" },
     { "src": "/",                              "dest": "/index.html" },
