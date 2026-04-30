@@ -1259,15 +1259,15 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
         <colgroup>
           <col style="width:44px"><!-- 삭제 -->
           <col style="width:30px"><!-- 순번 -->
-          <col style="width:110px"><!-- 보험코드 -->
-          <col><!-- 제품명 -->
-          <col style="width:70px"><!-- 단가 -->
-          <col style="width:64px"><!-- 원내수량 -->
-          <col style="width:64px"><!-- 원외수량 -->
-          <col style="width:54px"><!-- 수수료% -->
-          <col style="width:70px"><!-- 처방/조제 -->
-          <col style="width:88px"><!-- 처방금액 -->
-          <col style="width:84px"><!-- 정산금액 -->
+          <col style="width:100px"><!-- 보험코드 -->
+          <col style="min-width:120px"><!-- 제품명 -->
+          <col style="width:64px"><!-- 단가 -->
+          <col style="width:58px"><!-- 원내수량 -->
+          <col style="width:58px"><!-- 원외수량 -->
+          <col style="width:52px"><!-- 수수료% -->
+          <col style="width:64px"><!-- 처방/조제 -->
+          <col style="width:80px"><!-- 처방금액 -->
+          <col style="width:76px"><!-- 정산금액 -->
         </colgroup>
         <thead>
           <tr>
@@ -2693,8 +2693,8 @@ function renderTable(newIdx) {
       <td><input value="${esc(r.code)}"
         oninput="rows[${i}].code=this.value; if(this.value.length>=9 && !rows[${i}].priceFixed) autoFillByCode(${i}, this.value)"
         placeholder="643301120"></td>
-      <td style="position:relative;overflow:hidden;">
-        <input value="${esc(r.name)}" style="overflow:hidden;text-overflow:ellipsis;${r._nameWarning ? 'background:#fff3cd;border-color:#ffc107;' : ''}"
+      <td style="position:relative;overflow:visible;">
+        <input value="${esc(r.name)}" style="width:100%;min-width:100px;overflow:hidden;text-overflow:ellipsis;${r._nameWarning ? 'background:#fff3cd;border-color:#ffc107;' : ''}"
           title="${r._nameWarning ? '⚠️ OCR 코드 오인식 가능성 — 보험코드와 제품명을 확인하세요' : ''}"
           id="name-input-${i}"
           oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
