@@ -1415,6 +1415,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
         <button class="stl-tab-btn"        data-tab="pharma"   onclick="setStlTab('pharma')">제약사별</button>
         <button class="stl-tab-btn"        data-tab="hospital" onclick="setStlTab('hospital')">거래처별</button>
         <button class="stl-tab-btn"        data-tab="drug"     onclick="setStlTab('drug')">품목별</button>
+        <button class="stl-tab-btn"        data-tab="detail"   onclick="setStlTab('detail')" style="color:var(--brown);font-weight:700;">📋 세부내역</button>
       </div>
       <div id="stl-table-wrap"></div>
     </div>
@@ -4353,6 +4354,65 @@ function renderSettlementTable() {
 
   if (!rows.length) {
     document.getElementById('stl-table-wrap').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">조회된 데이터가 없습니다</div></div>';
+    return;
+  }
+
+  // ── 세부내역 탭 ──────────────────────────────────────────────
+  if (_stlTab === 'detail') {
+    const isAdmin = currentUser && currentUser.role === 'admin';
+    let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="width:100%;table-layout:fixed;">
+      <colgroup>
+        ${isAdmin ? '<col style="width:90px;">' : ''}
+        <col style="width:140px;">
+        <col style="width:80px;">
+        <col style="width:120px;">
+        <col style="width:200px;">
+        <col style="width:100px;">
+        <col style="width:70px;">
+        <col style="width:110px;">
+        <col style="width:80px;">
+        <col style="width:110px;">
+      </colgroup>
+      <thead><tr>
+        ${isAdmin ? '<th style="text-align:center;">담당자</th>' : ''}
+        <th style="text-align:left;">병의원명</th>
+        <th style="text-align:center;">처방월</th>
+        <th style="text-align:left;">제약사명</th>
+        <th style="text-align:left;">품목명</th>
+        <th style="text-align:right;">단가</th>
+        <th style="text-align:right;">수량</th>
+        <th style="text-align:right;">합계금액</th>
+        <th style="text-align:right;">수수료율</th>
+        <th style="text-align:right;">정산금액</th>
+      </tr></thead><tbody>`;
+
+    rows.forEach(r => {
+      html += `<tr>
+        ${isAdmin ? `<td style="text-align:center;font-size:12px;color:var(--gray-600);">${escHtml(r.user)}</td>` : ''}
+        <td style="font-weight:600;color:var(--brown);">${escHtml(r.hospital)}</td>
+        <td style="text-align:center;">${escHtml(r.month)}</td>
+        <td style="font-size:13px;">${escHtml(r.pharma)}</td>
+        <td style="font-size:13px;">${escHtml(r.name)}</td>
+        <td class="num">${r.price.toLocaleString()}원</td>
+        <td class="num">${r.qty.toLocaleString()}</td>
+        <td class="num">${r.prescAmt.toLocaleString()}원</td>
+        <td class="num">${r.commission}%</td>
+        <td class="num" style="color:var(--ok);font-weight:700;">${r.settleAmt.toLocaleString()}원</td>
+      </tr>`;
+    });
+
+    html += `<tr class="total-row">
+      ${isAdmin ? '<td style="text-align:center;">-</td>' : ''}
+      <td style="text-align:left;">합계 (${rows.length}건)</td>
+      <td>-</td><td>-</td><td>-</td><td>-</td>
+      <td class="num">${totalQty.toLocaleString()}</td>
+      <td class="num">${totalPresc.toLocaleString()}원</td>
+      <td>-</td>
+      <td class="num">${totalSettle.toLocaleString()}원</td>
+    </tr>`;
+
+    html += '</tbody></table></div>';
+    document.getElementById('stl-table-wrap').innerHTML = html;
     return;
   }
 
