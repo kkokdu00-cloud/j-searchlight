@@ -1,4 +1,4 @@
-const formidable = require('formidable');
+const { IncomingForm } = require('formidable');
 const XLSX = require('xlsx');
 const { supabase, ok, err, setCors, requireAuth,
         cleanBizNo, detectColumns, transformRow, separateByMapping, isSkipRow,
@@ -6,7 +6,7 @@ const { supabase, ok, err, setCors, requireAuth,
 
 async function parseForm(req) {
   return new Promise((resolve, reject) => {
-    const form = formidable({ maxFileSize: 50 * 1024 * 1024 });
+    const form = new IncomingForm({ maxFileSize: 50 * 1024 * 1024 });
     form.parse(req, (e, fields, files) => {
       if (e) reject(e); else resolve({ fields, files });
     });
