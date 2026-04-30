@@ -724,8 +724,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .stl-tab-btn:hover { color: var(--brown); }
 .stl-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 .stl-tbl { width:100%; border-collapse:collapse; font-size:13px; }
-.stl-tbl th { background:var(--gray-50); font-weight:700; padding:9px 10px; border-bottom:2px solid var(--gray-200); text-align:left; color:var(--gray-600); font-size:12px; white-space:nowrap; }
-.stl-tbl td { padding:8px 10px; border-bottom:1px solid var(--gray-100); color:var(--gray-800); vertical-align:middle; font-size:13px; }
+.stl-tbl th { background:var(--gray-50); font-weight:700; padding:10px 14px; border-bottom:2px solid var(--gray-200); text-align:left; color:var(--gray-600); font-size:14px; white-space:nowrap; }
+.stl-tbl td { padding:10px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-800); vertical-align:middle; font-size:15px; }
 .stl-tbl tr:last-child td { border-bottom:none; }
 .stl-tbl tr:hover td { background:var(--gold-bg); }
 .stl-tbl .num { text-align:right; font-variant-numeric:tabular-nums; }
@@ -772,8 +772,8 @@ td select:focus { outline: none; border-color: var(--gold); background: var(--wh
 .stl-tab-btn:hover { color: var(--brown); }
 .stl-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 .stl-tbl { width:100%; border-collapse:collapse; font-size:13px; }
-.stl-tbl th { background:var(--gray-50); font-weight:700; padding:9px 10px; border-bottom:2px solid var(--gray-200); text-align:left; color:var(--gray-600); font-size:12px; white-space:nowrap; }
-.stl-tbl td { padding:8px 10px; border-bottom:1px solid var(--gray-100); color:var(--gray-800); vertical-align:middle; font-size:13px; }
+.stl-tbl th { background:var(--gray-50); font-weight:700; padding:10px 14px; border-bottom:2px solid var(--gray-200); text-align:left; color:var(--gray-600); font-size:14px; white-space:nowrap; }
+.stl-tbl td { padding:10px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-800); vertical-align:middle; font-size:15px; }
 .stl-tbl tr:last-child td { border-bottom:none; }
 .stl-tbl tr:hover td { background:var(--gold-bg); }
 .stl-tbl .num { text-align:right; font-variant-numeric:tabular-nums; }
@@ -1031,7 +1031,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
 </div>
 
 <!-- ── 모바일 하단 탭바 ── -->
-<div id="mobile-tabbar" style="display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--brown);z-index:500;box-shadow:0 -2px 16px rgba(0,0,0,.2);display:flex;align-items:stretch;">
+<div id="mobile-tabbar" style="display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--brown);z-index:500;box-shadow:0 -2px 16px rgba(0,0,0,.2);align-items:stretch;">
   <button class="mtab-item" id="mtab-dashboard" onclick="showView('dashboard')">
     <i data-lucide="layout-dashboard" style="width:22px;height:22px;"></i>
     <span>대시보드</span>
@@ -5928,17 +5928,22 @@ const CSOUploadTab = {
     ).join('') || '<option value="">제약사 없음</option>';
 
     c.innerHTML = `
-      <!-- 필터 바 -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span class="inline-label">제약사</span>
-        <select class="form-control form-control-sm" id="pharmaSelectUpload" style="min-width:160px">${pharmaOptions}</select>
-        <button class="btn btn-sm btn-outline" id="btnAddPharmaUpload">+ 제약사 추가</button>
-        <div style="flex:1"></div>
-        <span class="inline-label">파일 유형</span>
-        <select class="form-control form-control-sm" id="fileTypeSelect" style="min-width:150px">
-          <option value="prescription">처방 데이터</option>
-          <option value="settlement">정산 데이터</option>
-        </select>
+      <!-- 필터 카드 2분할 -->
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="card" style="padding:16px 20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--gray-400);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase;">제약사 선택</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <select class="form-control" id="pharmaSelectUpload" style="flex:1;min-width:140px;">${pharmaOptions}</select>
+            <button class="btn btn-sm" id="btnAddPharmaUpload" style="white-space:nowrap;">+ 제약사 추가</button>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--gray-400);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase;">파일 유형</div>
+          <select class="form-control" id="fileTypeSelect">
+            <option value="prescription">처방 데이터</option>
+            <option value="settlement">정산 데이터</option>
+          </select>
+        </div>
       </div>
 
       <div class="grid-2" style="align-items:start">
