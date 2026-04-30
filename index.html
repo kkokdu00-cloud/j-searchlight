@@ -5129,21 +5129,50 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   rows[rowIdx].code  = code || rows[rowIdx].code;
   if (price) rows[rowIdx].price = price;
   rows[rowIdx].priceFixed = !nonInsured && !!price;
-  // 수수료: 전달된 값 우선, 없으면 masterPharma codeRates에서 자동 찾기
-  if (commission) {
+
+  // 수수료: 전달된 값 우선
+  if (commission && commission !== '0') {
     rows[rowIdx].commission = commission;
     rows[rowIdx].commissionFixed = true;
   } else if (code) {
-    const pharmaMatch = masterPharma.find(p => p.codeRates && p.codeRates.some(r => r.code === code));
-    if (pharmaMatch) {
-      const cr = pharmaMatch.codeRates.find(r => r.code === code);
-      if (cr && cr.rate > 0) {
-        const rateVal = cr.rate <= 1 ? cr.rate * 100 : cr.rate;
-        rows[rowIdx].commission = String(Math.round(rateVal * 10) / 10);
-        rows[rowIdx].commissionFixed = true;
-      }
+    // masterPharma codeRates에서 찾기 — 현재 선택 제약사 우선, 없으면 전체
+    const currentPharmaName = document.getElementById('h-pharma')?.value?.trim();
+    const currentPharma = masterPharma.find(p => p.name === currentPharmaName);
+    let cr = null;
+    if (currentPharma?.codeRates?.length) {
+      cr = currentPharma.codeRates.find(r => r.code === code);
+    }
+    if (!cr) {
+      const anyPharma = masterPharma.find(p => p.codeRates?.some(r => r.code === code));
+      if (anyPharma) cr = anyPharma.codeRates.find(r => r.code === code);
+    }
+    if (cr && cr.rate > 0) {
+      const rateVal = cr.rate <= 1 ? cr.rate * 100 : cr.rate;
+      rows[rowIdx].commission = String(Math.round(rateVal * 10) / 10);
+      rows[rowIdx].commissionFixed = true;
+    } else {
+      // codeRates에도 없으면 verify-codes API로 확실하게 채우기
+      fetch('/api/verify-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codes: [code] })
+      }).then(r => r.json()).then(({ map }) => {
+        if (map && map[code]) {
+          const vcPharma = masterPharma.find(p => p.codeRates?.some(r => r.code === code));
+          const vcCr = vcPharma?.codeRates?.find(r => r.code === code);
+          if (vcCr && vcCr.rate > 0) {
+            rows[rowIdx].commission = String(vcCr.rate);
+            rows[rowIdx].commissionFixed = true;
+          } else if (map[code].commission_rate > 0) {
+            rows[rowIdx].commission = String(map[code].commission_rate);
+            rows[rowIdx].commissionFixed = true;
+          }
+          renderTable();
+        }
+      }).catch(() => {});
     }
   }
+
   closeDrugDrop(rowIdx);
   renderTable();
   // 포커스 원내수량으로
