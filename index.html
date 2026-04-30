@@ -4191,7 +4191,7 @@ function renderSettlementTable() {
 
   let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="width:100%;table-layout:fixed;">
     <colgroup>
-      <col>
+      <col style="width:${_stlTab==='drug'?'380px':_stlTab==='hospital'||_stlTab==='pharma'?'180px':'110px'};">
       ${colPresc  ? '<col style="width:90px;">' : ''}
       ${colSettle ? '<col style="width:90px;">' : ''}
       <col style="width:80px;">
