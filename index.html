@@ -4189,23 +4189,32 @@ function renderSettlementTable() {
   const thPresc  = colPresc  ? '<th>처방월</th>'  : '';
   const thSettle = colSettle ? '<th>정산월</th>'  : '';
 
-  let html = `<div style="overflow-x:auto;"><table class="stl-tbl">
+  let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="table-layout:fixed;width:100%;">
+    <colgroup>
+      <col style="min-width:160px;">
+      ${colPresc  ? '<col style="width:100px;">' : ''}
+      ${colSettle ? '<col style="width:100px;">' : ''}
+      <col style="width:90px;">
+      <col style="width:140px;">
+      <col style="width:140px;">
+      <col style="width:90px;">
+    </colgroup>
     <thead><tr>
-      <th style="white-space:nowrap;">${groupLabel}</th>
-      ${colPresc  ? '<th style="width:90px;white-space:nowrap;">처방월</th>'  : ''}
-      ${colSettle ? '<th style="width:90px;white-space:nowrap;">정산월</th>' : ''}
-      <th class="num" style="width:80px;">처방수량</th>
-      <th class="num" style="width:130px;">처방금액</th>
-      <th class="num" style="width:130px;">정산금액</th>
-      <th class="num" style="width:80px;">평균수수료</th>
+      <th style="text-align:left;">${groupLabel}</th>
+      ${colPresc  ? '<th style="text-align:center;">처방월</th>'  : ''}
+      ${colSettle ? '<th style="text-align:center;">정산월</th>' : ''}
+      <th style="text-align:right;">처방수량</th>
+      <th style="text-align:right;">처방금액</th>
+      <th style="text-align:right;">정산금액</th>
+      <th style="text-align:right;">평균수수료</th>
     </tr></thead><tbody>`;
 
   sorted.forEach(g => {
     const avgComm = g.rows.length ? (g.rows.reduce((s,r)=>s+r.commission,0)/g.rows.length).toFixed(1) : 0;
     const repPresc  = g.rows[0]?.month  || '-';
     const repSettle = g.rows[0]?.settle || '-';
-    const tdPresc  = colPresc  ? `<td>${escHtml(repPresc)}</td>`  : '';
-    const tdSettle = colSettle ? `<td>${escHtml(repSettle)}</td>` : '';
+    const tdPresc  = colPresc  ? `<td style="text-align:center;">${escHtml(repPresc)}</td>`  : '';
+    const tdSettle = colSettle ? `<td style="text-align:center;">${escHtml(repSettle)}</td>` : '';
     html += `<tr>
       <td style="font-weight:600;color:var(--brown);">${escHtml(g.key)}</td>
       ${tdPresc}${tdSettle}
@@ -4216,8 +4225,8 @@ function renderSettlementTable() {
     </tr>`;
   });
 
-  const tdTotalPresc  = colPresc  ? '<td>-</td>' : '';
-  const tdTotalSettle = colSettle ? '<td>-</td>' : '';
+  const tdTotalPresc  = colPresc  ? '<td style="text-align:center;">-</td>' : '';
+  const tdTotalSettle = colSettle ? '<td style="text-align:center;">-</td>' : '';
   html += `<tr class="total-row">
     <td>합계 (${sorted.length}건)</td>
     ${tdTotalPresc}${tdTotalSettle}
