@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const xlsx = require('xlsx');
-const formidable = require('formidable');
+const { IncomingForm } = require('formidable');
 const fs = require('fs');
 
 const supabase = createClient(
@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
   // POST → upload
   if (req.method === 'POST') {
     try {
-      const form = formidable({ maxFileSize: 10 * 1024 * 1024 });
+      const form = new IncomingForm({ maxFileSize: 10 * 1024 * 1024 });
       const [, files] = await form.parse(req);
       const file = files.file?.[0];
       if (!file) return res.status(400).json({ error: '파일을 선택하세요.' });
