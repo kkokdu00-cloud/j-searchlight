@@ -122,13 +122,13 @@ module.exports = async (req, res) => {
     if (otcError) throw new Error(otcError.message);
 
     const isAutocomplete = req.query.autocomplete === '1';
-    const commissionMap = isAutocomplete ? {} : await fetchCommissionMap();
+    const commissionMap = await fetchCommissionMap();
 
     const data = (rows || []).map(row => {
       const mdsCd = String(row.product_code || '');
       const mxCprc = parseFloat(row.mx_cprc) || 0;
-      const commissionRate = isAutocomplete ? 0 : (commissionMap[mdsCd] || 0);
-      const commissionAmt = isAutocomplete ? 0 : Math.round(mxCprc * commissionRate / 100);
+      const commissionRate = commissionMap[mdsCd] || 0;
+      const commissionAmt = Math.round(mxCprc * commissionRate / 100);
       return {
         itmNm: row.product_name || '',
         cpnyNm: row.company_name || '',

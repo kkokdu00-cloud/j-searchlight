@@ -5220,7 +5220,7 @@ function renderDrugDrop(rowIdx, keyword, data) {
 
   // 급여 제품
   data.forEach(d => {
-    items.push({ name: d.itmNm, code: d.itmCd||'', price: d.clsgAmt||d.mx_cprc||'', nonInsured: false });
+    items.push({ name: d.itmNm, code: d.itmCd||'', price: d.clsgAmt||d.mx_cprc||'', nonInsured: false, commission: d.commissionRate > 0 ? String(d.commissionRate) : '' });
   });
 
   // 비급여 제품 (해당 제약사)
