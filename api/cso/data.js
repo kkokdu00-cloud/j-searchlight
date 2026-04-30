@@ -1,12 +1,8 @@
-'use strict';
-
 const formidable = require('formidable');
 const XLSX = require('xlsx');
 const { supabase, ok, err, setCors, requireAuth,
         cleanBizNo, detectColumns, transformRow, separateByMapping, isSkipRow,
         buildOutputRow, buildSeparationExcel, buildExcel, safeDecodeFileName } = require('./_utils');
-
-export const config = { api: { bodyParser: false } };
 
 async function parseForm(req) {
   return new Promise((resolve, reject) => {
@@ -31,7 +27,7 @@ async function getTolerance(pharma_id) {
 // resource=separation  action=orgs|rules|mapping|mapping_upload|mapping_add|run|download
 // resource=inspection  action=run|results|result|correct|corrections|tolerance
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -446,3 +442,5 @@ export default async function handler(req, res) {
     return err(res, e.message, 500);
   }
 }
+
+module.exports.config = { api: { bodyParser: false } };
