@@ -4179,14 +4179,20 @@ function renderSettlementTable() {
     drug:     ['처방월','제약사','거래처']
   }[_stlTab];
 
-  // 탭별 부가 컬럼 결정
-  const showPresc  = !['month'].includes(_stlTab);
-  const showSettle = !['settle'].includes(_stlTab);
+  // 탭별 컬럼 구성 (명시적으로 처리)
+  // month탭: 그룹키(처방월) | 정산월 | 수량 | 처방금액 | 정산금액 | 수수료
+  // settle탭: 그룹키(정산월) | 처방월 | 수량 | 처방금액 | 정산금액 | 수수료
+  // pharma/hospital/drug탭: 그룹키 | 처방월 | 정산월 | 수량 | 처방금액 | 정산금액 | 수수료
+  const colPresc  = _stlTab !== 'month';   // 처방월 컬럼 표시 여부
+  const colSettle = _stlTab !== 'settle';  // 정산월 컬럼 표시 여부
+
+  const thPresc  = colPresc  ? '<th>처방월</th>'  : '';
+  const thSettle = colSettle ? '<th>정산월</th>'  : '';
+
   let html = `<div style="overflow-x:auto;"><table class="stl-tbl">
     <thead><tr>
       <th>${groupLabel}</th>
-      ${showPresc  ? '<th>처방월</th>' : ''}
-      ${showSettle ? '<th>정산월</th>' : ''}
+      ${thPresc}${thSettle}
       <th class="num">처방수량</th>
       <th class="num">처방금액</th>
       <th class="num">정산금액</th>
@@ -4195,13 +4201,13 @@ function renderSettlementTable() {
 
   sorted.forEach(g => {
     const avgComm = g.rows.length ? (g.rows.reduce((s,r)=>s+r.commission,0)/g.rows.length).toFixed(1) : 0;
-    // 대표 처방월/정산월 (그룹내 첫 번째)
     const repPresc  = g.rows[0]?.month  || '-';
     const repSettle = g.rows[0]?.settle || '-';
+    const tdPresc  = colPresc  ? `<td>${escHtml(repPresc)}</td>`  : '';
+    const tdSettle = colSettle ? `<td>${escHtml(repSettle)}</td>` : '';
     html += `<tr>
       <td style="font-weight:600;color:var(--brown);">${escHtml(g.key)}</td>
-      ${showPresc  ? `<td>${escHtml(repPresc)}</td>`  : ''}
-      ${showSettle ? `<td>${escHtml(repSettle)}</td>` : ''}
+      ${tdPresc}${tdSettle}
       <td class="num">${g.qty.toLocaleString()}</td>
       <td class="num">${g.prescAmt.toLocaleString()}원</td>
       <td class="num" style="color:var(--ok);font-weight:700;">${g.settleAmt.toLocaleString()}원</td>
@@ -4209,11 +4215,11 @@ function renderSettlementTable() {
     </tr>`;
   });
 
-  // 합계 행
+  const tdTotalPresc  = colPresc  ? '<td>-</td>' : '';
+  const tdTotalSettle = colSettle ? '<td>-</td>' : '';
   html += `<tr class="total-row">
     <td>합계 (${sorted.length}건)</td>
-    ${showPresc  ? '<td>-</td>' : ''}
-    ${showSettle ? '<td>-</td>' : ''}
+    ${tdTotalPresc}${tdTotalSettle}
     <td class="num">${totalQty.toLocaleString()}</td>
     <td class="num">${totalPresc.toLocaleString()}원</td>
     <td class="num">${totalSettle.toLocaleString()}원</td>
