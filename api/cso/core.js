@@ -1,4 +1,3 @@
-'use strict';
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -32,7 +31,7 @@ function getUser(req) {
   catch { return null; }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
