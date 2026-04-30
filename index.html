@@ -2691,7 +2691,7 @@ function renderTable(newIdx) {
       <td class="del-cell"><button class="btn btn-danger btn-sm" onclick="delRow(${i})">삭제</button></td>
       <td class="num-cell">${i+1}</td>
       <td><input value="${esc(r.code)}"
-        oninput="rows[${i}].code=this.value; if(this.value.length>=9) autoFillByCode(${i}, this.value)"
+        oninput="rows[${i}].code=this.value; if(this.value.length>=9 && !rows[${i}].priceFixed) autoFillByCode(${i}, this.value)"
         placeholder="643301120"></td>
       <td style="position:relative;overflow:hidden;">
         <input value="${esc(r.name)}" style="overflow:hidden;text-overflow:ellipsis;${r._nameWarning ? 'background:#fff3cd;border-color:#ffc107;' : ''}"
@@ -5126,7 +5126,7 @@ function closeDrugDrop(rowIdx) {
 
 function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   rows[rowIdx].name  = name;
-  rows[rowIdx].code  = code || rows[rowIdx].code;
+  if (code !== undefined && code !== null) rows[rowIdx].code = code;
   if (price) rows[rowIdx].price = price;
   rows[rowIdx].priceFixed = !nonInsured && !!price;
 
@@ -5205,8 +5205,8 @@ async function searchDrugByName(rowIdx, keyword) {
     return;
   }
 
-  // 2. prefix 캐시에서 즉시 필터링 (같은 제약사 내에서만)
-  const prefixMatch = Object.keys(_drugSearchCache).find(k => k.startsWith(_pharmaKey + '::') && k.slice(_pharmaKey.length+2).length < keyword.length && keyword.startsWith(k.slice(_pharmaKey.length+2)) && _drugSearchCache[k].length > 0);
+  // 2. prefix 캐시에서 즉시 필터링 (같은 제약사 내에서만, pharmaKey 있을 때만)
+  const prefixMatch = _pharmaKey ? Object.keys(_drugSearchCache).find(k => k.startsWith(_pharmaKey + '::') && k.slice(_pharmaKey.length+2).length < keyword.length && keyword.startsWith(k.slice(_pharmaKey.length+2)) && _drugSearchCache[k].length > 0) : null;
   if (prefixMatch) {
     const filtered = _drugSearchCache[prefixMatch].filter(d =>
       (d.itmNm||'').includes(keyword)
