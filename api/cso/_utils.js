@@ -197,17 +197,36 @@ function transformRow(rawRow, columnMap, fileType) {
   return r;
 }
 
+function normalizeName(v) {
+  return String(v || '').replace(/[\s\(\)\[\]·・\.]/g, '').toLowerCase();
+}
+
 function separateByMapping(row, mappings) {
   const bizNo = cleanBizNo(row.biz_no);
   const hospitalName = (row.hospital_name || '').trim();
+
+  // 1) 사업자번호 완전일치
   if (bizNo) {
     const m = mappings.find(m => m.biz_no && cleanBizNo(m.biz_no) === bizNo);
     if (m) return { settle_org: m.settle_org, matched_by: 'biz_no' };
   }
+
   if (hospitalName) {
-    const m = mappings.find(m => m.hospital_name && m.hospital_name.trim() === hospitalName);
-    if (m) return { settle_org: m.settle_org, matched_by: 'hospital_name' };
+    const normRow = normalizeName(hospitalName);
+
+    // 2) 병원명 완전일치 (정규화 후)
+    const m1 = mappings.find(m => m.hospital_name && normalizeName(m.hospital_name) === normRow);
+    if (m1) return { settle_org: m1.settle_org, matched_by: 'hospital_name_exact' };
+
+    // 3) 병원명 부분일치 (데이터 ⊃ 매핑키 or 매핑키 ⊃ 데이터)
+    const m2 = mappings.find(m => {
+      if (!m.hospital_name) return false;
+      const normMap = normalizeName(m.hospital_name);
+      return normRow.includes(normMap) || normMap.includes(normRow);
+    });
+    if (m2) return { settle_org: m2.settle_org, matched_by: 'hospital_name_partial' };
   }
+
   return { settle_org: '미분류', matched_by: null };
 }
 
