@@ -6442,6 +6442,9 @@ async function initCSOView() {
   if (!CSOApp.pharmas.length) {
     await CSOApp.loadPharmas();
   }
+  if (!CSOApp.pharmaId && CSOApp.pharmas.length) {
+    CSOApp.pharmaId = CSOApp.pharmas[0].id;
+  }
 }
 
 // renderTable, Fmt, Modal, Toast는 써치라이트 기존 것 재사용

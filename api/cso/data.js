@@ -217,7 +217,7 @@ module.exports = async function handler(req, res) {
         const file = Array.isArray(files.file) ? files.file[0] : files.file;
         if (!file) return err(res, '파일이 없습니다');
         const pid = body.pharma_id;
-        if (!pid) return err(res, 'pharma_id 필수');
+        if (!pid || pid === 'null' || pid === 'undefined') return err(res, '제약사를 먼저 선택해주세요');
         const fs = require('fs');
         const buf = fs.readFileSync(file.filepath);
         const wb = XLSX.read(buf, { type: 'buffer' });
