@@ -1732,7 +1732,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
           <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap;"><i data-lucide="download" style="width:14px;height:14px;"></i> 템플릿 다운로드</button>
         </div>
         <!-- 드래그앤드롭 업로드존 -->
-        <div id="uploadZone" onclick="document.getElementById('fileInput').click()"
+        <div id="commUploadZone" onclick="document.getElementById('commFileInput').click()"
           style="border:2px dashed var(--gray-200);border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;background:var(--gray-50);transition:all .15s;"
           ondragover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-bg)';event.preventDefault();"
           ondragleave="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';"
@@ -1741,7 +1741,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
           <p style="font-size: 17px;font-weight:600;color:var(--gray-600);">클릭하거나 파일을 드래그하여 업로드하세요</p>
           <p style="font-size: 15px;color:var(--gray-400);margin-top:6px;">지원 형식: .xlsx, .xls</p>
           <p id="fileName" style="display:none;margin-top:10px;font-size: 15px;font-weight:600;color:var(--gold);"></p>
-          <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" style="display:none;" />
+          <input type="file" id="commFileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" style="display:none;" />
         </div>
         <div id="uploadAlert" style="display:none;"></div>
         <div style="text-align:right;">
@@ -2372,7 +2372,7 @@ async function handleBulkUpload(input) {
       <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:10px;">
         📊 총 ${sessions.length}건 감지됨 — 저장하시겠습니까?
       </div>
-      <div style="max-height:200px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;">
+      <div style="max-height:200px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;margin-bottom:14px;">
         <table style="width:100%;border-collapse:collapse;">
           <thead><tr style="background:var(--gray-50);">
             <th style="padding:6px 10px;text-align:left;border-bottom:1px solid var(--gray-200);">병의원명</th>
@@ -2390,7 +2390,19 @@ async function handleBulkUpload(input) {
           </tbody>
         </table>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px;">
+
+      <!-- 첨부파일 영역 -->
+      <div style="border:1.5px solid var(--gray-200);border-radius:8px;padding:12px 14px;margin-bottom:14px;background:var(--gray-50);">
+        <div style="font-size:13px;font-weight:700;color:var(--brown);margin-bottom:8px;">📎 첨부파일 매칭 (선택)</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-bottom:10px;">파일명에 병의원명이 포함되면 자동 매칭됩니다. (예: 송도내과.jpg)</div>
+        <label class="btn btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;">
+          📂 파일 선택 (여러장 가능)
+          <input type="file" id="bulk-attach-input" multiple accept="image/*,.pdf" style="display:none;" onchange="renderBulkAttachPreview(this.files, ${JSON.stringify(sessions.map(s=>s.hospital)).replace(/"/g,'&quot;')})">
+        </label>
+        <div id="bulk-attach-preview"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px;">
         <button class="btn btn-primary btn-sm" id="btn-bulk-save">💾 ${sessions.length}건 일괄 저장</button>
         <button class="btn btn-sm" onclick="document.getElementById('bulk-upload-status').style.display='none'">취소</button>
       </div>`;
@@ -2402,21 +2414,99 @@ async function handleBulkUpload(input) {
   }
 }
 
+// 첨부파일 매칭 미리보기
+let _bulkAttachFiles = []; // { file, hospitalName (매칭된) or null }
+
+function normalizeBulkName(v) {
+  return String(v || '').replace(/[\s\(\)\[\]·・\.\-\_]/g, '').toLowerCase();
+}
+
+function renderBulkAttachPreview(fileList, hospitals) {
+  _bulkAttachFiles = [];
+  const files = Array.from(fileList);
+  if (!files.length) return;
+
+  files.forEach(f => {
+    // 파일명(확장자 제거)으로 병원명 매칭
+    const baseName = f.name.replace(/\.[^.]+$/, '');
+    const normFile = normalizeBulkName(baseName);
+    // 1) 완전일치
+    let matched = hospitals.find(h => normalizeBulkName(h) === normFile);
+    // 2) 부분일치
+    if (!matched) matched = hospitals.find(h => {
+      const normH = normalizeBulkName(h);
+      return normFile.includes(normH) || normH.includes(normFile);
+    });
+    _bulkAttachFiles.push({ file: f, hospital: matched || null });
+  });
+
+  const matchedCount = _bulkAttachFiles.filter(x => x.hospital).length;
+  const rows = _bulkAttachFiles.map(x => `
+    <tr>
+      <td style="padding:4px 8px;border-bottom:1px solid var(--gray-100);font-size:12px;">${escHtml(x.file.name)}</td>
+      <td style="padding:4px 8px;border-bottom:1px solid var(--gray-100);font-size:12px;">
+        ${x.hospital
+          ? `<span style="color:var(--ok);font-weight:700;">✅ ${escHtml(x.hospital)}</span>`
+          : `<span style="color:var(--muted);">⚠️ 미매칭</span>`}
+      </td>
+    </tr>`).join('');
+
+  document.getElementById('bulk-attach-preview').innerHTML = `
+    <div style="font-size:12px;color:var(--gray-600);margin-bottom:6px;">
+      총 ${files.length}개 중 <strong style="color:var(--ok);">${matchedCount}개 매칭</strong>
+      ${files.length - matchedCount > 0 ? ` / <span style="color:var(--muted);">${files.length - matchedCount}개 미매칭 (저장은 되나 첨부 안됨)</span>` : ''}
+    </div>
+    <div style="max-height:150px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:6px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:var(--gray-50);">
+          <th style="padding:4px 8px;text-align:left;font-size:12px;border-bottom:1px solid var(--gray-200);">파일명</th>
+          <th style="padding:4px 8px;text-align:left;font-size:12px;border-bottom:1px solid var(--gray-200);">매칭 병의원</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
 // 실제 일괄 저장
 async function executeBulkSave(sessions) {
   const statusEl = document.getElementById('bulk-upload-status');
   const btn = document.getElementById('btn-bulk-save');
   if (btn) btn.disabled = true;
 
-  let success = 0, fail = 0;
-  statusEl.innerHTML = `<div style="font-size:14px;color:var(--gold);">💾 저장 중... (0/${sessions.length})</div>`;
+  // 첨부파일 blob 업로드 먼저 (병원명 → blobUrl 맵)
+  const attachMap = {}; // hospital → { name, blobUrl, fileType }
+  for (const af of _bulkAttachFiles) {
+    if (!af.hospital || !af.file) continue;
+    try {
+      statusEl.innerHTML = `<div style="font-size:14px;color:var(--gold);">📎 첨부파일 업로드 중... ${escHtml(af.file.name)}</div>`;
+      const dataUrl = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = e => res(e.target.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(af.file);
+      });
+      const base64 = dataUrl.split(',')[1];
+      const r = await fetch('/api/blob-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: af.file.name, contentType: af.file.type, dataBase64: base64 })
+      });
+      const result = await r.json();
+      if (result.url) {
+        attachMap[af.hospital] = { name: af.file.name, blobUrl: result.url, fileType: af.file.type, type: 'EDI' };
+      }
+    } catch(e) {
+      console.error('첨부파일 업로드 실패:', af.file.name, e);
+    }
+  }
 
+  let success = 0, fail = 0;
   for (let i = 0; i < sessions.length; i++) {
     const s = sessions[i];
     statusEl.innerHTML = `<div style="font-size:14px;color:var(--gold);">💾 저장 중... (${i+1}/${sessions.length}) — ${escHtml(s.hospital)}</div>`;
-
     try {
       const clientInfo = masterClients.find(c => c.name === s.hospital);
+      const attachFiles = attachMap[s.hospital] ? [attachMap[s.hospital]] : [];
       const session = {
         id:          genId(),
         hospital:    s.hospital,
@@ -2426,7 +2516,7 @@ async function executeBulkSave(sessions) {
         settle:      s.settle,
         note:        s.note,
         rows:        s.rows,
-        attachFiles: [],
+        attachFiles,
         savedAt:     new Date().toLocaleString('ko-KR'),
         user_id:     currentUser ? currentUser.id : null,
         user_name:   currentUser ? currentUser.name : '알 수 없음',
@@ -2441,6 +2531,7 @@ async function executeBulkSave(sessions) {
     }
   }
 
+  _bulkAttachFiles = [];
   if (fail === 0) {
     statusEl.innerHTML = `<div style="color:var(--ok);font-size:14px;font-weight:700;">✅ ${success}건 모두 저장 완료!</div>
       <button class="btn btn-sm" style="margin-top:8px;" onclick="document.getElementById('bulk-upload-status').style.display='none';showView('list')">저장 목록 보기 →</button>`;
@@ -5519,7 +5610,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================== DRAG & DROP =====================
 
 function setupDragDrop() {
-  const zone = document.getElementById('uploadZone');
+  const zone = document.getElementById('commUploadZone');
   if (!zone) return;
 
   zone.addEventListener('dragover', (e) => {
@@ -6072,19 +6163,23 @@ const CSOUploadTab = {
         const color = document.getElementById('mPharmaColor').value;
         const memo = document.getElementById('mPharmaMemo').value.trim();
         if (!name) return Toast.error('제약사명을 입력하세요');
-        await CSOAPI.post('/api/cso/core?resource=pharmas', { name, color, memo });
-        await App.loadPharmas();
-        const newPharma = CSOApp.pharmas.find(p => p.name === name);
-        if (newPharma) CSOApp.pharmaId = newPharma.id;
-        const sel = document.getElementById('pharmaSelectUpload');
-        if (sel) {
-          sel.innerHTML = CSOApp.pharmas.map(p =>
-            `<option value="${p.id}" ${String(p.id) === String(CSOApp.pharmaId) ? 'selected' : ''}>${p.name}</option>`
-          ).join('');
+        try {
+          await CSOAPI.post('/api/cso/core?resource=pharmas', { name, color, memo });
+          await CSOApp.loadPharmas();
+          const newPharma = CSOApp.pharmas.find(p => p.name === name);
+          if (newPharma) CSOApp.pharmaId = newPharma.id;
+          const sel = document.getElementById('pharmaSelectUpload');
+          if (sel) {
+            sel.innerHTML = CSOApp.pharmas.map(p =>
+              `<option value="${p.id}" ${String(p.id) === String(CSOApp.pharmaId) ? 'selected' : ''}>${p.name}</option>`
+            ).join('');
+          }
+          Modal.hide();
+          Toast.success('제약사가 추가되었습니다');
+          this.loadHistory();
+        } catch(e) {
+          Toast.error('저장 실패: ' + e.message);
         }
-        Toast.success('제약사가 추가되었습니다');
-        Modal.hide();
-        this.loadHistory();
       });
     });
 
