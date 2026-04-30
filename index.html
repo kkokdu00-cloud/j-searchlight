@@ -1410,10 +1410,11 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <!-- 그룹 탭 -->
     <div class="card" style="padding-bottom:0;">
       <div style="display:flex;gap:0;border-bottom:2px solid var(--gray-200);margin:-20px -20px 16px;padding:0 20px;">
-        <button class="stl-tab-btn active" data-tab="month"   onclick="setStlTab('month')">월별</button>
-        <button class="stl-tab-btn"        data-tab="pharma"  onclick="setStlTab('pharma')">제약사별</button>
+        <button class="stl-tab-btn active" data-tab="month"    onclick="setStlTab('month')">처방월</button>
+        <button class="stl-tab-btn"        data-tab="settle"   onclick="setStlTab('settle')">정산월</button>
+        <button class="stl-tab-btn"        data-tab="pharma"   onclick="setStlTab('pharma')">제약사별</button>
         <button class="stl-tab-btn"        data-tab="hospital" onclick="setStlTab('hospital')">거래처별</button>
-        <button class="stl-tab-btn"        data-tab="drug"    onclick="setStlTab('drug')">품목별</button>
+        <button class="stl-tab-btn"        data-tab="drug"     onclick="setStlTab('drug')">품목별</button>
       </div>
       <div id="stl-table-wrap"></div>
     </div>
@@ -4155,12 +4156,12 @@ function renderSettlementTable() {
   }
 
   // 그룹핑
-  const groupKey = { month:'month', pharma:'pharma', hospital:'hospital', drug:'code' }[_stlTab];
-  const groupLabel = { month:'처방월', pharma:'제약사', hospital:'거래처', drug:'품목(코드)' }[_stlTab];
+  const groupKey = { month:'month', settle:'settle', pharma:'pharma', hospital:'hospital', drug:'code' }[_stlTab];
+  const groupLabel = { month:'처방월', settle:'정산월', pharma:'제약사', hospital:'거래처', drug:'품목(코드)' }[_stlTab];
 
   const grouped = {};
   rows.forEach(r => {
-    const k = _stlTab === 'drug' ? `${r.name} (${r.code})` : r[groupKey];
+    const k = _stlTab === 'drug' ? `${r.name} (${r.code})` : (r[groupKey] || '-');
     if (!grouped[k]) grouped[k] = { key:k, rows:[], prescAmt:0, settleAmt:0, qty:0 };
     grouped[k].rows.push(r);
     grouped[k].prescAmt  += r.prescAmt;
@@ -4178,11 +4179,14 @@ function renderSettlementTable() {
     drug:     ['처방월','제약사','거래처']
   }[_stlTab];
 
+  // 탭별 부가 컬럼 결정
+  const showPresc  = !['month'].includes(_stlTab);
+  const showSettle = !['settle'].includes(_stlTab);
   let html = `<div style="overflow-x:auto;"><table class="stl-tbl">
     <thead><tr>
       <th>${groupLabel}</th>
-      <th>처방월</th>
-      <th>정산월</th>
+      ${showPresc  ? '<th>처방월</th>' : ''}
+      ${showSettle ? '<th>정산월</th>' : ''}
       <th class="num">처방수량</th>
       <th class="num">처방금액</th>
       <th class="num">정산금액</th>
@@ -4196,8 +4200,8 @@ function renderSettlementTable() {
     const repSettle = g.rows[0]?.settle || '-';
     html += `<tr>
       <td style="font-weight:600;color:var(--brown);">${escHtml(g.key)}</td>
-      <td>${_stlTab === 'month' ? '' : escHtml(repPresc)}</td>
-      <td>${escHtml(repSettle)}</td>
+      ${showPresc  ? `<td>${escHtml(repPresc)}</td>`  : ''}
+      ${showSettle ? `<td>${escHtml(repSettle)}</td>` : ''}
       <td class="num">${g.qty.toLocaleString()}</td>
       <td class="num">${g.prescAmt.toLocaleString()}원</td>
       <td class="num" style="color:var(--ok);font-weight:700;">${g.settleAmt.toLocaleString()}원</td>
@@ -4208,7 +4212,8 @@ function renderSettlementTable() {
   // 합계 행
   html += `<tr class="total-row">
     <td>합계 (${sorted.length}건)</td>
-    <td>-</td><td>-</td>
+    ${showPresc  ? '<td>-</td>' : ''}
+    ${showSettle ? '<td>-</td>' : ''}
     <td class="num">${totalQty.toLocaleString()}</td>
     <td class="num">${totalPresc.toLocaleString()}원</td>
     <td class="num">${totalSettle.toLocaleString()}원</td>
