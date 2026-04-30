@@ -4216,7 +4216,7 @@ function renderSettlementTable() {
     const tdPresc  = colPresc  ? `<td style="text-align:center;">${escHtml(repPresc)}</td>`  : '';
     const tdSettle = colSettle ? `<td style="text-align:center;">${escHtml(repSettle)}</td>` : '';
     html += `<tr>
-      <td style="font-weight:600;color:var(--brown);">${escHtml(g.key)}</td>
+      <td style="font-weight:600;color:var(--brown);text-align:left;">${escHtml(g.key)}</td>
       ${tdPresc}${tdSettle}
       <td class="num">${g.qty.toLocaleString()}</td>
       <td class="num">${g.prescAmt.toLocaleString()}원</td>
@@ -4228,7 +4228,7 @@ function renderSettlementTable() {
   const tdTotalPresc  = colPresc  ? '<td style="text-align:center;">-</td>' : '';
   const tdTotalSettle = colSettle ? '<td style="text-align:center;">-</td>' : '';
   html += `<tr class="total-row">
-    <td>합계 (${sorted.length}건)</td>
+    <td style="text-align:left;">합계 (${sorted.length}건)</td>
     ${tdTotalPresc}${tdTotalSettle}
     <td class="num">${totalQty.toLocaleString()}</td>
     <td class="num">${totalPresc.toLocaleString()}원</td>
