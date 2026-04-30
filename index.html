@@ -4189,16 +4189,24 @@ function renderSettlementTable() {
   const thPresc  = colPresc  ? '<th>처방월</th>'  : '';
   const thSettle = colSettle ? '<th>정산월</th>'  : '';
 
-  const firstColWidth = { month:'100px', settle:'100px', pharma:'200px', hospital:'220px', drug:'420px' }[_stlTab];
-  let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="width:100%;">
+  let html = `<div style="overflow-x:auto;"><table class="stl-tbl" style="width:100%;table-layout:fixed;">
+    <colgroup>
+      <col>
+      ${colPresc  ? '<col style="width:90px;">' : ''}
+      ${colSettle ? '<col style="width:90px;">' : ''}
+      <col style="width:80px;">
+      <col style="width:140px;">
+      <col style="width:140px;">
+      <col style="width:90px;">
+    </colgroup>
     <thead><tr>
-      <th style="text-align:left;width:${firstColWidth};">${groupLabel}</th>
-      ${colPresc  ? '<th style="text-align:center;width:90px;white-space:nowrap;">처방월</th>'  : ''}
-      ${colSettle ? '<th style="text-align:center;width:90px;white-space:nowrap;">정산월</th>' : ''}
-      <th style="text-align:right;width:80px;white-space:nowrap;">처방수량</th>
-      <th style="text-align:right;width:130px;white-space:nowrap;">처방금액</th>
-      <th style="text-align:right;width:130px;white-space:nowrap;">정산금액</th>
-      <th style="text-align:right;width:80px;white-space:nowrap;">평균수수료</th>
+      <th style="text-align:left;">${groupLabel}</th>
+      ${colPresc  ? '<th style="text-align:center;">처방월</th>'  : ''}
+      ${colSettle ? '<th style="text-align:center;">정산월</th>' : ''}
+      <th style="text-align:right;">처방수량</th>
+      <th style="text-align:right;">처방금액</th>
+      <th style="text-align:right;">정산금액</th>
+      <th style="text-align:right;">평균수수료</th>
     </tr></thead><tbody>`;
 
   sorted.forEach(g => {
