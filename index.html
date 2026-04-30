@@ -3771,7 +3771,7 @@ function onZipSepOrgChange() {
   }
   // 해당 제출처에 매핑된 제약사만
   const mappedPharmas = [...new Set(
-    sepMapping.filter(m => m.sep_org_id === orgId).map(m => m.pharma_name)
+    sepMapping.filter(m => String(m.sep_org_id) === String(orgId)).map(m => m.pharma_name)
   )].sort((a,b) => a.localeCompare(b,'ko'));
   pharmaSel.innerHTML = '<option value="">— 전체 —</option>' +
     mappedPharmas.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
@@ -3811,7 +3811,7 @@ async function runBundleExport() {
 
   if (orgId) {
     // 제출처 → 해당 제출처에 매핑된 (거래처+제약사) 조합만 필터
-    const mappings = sepMapping.filter(m => m.sep_org_id === orgId);
+    const mappings = sepMapping.filter(m => String(m.sep_org_id) === String(orgId));
     sessions = sessions.filter(s =>
       mappings.some(m => m.client_name === s.hospital && (!pharma || m.pharma_name === pharma))
       && (!pharma || s.pharma === pharma)
@@ -4633,7 +4633,7 @@ function renderSepOrgMaster() {
   }
   empty.style.display = 'none';
   grid.innerHTML = sepOrgs.map(o => {
-    const cnt = sepMapping.filter(m => m.sep_org_id === o.id).length;
+    const cnt = sepMapping.filter(m => String(m.sep_org_id) === String(o.id)).length;
     return `
     <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
