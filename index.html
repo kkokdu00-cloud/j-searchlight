@@ -1099,6 +1099,26 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
 ════════════════════════════════════════════ -->
 <div id="view-input" style="display:none;">
 
+  <!-- 일괄 업로드 카드 -->
+  <div class="card" style="border:2px dashed var(--gold-lt);background:var(--gold-bg);">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div class="section-title" style="margin:0;border:none;padding:0;"><i data-lucide="file-spreadsheet" style="width:16px;height:16px;vertical-align:-3px;"></i> 엑셀 일괄 업로드</div>
+        <div style="font-size:13px;color:var(--gray-400);margin-top:4px;">여러 병의원을 엑셀 파일 한 장으로 한번에 저장</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="downloadBulkTemplate()">
+          <i data-lucide="download" style="width:14px;height:14px;"></i> 양식 다운로드
+        </button>
+        <label class="btn btn-primary btn-sm" style="cursor:pointer;margin:0;">
+          <i data-lucide="upload" style="width:14px;height:14px;"></i> 엑셀 업로드
+          <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="handleBulkUpload(this)">
+        </label>
+      </div>
+    </div>
+    <div id="bulk-upload-status" style="display:none;margin-top:12px;"></div>
+  </div>
+
   <!-- 기본 정보 -->
   <div class="card">
     <div class="section-title"><i data-lucide="clipboard" style="width:16px;height:16px;vertical-align:-3px;"></i> 기본 정보</div>
@@ -2047,6 +2067,232 @@ function updateDataLists() {
   const pList = document.getElementById('pharma-list');
   hList.innerHTML = masterClients.map(c => `<option value="${esc(c.name)}">`).join('');
   pList.innerHTML  = masterPharma.map(p  => `<option value="${esc(p.name)}">`).join('');
+}
+
+// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// 엑셀 일괄 업로드
+// ══════════════════════════════════════════════
+
+// 양식 다운로드
+function downloadBulkTemplate() {
+  const wb = XLSX.utils.book_new();
+  const headers = ['병의원명*', '사업자번호', '제약사명*', '처방월*', '정산월', '비고', '보험코드', '품명', '단가', '청구량', '지급량', '구분', '메모'];
+  const example = [
+    ['서울내과', '123-45-67890', '한국제약', '2024-01', '2024-02', '', 'A11BC012', '약품명예시', '1000', '10', '10', '처방', ''],
+    ['', '', '', '', '', '', 'A11BC013', '약품명예시2', '2000', '5', '5', '처방', ''],
+    ['부산의원', '', '대한제약', '2024-01', '', '', 'B22CD034', '약품명예시3', '500', '20', '20', '처방', ''],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...example]);
+
+  // 열 너비 설정
+  ws['!cols'] = [
+    {wch:16},{wch:14},{wch:14},{wch:10},{wch:10},{wch:12},
+    {wch:14},{wch:20},{wch:8},{wch:8},{wch:8},{wch:8},{wch:14}
+  ];
+
+  // 헤더 스타일링 (색상)
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; C++) {
+    const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+    if (!ws[addr]) continue;
+    ws[addr].s = { fill: { fgColor: { rgb: 'C4956A' } }, font: { bold: true, color: { rgb: 'FFFFFF' } } };
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, '처방데이터');
+
+  // 안내 시트
+  const guide = XLSX.utils.aoa_to_sheet([
+    ['📋 엑셀 일괄 업로드 양식 안내'],
+    [''],
+    ['컬럼명', '설명', '필수여부', '형식 예시'],
+    ['병의원명*', '병의원 거래처명', '필수', '서울내과'],
+    ['사업자번호', '사업자등록번호', '선택', '123-45-67890'],
+    ['제약사명*', '제약사 이름', '필수', '한국제약'],
+    ['처방월*', '처방 기준월', '필수', '2024-01'],
+    ['정산월', '정산 기준월', '선택', '2024-02'],
+    ['비고', '메모', '선택', ''],
+    ['보험코드', '약품 보험코드', '선택', 'A11BC012'],
+    ['품명', '약품명', '선택', '약품명예시'],
+    ['단가', '약품 단가 (숫자)', '선택', '1000'],
+    ['청구량', '청구 수량 (숫자)', '선택', '10'],
+    ['지급량', '지급 수량 (숫자)', '선택', '10'],
+    ['구분', '처방/원외처방', '선택', '처방'],
+    ['메모', '행별 메모', '선택', ''],
+    [''],
+    ['※ 같은 병의원의 여러 품목은 병의원명/제약사명/처방월을 첫 행에만 쓰고 아래 행은 비워도 됩니다.'],
+    ['※ 새 병의원은 병의원명을 반드시 입력하세요.'],
+  ]);
+  ws['!cols'] = [{wch:14},{wch:22},{wch:10},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, guide, '작성안내');
+
+  XLSX.writeFile(wb, 'J써치라이트_처방입력양식.xlsx');
+  showToast('✅ 양식 다운로드 완료!');
+}
+
+// 엑셀 업로드 처리
+async function handleBulkUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  const statusEl = document.getElementById('bulk-upload-status');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = `<div style="color:var(--gold);font-size:14px;"><span class="spinner"></span> 파일 분석 중...</div>`;
+
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+    if (!raw.length || raw.length < 2) throw new Error('데이터가 없습니다.');
+
+    // 헤더 파악
+    const hdrs = raw[0].map(h => String(h).replace('*','').trim());
+    const col = (name) => hdrs.indexOf(name);
+
+    const C = {
+      hospital: col('병의원명'), bizno: col('사업자번호'), pharma: col('제약사명'),
+      presc: col('처방월'), settle: col('정산월'), note: col('비고'),
+      code: col('보험코드'), name: col('품명'), price: col('단가'),
+      qin: col('청구량'), qout: col('지급량'), type: col('구분'), rowNote: col('메모')
+    };
+
+    if (C.hospital < 0 || C.pharma < 0 || C.presc < 0) {
+      throw new Error('필수 컬럼(병의원명, 제약사명, 처방월)이 없습니다. 양식을 확인해주세요.');
+    }
+
+    // 세션 그룹핑 (병의원명 기준)
+    const sessions = [];
+    let current = null;
+
+    for (let i = 1; i < raw.length; i++) {
+      const r = raw[i];
+      const hospital = String(r[C.hospital] || '').trim();
+      const pharma   = String(r[C.pharma]   || '').trim();
+      const presc    = String(r[C.presc]     || '').trim();
+
+      // 새 병의원 시작 (병의원명 or 제약사명 있으면)
+      if (hospital || (pharma && !current)) {
+        if (current) sessions.push(current);
+        current = {
+          hospital: hospital || (current ? current.hospital : ''),
+          bizno:    String(r[C.bizno]  || '').trim(),
+          pharma:   pharma || (current ? current.pharma : ''),
+          presc:    presc  || (current ? current.presc  : ''),
+          settle:   C.settle  >= 0 ? String(r[C.settle]  || '').trim() : '',
+          note:     C.note    >= 0 ? String(r[C.note]    || '').trim() : '',
+          rows:     []
+        };
+      }
+
+      if (!current) continue;
+
+      // 행 데이터
+      const code  = C.code  >= 0 ? String(r[C.code]    || '').trim() : '';
+      const name  = C.name  >= 0 ? String(r[C.name]    || '').trim() : '';
+      const price = C.price >= 0 ? String(r[C.price]   || '').trim() : '';
+      const qin   = C.qin   >= 0 ? String(r[C.qin]     || '').trim() : '';
+      const qout  = C.qout  >= 0 ? String(r[C.qout]    || '').trim() : '';
+      const type  = C.type  >= 0 ? String(r[C.type]    || '처방').trim() : '처방';
+      const rNote = C.rowNote >= 0 ? String(r[C.rowNote] || '').trim() : '';
+
+      if (code || name) {
+        current.rows.push({ code, name, price, qin, qout, type, note: rNote });
+      }
+    }
+    if (current) sessions.push(current);
+
+    // 유효성 검사
+    const invalid = sessions.filter(s => !s.hospital || !s.pharma || !s.presc);
+    if (invalid.length) {
+      throw new Error(`병의원명·제약사명·처방월이 누락된 행이 ${invalid.length}건 있습니다.`);
+    }
+    if (!sessions.length) throw new Error('저장할 데이터가 없습니다.');
+
+    // 미리보기 표시
+    statusEl.innerHTML = `
+      <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:10px;">
+        📊 총 ${sessions.length}건 감지됨 — 저장하시겠습니까?
+      </div>
+      <div style="max-height:200px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:var(--gray-50);">
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid var(--gray-200);">병의원명</th>
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid var(--gray-200);">제약사</th>
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid var(--gray-200);">처방월</th>
+            <th style="padding:6px 10px;text-align:right;border-bottom:1px solid var(--gray-200);">품목수</th>
+          </tr></thead>
+          <tbody>
+            ${sessions.map(s => `<tr>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--gray-100);">${escHtml(s.hospital)}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--gray-100);">${escHtml(s.pharma)}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--gray-100);">${escHtml(s.presc)}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--gray-100);text-align:right;">${s.rows.length}건</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-primary btn-sm" id="btn-bulk-save">💾 ${sessions.length}건 일괄 저장</button>
+        <button class="btn btn-sm" onclick="document.getElementById('bulk-upload-status').style.display='none'">취소</button>
+      </div>`;
+
+    document.getElementById('btn-bulk-save').onclick = () => executeBulkSave(sessions);
+
+  } catch(e) {
+    statusEl.innerHTML = `<div style="color:var(--red);font-size:14px;">❌ ${e.message}</div>`;
+  }
+}
+
+// 실제 일괄 저장
+async function executeBulkSave(sessions) {
+  const statusEl = document.getElementById('bulk-upload-status');
+  const btn = document.getElementById('btn-bulk-save');
+  if (btn) btn.disabled = true;
+
+  let success = 0, fail = 0;
+  statusEl.innerHTML = `<div style="font-size:14px;color:var(--gold);">💾 저장 중... (0/${sessions.length})</div>`;
+
+  for (let i = 0; i < sessions.length; i++) {
+    const s = sessions[i];
+    statusEl.innerHTML = `<div style="font-size:14px;color:var(--gold);">💾 저장 중... (${i+1}/${sessions.length}) — ${escHtml(s.hospital)}</div>`;
+
+    try {
+      const clientInfo = masterClients.find(c => c.name === s.hospital);
+      const session = {
+        id:          genId(),
+        hospital:    s.hospital,
+        pharma:      s.pharma,
+        bizno:       s.bizno,
+        presc:       s.presc,
+        settle:      s.settle,
+        note:        s.note,
+        rows:        s.rows,
+        attachFiles: [],
+        savedAt:     new Date().toLocaleString('ko-KR'),
+        user_id:     currentUser ? currentUser.id : null,
+        user_name:   currentUser ? currentUser.name : '알 수 없음',
+        manager:     clientInfo ? (clientInfo.manager || '') : ''
+      };
+      await apiPost('/api/sessions', session);
+      savedSessions.unshift(session);
+      success++;
+    } catch(e) {
+      console.error('저장 실패:', s.hospital, e);
+      fail++;
+    }
+  }
+
+  if (fail === 0) {
+    statusEl.innerHTML = `<div style="color:var(--ok);font-size:14px;font-weight:700;">✅ ${success}건 모두 저장 완료!</div>
+      <button class="btn btn-sm" style="margin-top:8px;" onclick="document.getElementById('bulk-upload-status').style.display='none';showView('list')">저장 목록 보기 →</button>`;
+    showToast(`✅ ${success}건 일괄 저장 완료!`);
+  } else {
+    statusEl.innerHTML = `<div style="font-size:14px;">✅ ${success}건 저장 완료 / ❌ ${fail}건 실패</div>`;
+    showToast(`${success}건 저장 / ${fail}건 실패`);
+  }
 }
 
 // ══════════════════════════════════════════════
