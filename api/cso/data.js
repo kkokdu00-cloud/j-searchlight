@@ -223,16 +223,37 @@ module.exports = async function handler(req, res) {
         const wb = XLSX.read(buf, { type: 'buffer' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-        let headerRow = 0;
+        let headerRow = -1;
         for (let i = 0; i < Math.min(20, rows.length); i++) {
           if (rows[i].map(c => String(c).trim()).some(c => c.includes('정산처'))) { headerRow = i; break; }
         }
-        const headers = rows[headerRow].map(c => String(c).trim());
-        const idxHospital = headers.findIndex(h => ['병원명','처방처명','처방처','거래처명','기관명','키값'].some(k => h.includes(k)));
-        const idxBizNo    = headers.findIndex(h => h.includes('사업자번호'));
-        const idxPharma   = headers.findIndex(h => h.includes('제약회사') || h.includes('제약사'));
-        const idxSettle   = headers.findIndex(h => h.includes('정산처'));
-        if (idxSettle === -1) return err(res, '정산처 컬럼을 찾을 수 없습니다');
+
+        let idxHospital, idxBizNo, idxPharma, idxSettle;
+
+        if (headerRow === -1) {
+          // 헤더 없는 파일 - 컬럼 수로 자동 추정
+          // 2컬럼: 병원명, 정산처
+          // 3컬럼: 병원명, 사업자번호, 정산처
+          // 4컬럼: 병원명, 사업자번호, 제약사, 정산처
+          const sampleRow = rows.find(r => r.some(c => c !== '' && c != null)) || [];
+          const colCount = sampleRow.length;
+          if (colCount >= 3) {
+            idxHospital = 0; idxBizNo = 1; idxPharma = colCount >= 4 ? 2 : -1; idxSettle = colCount >= 4 ? 3 : 2;
+          } else if (colCount === 2) {
+            idxHospital = 0; idxBizNo = -1; idxPharma = -1; idxSettle = 1;
+          } else {
+            return err(res, '매핑 파일 형식을 인식할 수 없습니다. 헤더(병원명/사업자번호/정산처)를 추가하거나 컬럼 순서를 확인하세요');
+          }
+          headerRow = -1; // 데이터는 0행부터
+        } else {
+          const headers = rows[headerRow].map(c => String(c).trim());
+          idxHospital = headers.findIndex(h => ['병원명','처방처명','처방처','거래처명','기관명','키값'].some(k => h.includes(k)));
+          idxBizNo    = headers.findIndex(h => h.includes('사업자번호'));
+          idxPharma   = headers.findIndex(h => h.includes('제약회사') || h.includes('제약사'));
+          idxSettle   = headers.findIndex(h => h.includes('정산처'));
+          if (idxSettle === -1) return err(res, '정산처 컬럼을 찾을 수 없습니다');
+        }
+
         const dataRows = rows.slice(headerRow + 1).filter(r => r.some(c => c !== '' && c != null));
         await supabase.from('sep_mapping').delete().eq('pharma_id', parseInt(pid));
         const batch = dataRows.map(row => {
