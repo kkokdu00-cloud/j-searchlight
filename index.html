@@ -2699,11 +2699,10 @@ function renderTable(newIdx) {
           title="${r._nameWarning ? '⚠️ OCR 코드 오인식 가능성 — 보험코드와 제품명을 확인하세요' : ''}"
           id="name-input-${i}"
           oninput="rows[${i}].name=this.value; searchDrugByName(${i}, this.value)"
-          onblur="setTimeout(()=>closeDrugDrop(${i}),200)"
+          onblur="setTimeout(()=>closeDrugDrop(),150)"
           onkeydown="drugDropKeyNav(event,${i})"
           placeholder="제품명"
           autocomplete="off">
-        <div id="drug-drop-${i}" style="display:none;position:fixed;z-index:9999;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:220px;overflow-y:auto;min-width:280px;"></div>
       </td>
       <td><input value="${esc(r.price)}"
         ${r.priceFixed ? 'readonly' : `onchange="rows[${i}].price=this.value"`}
@@ -5087,9 +5086,11 @@ function focusNextInput(currentEl) {
   }
 }
 
+let _drugDropActiveRow = null;
+
 function drugDropKeyNav(e, rowIdx) {
-  const drop = document.getElementById('drug-drop-' + rowIdx);
-  const isOpen = drop && drop.style.display !== 'none';
+  const drop = document.getElementById('drug-drop-global');
+  const isOpen = drop && drop.style.display !== 'none' && _drugDropActiveRow === rowIdx;
   const items = isOpen ? drop.querySelectorAll('.drug-drop-item') : [];
   const active = isOpen ? drop.querySelector('.drug-drop-item.active') : null;
   let idx = Array.from(items).indexOf(active);
@@ -5112,17 +5113,17 @@ function drugDropKeyNav(e, rowIdx) {
       const target = active || items[0];
       target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     } else {
-      // 드롭다운 없으면 다음 칸으로
       focusNextInput(e.target);
     }
   } else if (e.key === 'Escape') {
-    closeDrugDrop(rowIdx);
+    closeDrugDrop();
   }
 }
 
-function closeDrugDrop(rowIdx) {
-  const drop = document.getElementById('drug-drop-' + rowIdx);
+function closeDrugDrop() {
+  const drop = document.getElementById('drug-drop-global');
   if (drop) drop.style.display = 'none';
+  _drugDropActiveRow = null;
 }
 
 function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
@@ -5243,19 +5244,19 @@ async function searchDrugByName(rowIdx, keyword) {
 }
 
 function renderDrugDrop(rowIdx, keyword, data) {
-  const drop = document.getElementById('drug-drop-' + rowIdx);
+  const drop = document.getElementById('drug-drop-global');
   if (!drop) return;
 
   const items = [];
 
-  // 급여 제품
+  // 급여 제품 (현재 제약사 필터 적용된 data만)
   data.forEach(d => {
     items.push({ name: d.itmNm, code: d.itmCd||'', price: d.clsgAmt||d.mx_cprc||'', nonInsured: false, commission: d.commissionRate > 0 ? String(d.commissionRate) : '' });
   });
 
-  // 비급여 제품 (해당 제약사)
+  // 비급여 제품 — 현재 선택된 제약사 것만
   const pharmaName = document.getElementById('h-pharma')?.value?.trim();
-  const pharma = masterPharma.find(p => p.name === pharmaName);
+  const pharma = pharmaName ? masterPharma.find(p => p.name === pharmaName) : null;
   if (pharma && pharma.nonInsured) {
     const kw = keyword.toLowerCase();
     pharma.nonInsured
@@ -5265,14 +5266,33 @@ function renderDrugDrop(rowIdx, keyword, data) {
 
   if (!items.length) { drop.style.display = 'none'; return; }
 
-  drop.innerHTML = items.map(it => `
-    <div class="drug-drop-item" onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')" ontouchstart="event.preventDefault();selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')"
+  _drugDropActiveRow = rowIdx;
+
+  // data-* 속성으로 저장 (onclick 인라인 JS 문자열 이스케이프 문제 완전 회피)
+  drop.innerHTML = items.map((it, idx) => `
+    <div class="drug-drop-item"
+      data-row="${rowIdx}"
+      data-idx="${idx}"
       style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;"
       onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background=''">
-      <span>${it.nonInsured ? '<span style=\"color:#e67e22;font-size:11px;margin-right:4px;\">[비급여]</span>' : ''}${esc(it.name)}</span>
+      <span>${it.nonInsured ? '<span style="color:#e67e22;font-size:11px;margin-right:4px;">[비급여]</span>' : ''}${esc(it.name)}</span>
       <span style="color:${it.nonInsured?'#e67e22':'var(--gold)'};font-size:12px;font-weight:600;margin-left:8px;">${it.price ? Number(it.price).toLocaleString()+'원' : ''}</span>
     </div>`).join('');
-  // fixed position 좌표 계산
+
+  // 아이템 데이터를 드롭다운에 직접 저장
+  drop._itemData = items;
+
+  // 클릭/터치 이벤트 — 드롭다운 자체에 위임
+  drop.onmousedown = function(e) {
+    const el = e.target.closest('.drug-drop-item');
+    if (!el) return;
+    e.preventDefault();
+    const idx = parseInt(el.dataset.idx);
+    const it = drop._itemData[idx];
+    if (it) selectDrugItem(rowIdx, it.name, it.code, String(it.price||''), it.nonInsured, it.commission||'');
+  };
+
+  // 위치 계산
   const nameInput = document.getElementById('name-input-' + rowIdx);
   if (nameInput) {
     const rect = nameInput.getBoundingClientRect();
@@ -7762,6 +7782,9 @@ const CSOInspectionTab = {
 // 체크메이트 뷰 진입 시 자동 초기화
 const _origShowView = showView;
 </script>
+
+<!-- 전역 drug 자동완성 드롭다운 (body에 단일 관리) -->
+<div id="drug-drop-global" style="display:none;position:fixed;z-index:99999;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);max-height:240px;overflow-y:auto;min-width:280px;"></div>
 
 </body>
 </html>
