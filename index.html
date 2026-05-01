@@ -5156,6 +5156,8 @@ async function autoFillByCode(rowIdx, code) {
 
 let _drugSearchTimer = null;
 let _drugSearchCache = {};
+let _pharmaDrugCache = null;   // 현재 선택된 제약사 품목 캐시 (마스터 기반)
+let _pharmaDrugCacheKey = '';  // 어느 제약사 기준인지
 
 function focusNextInput(currentEl) {
   const allInputs = Array.from(document.querySelectorAll('#edi-body input:not([type=button]), #edi-body select'));
@@ -5245,6 +5247,28 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
   }, 80);
 }
 
+async function loadPharmaDrugCache(pharmaName) {
+  if (_pharmaDrugCacheKey === pharmaName && _pharmaDrugCache !== null) return;
+  _pharmaDrugCache = null;
+  _pharmaDrugCacheKey = pharmaName;
+  const pharma = masterPharma.find(p => p.name === pharmaName);
+  if (!pharma || !pharma.codes || !pharma.codes.length) {
+    _pharmaDrugCache = [];
+    return;
+  }
+  try {
+    const res = await fetch('/api/verify-codes', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codes: pharma.codes })
+    });
+    const { map } = await res.json();
+    _pharmaDrugCache = pharma.codes.map(code => {
+      const info = map && map[code];
+      return info ? { itmCd: code, itmNm: info.product_name, cpnyNm: info.company_name || pharmaName, clsgAmt: info.mx_cprc || 0 } : null;
+    }).filter(Boolean);
+  } catch(e) { _pharmaDrugCache = []; }
+}
+
 async function searchDrugByName(rowIdx, keyword) {
   const drop = document.getElementById('drug-drop-' + rowIdx);
   if (!keyword || keyword.length < 1) {
@@ -5252,43 +5276,29 @@ async function searchDrugByName(rowIdx, keyword) {
     return;
   }
 
-  const _pharmaKey = document.getElementById('h-pharma')?.value?.trim() || '';
-  const _cacheKey = _pharmaKey + '::' + keyword;
+  const pharmaName = document.getElementById('h-pharma')?.value?.trim() || '';
 
-  // 1. 정확한 캐시 히트 → 즉시
+  // 제약사 선택된 경우 → 마스터 품목에서만
+  if (pharmaName) {
+    await loadPharmaDrugCache(pharmaName);
+    const filtered = (_pharmaDrugCache || []).filter(d =>
+      (d.itmNm || '').includes(keyword)
+    );
+    renderDrugDrop(rowIdx, keyword, filtered);
+    return;
+  }
+
+  // 제약사 미선택 → 기존 API 검색
+  const _cacheKey = '::' + keyword;
   if (_drugSearchCache[_cacheKey]) {
     renderDrugDrop(rowIdx, keyword, _drugSearchCache[_cacheKey]);
     return;
   }
 
-  // 2. prefix 캐시에서 즉시 필터링 (같은 제약사 내에서만, pharmaKey 있을 때만)
-  const prefixMatch = _pharmaKey ? Object.keys(_drugSearchCache).find(k => k.startsWith(_pharmaKey + '::') && k.slice(_pharmaKey.length+2).length < keyword.length && keyword.startsWith(k.slice(_pharmaKey.length+2)) && _drugSearchCache[k].length > 0) : null;
-  if (prefixMatch) {
-    const filtered = _drugSearchCache[prefixMatch].filter(d =>
-      (d.itmNm||'').includes(keyword)
-    );
-    if (filtered.length > 0) {
-      renderDrugDrop(rowIdx, keyword, filtered);
-      // 백그라운드에서 더 정확한 결과로 교체
-      const _pharma1 = document.getElementById('h-pharma')?.value?.trim();
-      fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20&autocomplete=1${_pharma1?'&company='+encodeURIComponent(_pharma1):''}`)
-        .then(r => r.json()).then(({ data }) => {
-          if (data) {
-            _drugSearchCache[_cacheKey] = data;
-            const cur = document.getElementById('name-input-' + rowIdx)?.value;
-            if (cur === keyword) renderDrugDrop(rowIdx, keyword, data);
-          }
-        }).catch(()=>{});
-      return;
-    }
-  }
-
-  // 3. 캐시 없음 → 디바운스 후 API 호출
   clearTimeout(_drugSearchTimer);
   _drugSearchTimer = setTimeout(async () => {
     try {
-      const _pharma2 = document.getElementById('h-pharma')?.value?.trim();
-      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20&autocomplete=1${_pharma2?'&company='+encodeURIComponent(_pharma2):''}`);
+      const res = await fetch(`/api/drugs/search?keyword=${encodeURIComponent(keyword)}&limit=20&autocomplete=1`);
       const { data } = await res.json();
       _drugSearchCache[_cacheKey] = data || [];
       const cur = document.getElementById('name-input-' + rowIdx)?.value;
@@ -5687,6 +5697,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (input) {
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') searchDrugs();
+    });
+  }
+
+  // 제약사 선택 시 해당 제약사 품목 프리로드
+  const hPharma = document.getElementById('h-pharma');
+  if (hPharma) {
+    hPharma.addEventListener('change', () => {
+      const name = hPharma.value.trim();
+      _pharmaDrugCache = null;
+      _pharmaDrugCacheKey = '';
+      if (name) loadPharmaDrugCache(name);
     });
   }
 });
