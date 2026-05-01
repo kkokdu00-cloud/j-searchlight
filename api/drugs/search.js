@@ -112,6 +112,9 @@ module.exports = async (req, res) => {
       otcQuery = otcQuery.eq('edi_code', kw);
     } else {
       otcQuery = otcQuery.ilike('item_name', `%${kw}%`);
+      if (company && company.trim()) {
+        otcQuery = otcQuery.ilike('entp_name', `%${company.trim()}%`);
+      }
     }
 
     const [{ data: rows, error }, { data: otcRows, error: otcError }] = await Promise.all([
