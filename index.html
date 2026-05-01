@@ -1013,7 +1013,6 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">의약품검색</div>
     <button class="mnav-item" onclick="showView('drug');closeMobileNav()"><i data-lucide="pill" style="width:18px;height:18px;"></i> 제품 검색</button>
-    <button class="mnav-item" onclick="showView('commission');closeMobileNav()"><i data-lucide="percent" style="width:18px;height:18px;"></i> 제품수수료 관리</button>
     <div id="mnav-admin-section" style="display:none;">
       <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
       <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">의약품검색</div>
@@ -3301,6 +3300,8 @@ async function doSplitSave() {
     savedSessions.push({
       id: genId(), hospital, pharma: pharmaName, bizno, presc, settle,
       note: 'OCR 자동분리',
+      user_id: currentUser ? currentUser.id : null,
+      user_name: currentUser ? currentUser.name : '',
       rows: group.rows.map(r => {
         const pharma = masterPharma.find(p => p.name === pharmaName);
         const cr = pharma?.codeRates?.find(c => c.code === r.code);
@@ -3332,6 +3333,8 @@ async function doSplitSave() {
     savedSessions.push({
       id: genId(), hospital, pharma: pharmaName, bizno, presc, settle,
       note: 'OCR 자동분리(미매칭)',
+      user_id: currentUser ? currentUser.id : null,
+      user_name: currentUser ? currentUser.name : '',
       rows: unmatchedByPharma[pharmaName].map(r => ({ ...r, type: r.type || '처방' })),
       attachFiles: [],
       savedAt: new Date().toLocaleString('ko-KR')
@@ -4440,7 +4443,7 @@ function renderSettlement() {
   const hospitalEl  = document.getElementById('stl-hospital');
   const userEl      = document.getElementById('stl-user');
 
-  const sessions = isAdmin ? savedSessions : savedSessions.filter(s => s.user_id === currentUser.id);
+  const sessions = isAdmin ? savedSessions : savedSessions.filter(s => String(s.user_id) === String(currentUser.id));
 
   const pharmas   = [...new Set(sessions.map(s => s.pharma).filter(Boolean))].sort();
   const hospitals = [...new Set(sessions.map(s => s.hospital).filter(Boolean))].sort();
@@ -4465,7 +4468,7 @@ function getFilteredSettlementData() {
   const hospF    = document.getElementById('stl-hospital')?.value || '';
   const userF    = document.getElementById('stl-user')?.value || '';
 
-  let sessions = isAdmin ? savedSessions : savedSessions.filter(s => s.user_id === currentUser.id);
+  let sessions = isAdmin ? savedSessions : savedSessions.filter(s => String(s.user_id) === String(currentUser.id));
 
   if (from) sessions = sessions.filter(s => (s.presc||'') >= from);
   if (to)   sessions = sessions.filter(s => (s.settle||s.presc||'') <= to);
