@@ -3537,7 +3537,7 @@ async function saveData() {
     presc:       document.getElementById('h-presc').value,
     settle:      document.getElementById('h-settle').value,
     note:        document.getElementById('h-note').value,
-    rows:        JSON.parse(JSON.stringify(rows)),
+    rows:        JSON.parse(JSON.stringify(rows.filter(r => r.code || r.name))),
     attachFiles: savedAttachFiles,
     savedAt:     new Date().toLocaleString('ko-KR'),
     user_id:     currentUser ? currentUser.id : null,
@@ -5423,6 +5423,7 @@ async function afterLogin() {
   });
 
   // 3. 대시보드 즉시 표시 (데이터 없이 빈 상태)
+  closeMobileNav();
   showView('dashboard');
 
   // 4. 백그라운드에서 데이터 로드 후 갱신
