@@ -918,30 +918,28 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <div class="sub">EDI 관리 시스템</div>
   </div>
   <nav class="sidebar-nav">
+    <div class="nav-group-label">메인</div>
     <button class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
       <span class="nav-icon"><i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i></span> 대시보드
     </button>
     <div class="nav-divider"></div>
-    <div class="nav-group-label">EDI 관리</div>
-    <button class="nav-item" id="nav-input"  onclick="showView('input')">
+    <div class="nav-group-label">EDI</div>
+    <button class="nav-item" id="nav-input" onclick="showView('input')">
       <span class="nav-icon"><i data-lucide="file-plus" style="width:18px;height:18px;"></i></span> 신규 입력
     </button>
     <button class="nav-item" id="nav-list" onclick="showView('list')">
       <span class="nav-icon"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></span> 저장 목록
     </button>
-    <button class="nav-item" id="nav-master" onclick="showView('master')">
-      <span class="nav-icon"><i data-lucide="settings-2" style="width:18px;height:18px;"></i></span> 마스터 관리
+    <button class="nav-item" id="nav-settlement" onclick="showView('settlement')">
+      <span class="nav-icon"><i data-lucide="calculator" style="width:18px;height:18px;"></i></span> 정산 관리
     </button>
     <div class="nav-divider"></div>
-    <div class="nav-group-label">의약품</div>
+    <div class="nav-group-label">의약품검색</div>
     <button class="nav-item" id="nav-drug" onclick="showView('drug')">
       <span class="nav-icon"><i data-lucide="pill" style="width:18px;height:18px;"></i></span> 제품 검색
     </button>
-    <button class="nav-item admin-only" id="nav-commission" onclick="showView('commission')">
-      <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 수수료 관리
-    </button>
-    <button class="nav-item" id="nav-settlement" onclick="showView('settlement')">
-      <span class="nav-icon"><i data-lucide="calculator" style="width:18px;height:18px;"></i></span> 정산 관리
+    <button class="nav-item" id="nav-commission" onclick="showView('commission')">
+      <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 제품수수료 관리
     </button>
     <div id="nav-cso-wrap">
       <div class="nav-divider"></div>
@@ -956,14 +954,17 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
         <span class="nav-icon"><i data-lucide="search-check" style="width:18px;height:18px;"></i></span> 비교 검수
       </button>
     </div>
+    <div id="nav-users-wrap" style="display:none;">
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">관리자</div>
+      <button class="nav-item" id="nav-master" onclick="showView('master')">
+        <span class="nav-icon"><i data-lucide="settings-2" style="width:18px;height:18px;"></i></span> 마스터 관리
+      </button>
+      <button class="nav-item" id="nav-users" onclick="showView('users')">
+        <span class="nav-icon"><i data-lucide="users" style="width:18px;height:18px;"></i></span> 유저 관리
+      </button>
+    </div>
   </nav>
-  <div id="nav-users-wrap" style="display:none;">
-    <div class="nav-divider"></div>
-    <div class="nav-group-label">관리자</div>
-    <button class="nav-item" id="nav-users" onclick="showView('users')">
-      <span class="nav-icon"><i data-lucide="users" style="width:18px;height:18px;"></i></span> 유저 관리
-    </button>
-  </div>
   <div class="sidebar-footer">
     <div id="sidebar-user-name" style="font-size:13px;color:var(--gold);margin-bottom:6px;"></div>
     <button onclick="doLogout()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;">로그아웃</button>
@@ -1002,25 +1003,26 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
   </div>
   <!-- 메뉴 (스크롤) -->
   <nav style="flex:1;overflow-y:auto;padding:12px 8px;scrollbar-width:none;">
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">메인</div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">메인</div>
     <button class="mnav-item" onclick="showView('dashboard');closeMobileNav()"><i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> 대시보드</button>
+    <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">EDI</div>
     <button class="mnav-item" onclick="showView('input');closeMobileNav()"><i data-lucide="file-plus" style="width:18px;height:18px;"></i> 신규 입력</button>
     <button class="mnav-item" onclick="showView('list');closeMobileNav()"><i data-lucide="folder-open" style="width:18px;height:18px;"></i> 저장 목록</button>
-    <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">의약품</div>
-    <button class="mnav-item" onclick="showView('drug');closeMobileNav()"><i data-lucide="pill" style="width:18px;height:18px;"></i> 제품 검색</button>
     <button class="mnav-item" onclick="showView('settlement');closeMobileNav()"><i data-lucide="calculator" style="width:18px;height:18px;"></i> 정산 관리</button>
+    <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">의약품검색</div>
+    <button class="mnav-item" onclick="showView('drug');closeMobileNav()"><i data-lucide="pill" style="width:18px;height:18px;"></i> 제품 검색</button>
+    <button class="mnav-item" onclick="showView('commission');closeMobileNav()"><i data-lucide="percent" style="width:18px;height:18px;"></i> 제품수수료 관리</button>
+    <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">체크메이트</div>
+    <button class="mnav-item" onclick="showView('cso-upload');closeMobileNav()"><i data-lucide="upload" style="width:18px;height:18px;"></i> 데이터 업로드</button>
+    <button class="mnav-item" onclick="showView('cso-separation');closeMobileNav()"><i data-lucide="git-branch" style="width:18px;height:18px;"></i> 정산 분리</button>
+    <button class="mnav-item" onclick="showView('cso-inspection');closeMobileNav()"><i data-lucide="search-check" style="width:18px;height:18px;"></i> 비교 검수</button>
     <div id="mnav-admin-section" style="display:none;">
       <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
-      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">관리</div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">관리자</div>
       <button class="mnav-item" onclick="showView('master');closeMobileNav()"><i data-lucide="settings-2" style="width:18px;height:18px;"></i> 마스터 관리</button>
-      <button class="mnav-item" onclick="showView('commission');closeMobileNav()"><i data-lucide="percent" style="width:18px;height:18px;"></i> 수수료 관리</button>
-      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
-      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;text-transform:uppercase;">체크메이트</div>
-      <button class="mnav-item" onclick="showView('cso-upload');closeMobileNav()"><i data-lucide="upload" style="width:18px;height:18px;"></i> 데이터 업로드</button>
-      <button class="mnav-item" onclick="showView('cso-separation');closeMobileNav()"><i data-lucide="git-branch" style="width:18px;height:18px;"></i> 정산 분리</button>
-      <button class="mnav-item" onclick="showView('cso-inspection');closeMobileNav()"><i data-lucide="search-check" style="width:18px;height:18px;"></i> 비교 검수</button>
-      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
       <button class="mnav-item" onclick="showView('users');closeMobileNav()"><i data-lucide="users" style="width:18px;height:18px;"></i> 유저 관리</button>
     </div>
   </nav>
