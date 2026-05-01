@@ -938,7 +938,7 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <button class="nav-item" id="nav-drug" onclick="showView('drug')">
       <span class="nav-icon"><i data-lucide="pill" style="width:18px;height:18px;"></i></span> 제품 검색
     </button>
-    <button class="nav-item" id="nav-commission" onclick="showView('commission')">
+    <button class="nav-item admin-only" id="nav-commission" onclick="showView('commission')">
       <span class="nav-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></span> 제품수수료 관리
     </button>
     <div id="nav-cso-wrap">
@@ -1014,12 +1014,15 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">의약품검색</div>
     <button class="mnav-item" onclick="showView('drug');closeMobileNav()"><i data-lucide="pill" style="width:18px;height:18px;"></i> 제품 검색</button>
     <button class="mnav-item" onclick="showView('commission');closeMobileNav()"><i data-lucide="percent" style="width:18px;height:18px;"></i> 제품수수료 관리</button>
-    <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">체크메이트</div>
-    <button class="mnav-item" onclick="showView('cso-upload');closeMobileNav()"><i data-lucide="upload" style="width:18px;height:18px;"></i> 데이터 업로드</button>
-    <button class="mnav-item" onclick="showView('cso-separation');closeMobileNav()"><i data-lucide="git-branch" style="width:18px;height:18px;"></i> 정산 분리</button>
-    <button class="mnav-item" onclick="showView('cso-inspection');closeMobileNav()"><i data-lucide="search-check" style="width:18px;height:18px;"></i> 비교 검수</button>
     <div id="mnav-admin-section" style="display:none;">
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">의약품검색</div>
+      <button class="mnav-item" onclick="showView('commission');closeMobileNav()"><i data-lucide="percent" style="width:18px;height:18px;"></i> 제품수수료 관리</button>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">체크메이트</div>
+      <button class="mnav-item" onclick="showView('cso-upload');closeMobileNav()"><i data-lucide="upload" style="width:18px;height:18px;"></i> 데이터 업로드</button>
+      <button class="mnav-item" onclick="showView('cso-separation');closeMobileNav()"><i data-lucide="git-branch" style="width:18px;height:18px;"></i> 정산 분리</button>
+      <button class="mnav-item" onclick="showView('cso-inspection');closeMobileNav()"><i data-lucide="search-check" style="width:18px;height:18px;"></i> 비교 검수</button>
       <div style="height:1px;background:rgba(255,255,255,.08);margin:6px 8px;"></div>
       <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;padding:10px 12px 4px;">관리자</div>
       <button class="mnav-item" onclick="showView('master');closeMobileNav()"><i data-lucide="settings-2" style="width:18px;height:18px;"></i> 마스터 관리</button>
@@ -5407,6 +5410,7 @@ async function afterLogin() {
   document.getElementById('nav-users-wrap').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-master').style.display = isAdmin ? '' : 'none';
   document.getElementById('nav-cso-wrap').style.display = isAdmin ? '' : 'none';
+  document.getElementById('nav-commission').style.display = isAdmin ? '' : 'none';
   document.getElementById('mnav-admin-section').style.display = isAdmin ? '' : 'none';
   // 모바일 사이드바 유저명
   const mnu = document.getElementById('mobile-nav-username');
