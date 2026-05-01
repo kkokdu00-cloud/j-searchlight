@@ -163,7 +163,10 @@ module.exports = async (req, res) => {
       commissionAmt: 0
     }));
 
-    const combined = [...data, ...otcData];
+    // drug_master 우선, OTC는 코드 중복 제외
+    const masterCodes = new Set(data.map(d => d.itmCd).filter(Boolean));
+    const filteredOtc = otcData.filter(d => !d.itmCd || !masterCodes.has(d.itmCd));
+    const combined = [...data, ...filteredOtc];
 
     res.json({ data: combined, allDrugs: combined, total: combined.length });
   } catch (err) {
