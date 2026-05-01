@@ -5127,6 +5127,7 @@ function closeDrugDrop() {
 }
 
 function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
+  clearTimeout(_drugSearchTimer); // 진행 중인 검색 취소
   rows[rowIdx].name  = name;
   if (code !== undefined && code !== null) rows[rowIdx].code = code;
   if (price) rows[rowIdx].price = price;
@@ -5192,9 +5193,8 @@ function selectDrugItem(rowIdx, name, code, price, nonInsured, commission) {
 }
 
 async function searchDrugByName(rowIdx, keyword) {
-  const drop = document.getElementById('drug-drop-' + rowIdx);
   if (!keyword || keyword.length < 1) {
-    if (drop) drop.style.display = 'none';
+    closeDrugDrop();
     return;
   }
 
