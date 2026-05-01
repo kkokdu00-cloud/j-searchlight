@@ -5463,7 +5463,7 @@ async function loadSessionsForUser() {
     // user_id 일치 or NULL(기존 데이터)이면서 담당 거래처 병원인 것만
     const myHospitals = new Set(masterClients.map(c => c.name));
     savedSessions = allSessions.filter(s =>
-      s.user_id === currentUser.id ||
+      String(s.user_id) === String(currentUser.id) ||
       (!s.user_id && myHospitals.has(s.hospital))
     );
   } catch(e) { savedSessions = []; }
