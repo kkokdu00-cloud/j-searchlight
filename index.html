@@ -1501,7 +1501,13 @@ textarea.form-control { height:auto; padding:10px 12px; resize:vertical; line-he
 
     <!-- 거래처 마스터 -->
     <div class="card">
-      <div class="section-title"><i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 거래처(병의원) 마스터</div>
+      <div class="section-title">
+        <i data-lucide="stethoscope" style="width:16px;height:16px;vertical-align:-3px;"></i> 거래처(병의원) 마스터
+        <label class="btn btn-sm" style="cursor:pointer;font-size:13px;margin-left:auto;">
+          📂 일괄 등록 (엑셀)
+          <input type="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="bulkImportClients(this)">
+        </label>
+      </div>
       <div id="clients-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:4px;"></div>
       <div id="clients-empty" class="empty-tip">등록된 거래처가 없습니다.</div>
       <div class="master-form-area" id="client-form-area">
@@ -4275,6 +4281,65 @@ function showToast(msg, duration) {
 // ══════════════════════════════════════════════
 // BULK PHARMA IMPORT (A=보험코드, B=제약사명)
 // ══════════════════════════════════════════════
+function bulkImportClients(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data    = new Uint8Array(e.target.result);
+      const wb      = XLSX.read(data, { type: 'array' });
+      const ws      = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      if (!rawRows.length) { showToast('파일에 데이터가 없습니다.'); return; }
+
+      // 첫 행이 헤더면 스킵
+      let startIdx = 0;
+      const firstCell = String(rawRows[0][0] || '').trim();
+      if (firstCell && isNaN(firstCell.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z]/g, '') || '0')) startIdx = 1;
+
+      // A=거래처명, B=사업자번호, C=지역, D=업체, E=비고
+      let added = 0, updated = 0;
+      for (let i = startIdx; i < rawRows.length; i++) {
+        const name   = String(rawRows[i][0] || '').trim();
+        if (!name) continue;
+        const bizno   = String(rawRows[i][1] || '').trim();
+        const region  = String(rawRows[i][2] || '').trim();
+        const manager = String(rawRows[i][3] || '').trim();
+        const note    = String(rawRows[i][4] || '').trim();
+
+        const existing = masterClients.find(c => c.name === name);
+        if (existing) {
+          if (bizno)   existing.bizno   = bizno;
+          if (region)  existing.region  = region;
+          if (manager) existing.manager = manager;
+          if (note)    existing.note    = note;
+          updated++;
+        } else {
+          masterClients.push({ id: genId(), name, bizno, region, manager, note });
+          added++;
+        }
+      }
+
+      if (added + updated === 0) {
+        showToast('유효한 데이터가 없습니다. A열=거래처명 형식을 확인하세요.', 4000);
+        return;
+      }
+
+      saveClients();
+      updateDataLists();
+      renderClientMaster();
+      showToast(`${added}개 신규 등록, ${updated}개 업데이트 완료`);
+    } catch(err) {
+      showToast('파일 파싱 실패: ' + err.message, 3500);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function bulkImportPharma(input) {
   const file = input.files[0];
   if (!file) return;
