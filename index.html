@@ -5265,7 +5265,7 @@ function renderDrugDrop(rowIdx, keyword, data) {
   if (!items.length) { drop.style.display = 'none'; return; }
 
   drop.innerHTML = items.map(it => `
-    <div class="drug-drop-item" onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')"
+    <div class="drug-drop-item" onmousedown="selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')" ontouchstart="event.preventDefault();selectDrugItem(${rowIdx}, '${esc(it.name)}', '${esc(it.code)}', '${esc(String(it.price))}', ${it.nonInsured}, '${it.commission||''}')"
       style="padding:7px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;"
       onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background=''">
       <span>${it.nonInsured ? '<span style=\"color:#e67e22;font-size:11px;margin-right:4px;\">[비급여]</span>' : ''}${esc(it.name)}</span>
@@ -6053,6 +6053,14 @@ let commissionData = [];
 document.addEventListener('DOMContentLoaded', () => {
   setupDragDrop();
   loadCommissionList();
+
+  // 제약사 변경 시 드럭 검색 캐시 초기화 (제약사 필터 반영)
+  const hPharmaEl = document.getElementById('h-pharma');
+  if (hPharmaEl) {
+    hPharmaEl.addEventListener('change', () => {
+      _drugSearchCache = {};
+    });
+  }
 });
 
 // ===================== DRAG & DROP =====================
