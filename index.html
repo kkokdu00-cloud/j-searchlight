@@ -6397,7 +6397,7 @@ const Drawer = {
   }
 };
 
-function renderTable(columns, data, opts={}) {
+function renderCSOTable(columns, data, opts={}) {
   if (!data || !data.length) return `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">데이터 없음</div></div>`;
   const ths = columns.map(c=>`<th>${c.label}</th>`).join('');
   const trs = data.map((row,i)=>`<tr>${columns.map(c=>`<td>${c.render(row,i)??''}</td>`).join('')}</tr>`).join('');
@@ -6798,7 +6798,7 @@ const CSOUploadTab = {
         return;
       }
       const typeBadge = t => t === 'prescription' ? `<span class="badge badge-blue">처방</span>` : `<span class="badge badge-green">정산</span>`;
-      container.innerHTML = renderTable([
+      container.innerHTML = renderCSOTable([
         { label: '#', render: r => r.id },
         { label: '유형', render: r => typeBadge(r.file_type) },
         { label: '파일명', render: r => { const n = decodeFileName(r.file_name); return `<span title="${n}">${Fmt.short(n,20)}</span>`; } },
@@ -6997,7 +6997,7 @@ const CSOSeparationTab = {
     const rows = mappings.slice(0, 300);
     Modal.show(`거래처 매핑 목록 (${Fmt.num(mappings.length)}건)`,
       `<div style="max-height:400px;overflow-y:auto">
-        ${renderTable([
+        ${renderCSOTable([
           { label: '병원명',     render: (r) => r.hospital_name || '-' },
           { label: '사업자번호', render: (r) => `<span class="mono">${r.biz_no || '-'}</span>` },
           { label: '정산처',     render: (r) => r.settle_org || '-' },
@@ -7076,7 +7076,7 @@ const CSOSeparationTab = {
             <span class="card-title" style="color:var(--red)">⚠ 미매핑 항목 (${Fmt.num(unclassified.length)}건 / 병원 ${Fmt.num(uniqueUnclassified.length)}곳)</span>
             <span style="font-size:12px;color:var(--muted)">➕ 버튼으로 매핑 추가 후 재분리</span>
           </div>
-          ${renderTable([
+          ${renderCSOTable([
             { label: '병원명',     render: (r, i) => unclassified[i]?.hospital_name || '-' },
             { label: '사업자번호', render: (r, i) => `<span class="mono">${unclassified[i]?.biz_no || '-'}</span>` },
             { label: '제품명',     render: (r, i) => unclassified[i]?.product_name || '-' },
@@ -7488,7 +7488,7 @@ const CSOInspectionTab = {
             </div>
           </div>
         </div>
-        ${renderTable([
+        ${renderCSOTable([
           { label: '#',       render: (r,i) => i+1 },
           { label: '상태',    render: r => statusBadge(r.status) },
           { label: '병원명',  render: r => r.settlement?.hospital_name || '-' },
@@ -7570,7 +7570,7 @@ const CSOInspectionTab = {
       const list = await CSOAPI.get(`/api/cso/data?resource=inspection&action=results&pharma_id=${CSOApp.pharmaId}`);
       const container = document.getElementById('resultSelector');
       if (!list.length) { container.innerHTML = `<div class="empty-state" style="padding:30px"><div class="empty-state-text">검수 결과 없음</div></div>`; return; }
-      container.innerHTML = renderTable([
+      container.innerHTML = renderCSOTable([
         { label: '#',         render: r => r.id },
         { label: '기준월',    render: r => r.ref_month || '-' },
         { label: '처방 업로드', render: r => `#${r.prescription_upload_id}` },
@@ -7699,7 +7699,7 @@ const CSOInspectionTab = {
           <div class="kpi-value" style="font-size:16px;color:var(--yellow)">${totals.no_match + totals.prescr_only}</div>
         </div>
       </div>
-      ${renderTable([
+      ${renderCSOTable([
         { label: '#',        render: (r,i) => i+1 },
         { label: '상태',     render: r => statusBadge(r.status) },
         { label: '거래처명', render: r => r.hospital_name },
