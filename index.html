@@ -3335,7 +3335,12 @@ async function doSplitSave() {
       note: 'OCR 자동분리(미매칭)',
       user_id: currentUser ? currentUser.id : null,
       user_name: currentUser ? currentUser.name : '',
-      rows: unmatchedByPharma[pharmaName].map(r => ({ ...r, type: r.type || '처방' })),
+      rows: unmatchedByPharma[pharmaName].map(r => {
+        const pharmaObj = masterPharma.find(p => p.name === pharmaName);
+        const cr = pharmaObj?.codeRates?.find(c => c.code === r.code);
+        const rateVal = cr && cr.rate > 0 ? (cr.rate <= 1 ? cr.rate * 100 : cr.rate) : null;
+        return { ...r, type: r.type || '처방', ...(rateVal ? { commission: String(Math.round(rateVal * 10) / 10), commissionFixed: true } : {}) };
+      }),
       attachFiles: [],
       savedAt: new Date().toLocaleString('ko-KR')
     });
