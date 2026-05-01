@@ -5464,7 +5464,7 @@ async function loadSessionsForUser() {
     const myHospitals = new Set(masterClients.map(c => c.name));
     savedSessions = allSessions.filter(s =>
       String(s.user_id) === String(currentUser.id) ||
-      (!s.user_id && myHospitals.has(s.hospital))
+      !s.user_id
     );
   } catch(e) { savedSessions = []; }
 }
