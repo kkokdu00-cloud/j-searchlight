@@ -4432,6 +4432,7 @@ function resetSettlementFilter() {
 }
 
 function renderSettlement() {
+  if (!currentUser) return;
   const isAdmin = currentUser && currentUser.role === 'admin';
 
   // 관리자 전용 필터 표시
@@ -4461,6 +4462,7 @@ function renderSettlement() {
 }
 
 function getFilteredSettlementData() {
+  if (!currentUser) return [];
   const isAdmin  = currentUser && currentUser.role === 'admin';
   const from     = document.getElementById('stl-from')?.value || '';
   const to       = document.getElementById('stl-to')?.value || '';
