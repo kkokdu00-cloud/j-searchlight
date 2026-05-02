@@ -434,7 +434,6 @@ module.exports = async function handler(req, res) {
         for (const r of prescrRows) {
           const row = JSON.parse(r.data_json);
           if (!row.hospital_name && row._raw && row.biz_no) { const bizIdx=row._raw.findIndex(v=>String(v).replace(/[^0-9]/g,'')===row.biz_no); if(bizIdx>=0&&row._raw[bizIdx+1])row.hospital_name=String(row._raw[bizIdx+1]).trim(); }
-          if (row._raw&&row._raw[11]!=null&&row._raw[12]!=null) { const sales=parseFloat(row._raw[11])||0,fee=parseFloat(row._raw[12])||0; if(Math.abs(row.amount-fee)<1)row.amount=sales; }
           const rawName=(row.hospital_name||'').trim(); if(!rawName)continue;
           const normName=normalizeName(rawName);
           if(!prescrMap[normName])prescrMap[normName]={hospital_name:rawName,prescription_amount:0,biz_no:row.biz_no||''};
